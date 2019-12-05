@@ -1,4 +1,5 @@
 import click
+import time
 
 HELP = """
 Demonstrate how the interface can pontentially work, by faking requests
