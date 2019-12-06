@@ -13,6 +13,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'Click>=7.0',
+    'cookiecutter>=1.6.0',
 ]
 
 setup_requirements = []
