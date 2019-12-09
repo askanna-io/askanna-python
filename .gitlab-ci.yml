@@ -1,0 +1,19 @@
+variables:
+  ASKANNA_VERSION: 0.1.0
+  SENTRY_URL: https://sentry.askanna.io/
+
+stages:
+  - test
+
+test_cli:
+  image: python:3-slim
+  stage: test
+  tags:
+    - normal
+  
+  before_script:
+    - echo "Welcome to the testrun on gitlab-ci for askanna-cli"
+    - pip install -U -r requirements_dev.txt
+  
+  script:
+    - python -m unittest
