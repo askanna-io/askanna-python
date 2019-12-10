@@ -1,19 +1,46 @@
-variables:
-  ASKANNA_VERSION: 0.1.0
-  SENTRY_URL: https://sentry.askanna.io/
-
 stages:
   - test
 
-test_cli:
-  image: python:3-slim
+.test_template: &test_template
   stage: test
+  before_script:
+    - pip install -U pip
+    - pip install -U -r requirements_dev.txt
   tags:
     - normal
   
-  before_script:
-    - echo "Welcome to the testrun on gitlab-ci for askanna-cli"
-    - pip install -U -r requirements_dev.txt
-  
+python3:
+  <<: *test_template
+  image: python:3-slim
   script:
     - pytest
+
+python flake:
+  <<: *test_template 
+  image: python:3-slim
+  script:
+    - tox -e flake8
+
+python 35:
+  <<: *test_template
+  image: python:3.5
+  script:
+    - tox -e py35
+
+python 36:
+  <<: *test_template
+  image: python:3.6
+  script:
+    - tox -e py36
+
+python 37:
+  <<: *test_template
+  image: python:3.7
+  script:
+    - tox -e py37
+
+python 38:
+  <<: *test_template
+  image: python:3.8
+  script:
+    - tox -e py38
