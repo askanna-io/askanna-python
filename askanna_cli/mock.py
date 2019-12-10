@@ -33,7 +33,7 @@ def cli():
     print("**** Start upload to https://sa080asdf098ads0f8a08asfd.afs.askanna.io/awesomeproject/upload ****")
     for x in range(1, 100):
         if verbose > 2:
-            print(f"**** uploading piece {x}/100 ")
+            print("**** uploading piece {x}/100 ".format(x=x))
         time.sleep(100/1000)
     print("**** upload completed *****")
     time.sleep(250/1000)

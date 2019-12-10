@@ -26,7 +26,7 @@ def cli(kernel):
         try:
             torun = kernels[kernel]
         except KeyError:
-            click.echo(f"No Kernel with name {kernel}")
+            click.echo("No Kernel with name {kernel}".format(kernel=kernel))
             return 0
 
         torun.run_kernel()
@@ -36,7 +36,7 @@ def cli(kernel):
         if kernels:
             click.echo("The following kernels are available:")
             for key, value in kernels.items():
-                click.echo(f"\t{key}")
+                click.echo("\t{key}".format(key=key))
 
             click.echo("\nRun with:\n")
             click.echo("\taskanna run [kernel]")
