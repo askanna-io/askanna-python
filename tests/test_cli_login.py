@@ -1,6 +1,3 @@
-import pytest
-import unittest
-
 from .base import BaseCLItest
 
 

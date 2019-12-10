@@ -30,7 +30,7 @@ def cli():
     time.sleep(250/1000)
     print("**** chunking package 1000 GB into 100 pieces *****")
     time.sleep(2000/1000)
-    url = "https://sa080asdf098ads0f8a08asfd.afs.askanna.io/awesomeproject/upload"
+    url = "https://sa080asdf098ads0f8a08asfd.afs.askanna.io/awesomeproject/upload"  # NOQA
     print("**** Start upload to {url} ****".format(url=url))
     for x in range(1, 100):
         if verbose > 2:
@@ -42,7 +42,7 @@ def cli():
     time.sleep(500/1000)
 
     response_url = "https://askanna.io/awesomeproject/job/49283/status"
-    print("**** [ASKANNA] Congratulations Bob! Your submission is well received ****")
+    print("**** [ASKANNA] Congratulations Bob! Your submission is well received ****")  # NOQA
     print("**** [ASKANNA] Access: {response_url} *****".format(
         response_url=response_url)
     )
