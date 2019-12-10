@@ -6,7 +6,7 @@ Core team
 ---------
 
 * Antonis Sgouros <antonis@askanna.io>
-* Anthony Leung <anthony@askanna.io>
+* Wai Yi Anthony Leung <anthony@askanna.io>
 
 Contributors
 ------------
