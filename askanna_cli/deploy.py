@@ -24,7 +24,7 @@ def cli():
 
     pwd = os.getcwd()
 
-    print(f"We are located in: {pwd}")
+    print("We are located in: {pwd}".format(pwd=pwd))
 
     if not check_for_project():
         click.echo("Not in a project folder, exiting")
@@ -52,5 +52,5 @@ def cli():
         click.echo("You can see your package in: ")
         askanna_location = r.json()
         _location = askanna_location.get('crazyfile')
-        click.echo(f"\t{_location}")
+        click.echo("\t{_location}".format(_location=_location))
 
