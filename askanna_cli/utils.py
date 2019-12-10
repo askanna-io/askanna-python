@@ -1,3 +1,5 @@
+import os
+import glob
 
 
 def update_available(silent_fail=True):
@@ -16,3 +18,20 @@ def update_available(silent_fail=True):
 
         # Don't let this interfere with askanna_cli usage
         return None
+
+def check_for_project():
+    """
+    Performs a check if we are operating within a project folder. When
+    we wish to perform a deploy action, we want to be on the same
+    level with the ``setup.py`` to be able to package the file.
+    """
+    cwd = os.getcwd()
+
+    pyfiles = glob.glob('*.py')
+
+    # look for the setup.py file
+    if 'setup.py' in pyfiles:
+        return True
+
+    else:
+        return False
