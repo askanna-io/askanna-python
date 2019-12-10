@@ -36,6 +36,7 @@ commands = [
     "createproject",
     "run",
     "mock",
+    "deploy",
 ]
 
 for command in commands:
