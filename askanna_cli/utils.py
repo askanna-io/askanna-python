@@ -19,6 +19,7 @@ def update_available(silent_fail=True):
         # Don't let this interfere with askanna_cli usage
         return None
 
+
 def check_for_project():
     """
     Performs a check if we are operating within a project folder. When
