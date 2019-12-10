@@ -21,6 +21,13 @@ python flake:
   script:
     - tox -e flake8
 
+python lint:
+  <<: *test_template
+  image: python:3-slim
+  script:
+    - make lint
+  allow_failure: true
+
 python 35:
   <<: *test_template
   image: python:3.5
