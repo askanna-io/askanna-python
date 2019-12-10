@@ -16,4 +16,4 @@ test_cli:
     - pip install -U -r requirements_dev.txt
   
   script:
-    - python -m unittest
+    - pytest
