@@ -4,7 +4,7 @@ import unittest
 from .base import BaseCLItest
 
 
-class TestCliLogin(BaseCLItest):
+class TestCliLogout(BaseCLItest):
     """
     askanna logout
 

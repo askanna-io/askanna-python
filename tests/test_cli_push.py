@@ -4,7 +4,7 @@ import unittest
 from .base import BaseCLItest
 
 
-# class TestCliLogin(BaseCLItest):
+# class TestCliPush(BaseCLItest):
 #     """
 #     askanna push
 
