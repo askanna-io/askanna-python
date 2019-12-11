@@ -1,6 +1,7 @@
 stages:
   - test
   - build
+  - verifybuild
 
 .test_template: &test_template
   stage: test
@@ -63,6 +64,7 @@ python 38:
   except:
     - triggers
     - schedules
+    - branches
 
 build_docker_image_version:
   <<: *build_docker_image_template
@@ -71,5 +73,18 @@ build_docker_image_version:
 
 build_docker_image_master:
   <<: *build_docker_image_template
+  except:
+    - triggers
   only:
     - master
+
+verify_docker_build:
+  stage: verifybuild
+  image: gitlab.askanna.io:4567/askanna/askanna-cli:$CI_COMMIT_REF_NAME
+  tags:
+    - normal
+  script:
+    - askanna
+  only:
+    - master
+    - /v*.*.*/
