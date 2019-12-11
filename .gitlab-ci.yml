@@ -70,7 +70,6 @@ python 38:
   except:
     - triggers
     - schedules
-    - branches
 
 build_docker_image_version:
   <<: *build_docker_image_template
