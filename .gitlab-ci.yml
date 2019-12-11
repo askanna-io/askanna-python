@@ -69,14 +69,16 @@ python 38:
 build_docker_image_version:
   <<: *build_docker_image_template
   only:
-    - /v*.*.*/
+    refs:
+      - /v*.*.*/
 
 build_docker_image_master:
   <<: *build_docker_image_template
   except:
     - triggers
   only:
-    - master
+    refs:
+      - master
 
 verify_docker_build:
   stage: verifybuild
@@ -86,5 +88,6 @@ verify_docker_build:
   script:
     - askanna
   only:
-    - master
-    - /v*.*.*/
+    refs:
+      - master
+      - /v*.*.*/
