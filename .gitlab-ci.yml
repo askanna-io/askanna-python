@@ -97,4 +97,3 @@ verify_docker_build:
   only:
     refs:
       - master
-      - /v*.*.*/
