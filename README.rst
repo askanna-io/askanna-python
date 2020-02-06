@@ -2,7 +2,7 @@
 askanna-cli
 ===========
 
-askanna-cli offers a cli interface for creating AskAnna and supported DSP
+askanna-cli offers a CLI interface for creating AskAnna and supported DSP
 projects. It simplifies the communication with the AskAnna platform and
 provides facilities for supporting every part of the data science process.
 
