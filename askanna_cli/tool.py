@@ -6,7 +6,7 @@ import askanna_cli
 from askanna_cli.utils import update_available
 
 HELP = """
-Hello to this world!
+AskAnna CLI helps you running DSP
 """
 
 SHORT_HELP = "AskAnna command-line client"
@@ -35,6 +35,7 @@ commands = [
     "logout",
     "createproject",
     "run",
+    "package",
     "mock",
     "deploy",
 ]
