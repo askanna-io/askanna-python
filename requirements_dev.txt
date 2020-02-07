@@ -8,10 +8,8 @@ pytest~=5.3.1
 cookiecutter~=1.6.0
 sphinx-rtd-theme~=0.4.3
 
-<<<<<<< HEAD
-# Config yaml interpretation
-confuse==1.0.0  # https://pypi.org/project/confuse/
-=======
 # support for resumable files to simulate resumable.js
 resumable==0.1.1  # https://github.com/acroz/resumable.py
->>>>>>> cf5a735... [IMP] - #20 - Add CLI command package
+
+# yaml support 
+PyYAML==5.3  # https://pypi.org/project/PyYAML/#description 
