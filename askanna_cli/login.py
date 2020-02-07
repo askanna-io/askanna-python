@@ -34,10 +34,7 @@ def login():
     }
 
     r = requests.post(url, json=login_dict)
-    # print(r.headers)
-    # print(r.json())
     token = r.json().get('key')
-    # print(f"Token in login is {token}")
     return str(token)
 
 def get_user_info(token):
@@ -46,7 +43,7 @@ def get_user_info(token):
 
     headers = {
         'user-agent': 'askanna-cli/0.0.1',
-        'Authorization': f"Token {token}"
+        'Authorization': "Token {token}".format(token=token)
     }
     ruser  = requests.get(url, headers=headers)
     print(ruser.text)
@@ -57,6 +54,17 @@ def store_config(config):
     output = dump(original_config, Dumper=Dumper) 
     print(output)
     return output
+
+def do_login():
+    token = login()
+    new_config = {
+        'auth': {
+            'token': token
+        }
+    }
+    config = store_config(new_config)
+    with open(os.path.expanduser("~/.askanna.yml"), "w") as fd:
+        fd.write(config)    
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
@@ -71,26 +79,11 @@ def cli():
             click.echo("You are already logged in")
             # validate_token()
             token = config['auth']['token']
+            # Showcase with this token, who we are
             get_user_info(token)
             sys.exit()
         else:
             # click.echo("Logging in for you")
-            token = login()
-            print(f"Token is {token}")
-            new_config = {
-                'auth': {
-                    'token': token
-                }
-            }
-            store_config(new_config)
+            do_login()
     else:
-        token = login()
-        print(f"Token is {token}")
-        new_config = {
-            'auth': {
-                'token': token
-            }
-        }
-        config = store_config(new_config)
-        with open(os.path.expanduser("~/.askanna.yml"), "w") as fd:
-            fd.write(config)    
+        do_login()
