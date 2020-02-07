@@ -1,9 +1,7 @@
 import os
 import glob
-import confuse
 
 from pathlib import Path
-
 
 from yaml import load, dump
 try:
@@ -11,7 +9,6 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-CONFIG_USERCONFIG_FILE = "~/.config/askanna.yml"
 CONFIG_USERHOME_FILE = "~/.askanna.yml"
 
 def init_checks():
@@ -22,7 +19,6 @@ def init_checks():
 def create_config(location: str):
     expanded_path = os.path.expanduser(location)
     folder = os.path.dirname(expanded_path)
-    filename = os.path.basename(expanded_path)
 
     if not os.path.exists(folder):
         os.makedirs(folder, exist_ok=True)
@@ -54,24 +50,20 @@ def check_for_project():
     we wish to perform a deploy action, we want to be on the same
     level with the ``setup.py`` to be able to package the file.
     """
-    cwd = os.getcwd()
-
     pyfiles = glob.glob('*.py')
 
     # look for the setup.py file
     if 'setup.py' in pyfiles:
         return True
-
     else:
         return False
 
 def get_config() -> dict:
-    config = load(open(os.path.expanduser("~/.askanna.yml"), 'r'), Loader=Loader)
+    config = load(open(os.path.expanduser(CONFIG_USERHOME_FILE), 'r'), Loader=Loader)
     return config
 
 def store_config(config):
     original_config = get_config()
     original_config.update(**config)
     output = dump(original_config, Dumper=Dumper) 
-    print(output)
     return output
