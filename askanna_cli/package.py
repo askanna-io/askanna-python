@@ -1,3 +1,4 @@
+import io
 import os
 import glob
 import requests
@@ -10,6 +11,8 @@ from zipfile import ZipFile
 import click
 import requests
 import resumable
+import mimetypes
+
 
 from askanna_cli.utils import check_for_project
 
@@ -63,6 +66,24 @@ def package(src):
 KiB = 1024
 MiB = 1024 * KiB
 
+def _file_type(path):
+    """Mimic the type parameter of a JS File object.
+    Resumable.js uses the File object's type attribute to guess mime type,
+    which is guessed from file extention accoring to
+    https://developer.mozilla.org/en-US/docs/Web/API/File/type.
+    Parameters
+    ----------
+    path : str
+        The path to guess the mime type of
+    Returns
+    -------
+    str
+        The inferred mime type, or '' if none could be inferred
+    """
+    type_, _ = mimetypes.guess_type(path)
+    # When no type can be inferred, File.type returns an empty string
+    return '' if type_ is None else type_
+
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
@@ -110,20 +131,45 @@ def cli():
     for i, chunk in enumerate(resumable_file.chunks):
         config = chunk_dict.copy()
         config.update(**{
-            "filename": chunk.index,
+            "filename": chunk.index + 1,
             "size": chunk.size,
-            "file_no": chunk.index
+            "file_no": chunk.index + 1,
+            "is_last": len(resumable_file.chunks) == chunk.index + 1
         })
 
         # request chunk id from API
-
         req_chunk = requests.post(
             chunk_url,
             json=config
         )
         chunk_uuid = req_chunk.json().get('uuid')
-        print(req_chunk.text)
-        print(chunk_uuid)
+        # print(req_chunk.text)
+        # print(chunk_uuid)
 
         # do actual uploading
         # compose request with actual data
+        chunk_url_ep = "http://localhost:8005/api/v1/chunkpackagepart/{uuid}/chunk_receiver/".format(
+            uuid=chunk_uuid
+        )
+
+        files = {
+            'file': io.BytesIO(chunk.read())
+        }
+        data = {
+            'resumableChunkSize': resumable_file.chunk_size,
+            'resumableTotalSize': resumable_file.size,
+            'resumableType': _file_type(resumable_file.path),
+            'resumableIdentifier': str(resumable_file.unique_identifier),
+            'resumableFilename': os.path.basename(resumable_file.path),
+            'resumableRelativePath': resumable_file.path,
+            'resumableTotalChunks': len(resumable_file.chunks),
+            'resumableChunkNumber': chunk.index + 1,
+            'resumableCurrentChunkSize': chunk.size
+        }
+        specific_chunk_req = requests.post(
+            chunk_url_ep,
+            data=data,
+            files=files
+        )
+        # print(specific_chunk_req.headers)
+        # print(specific_chunk_req.text)
