@@ -6,7 +6,7 @@ import askanna_cli
 from askanna_cli.utils import update_available
 
 HELP = """
-Hello to this world!
+AskAnna CLI helps you running DSP
 """
 
 SHORT_HELP = "AskAnna command-line client"
@@ -26,7 +26,7 @@ CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
 def cli():
     update_url = update_available()
     if update_url:
-        Click.echo("INFO: A newer version of askanna_cli is available. Update "
+        click.echo("INFO: A newer version of askanna_cli is available. Update "
                    "via pip or get it at {}".format(update_url), err=True)
 
 
@@ -35,6 +35,7 @@ commands = [
     "logout",
     "createproject",
     "run",
+    "package",
     "mock",
     "deploy",
 ]

@@ -7,3 +7,6 @@ flake8==3.5.0
 pytest~=5.3.1
 cookiecutter~=1.6.0
 sphinx-rtd-theme~=0.4.3
+
+# support for resumable files to simulate resumable.js
+resumable==0.1.1  # https://github.com/acroz/resumable.py
