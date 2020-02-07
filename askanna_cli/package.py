@@ -46,16 +46,8 @@ def package(src):
     pwd_dir_name = os.path.basename(src)
     random_suffix = uuid.uuid4().hex
 
-    # export_file_path = os.path.join(
-    #     '/',
-    #     'tmp',
-    #     f"{pwd_dir_name}_package"
-    # )
-
-    # shutil.rmtree(export_file_path) #delete dst before write to
-    # shutil.copytree(src, export_file_path)
-
-    random_name = os.path.join("/", "tmp", "{pwd_dir_name}_{random_suffix}.zip".format(
+    random_name = os.path.join(
+        "/", "tmp", "{pwd_dir_name}_{random_suffix}.zip".format(
         pwd_dir_name=pwd_dir_name,
         random_suffix=random_suffix
     ))
@@ -100,10 +92,9 @@ def cli():
     package_dict = {
         "filename": os.path.basename(ziparchive),
         "storage_location": "somewhere",
-        "project_id": 0,  ## Need to extract this from config or local config
+        "project_id": 0,  # FIXME: Need to extract this from config or local config
         "size": os.stat(ziparchive).st_size, ## to be determined
-        "created_by": 1,  # our user
-        "deleted_at": "2020-02-07T10:43:31.930Z"
+        "created_by": 1,  # FIXME: our user
     }
 
     # first register package
@@ -124,11 +115,10 @@ def cli():
         "file_no": 0,
         "is_last": False,
         "package": package_uuid,
-        "deleted_at": "2020-02-07T13:29:35.910Z"
     }
 
     resumable_file = resumable.file.ResumableFile(ziparchive, 100*KiB)
-    for i, chunk in enumerate(resumable_file.chunks):
+    for chunk in resumable_file.chunks:
         config = chunk_dict.copy()
         config.update(**{
             "filename": chunk.index + 1,
