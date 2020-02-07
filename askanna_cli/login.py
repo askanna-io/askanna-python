@@ -5,13 +5,7 @@ import click
 import requests
 
 from askanna_cli.exceptions import AlreadyLoggedInException
-from askanna_cli.utils import init_checks
-
-from yaml import load, dump
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
+from askanna_cli.utils import init_checks, get_config, store_config
 
 HELP = """
 Add your AskAnna API key to your global configuration file
@@ -26,6 +20,7 @@ SHORT_HELP = "Save your AskAnna API key"
 
 def login():
     url = "https://api.askanna.eu/rest-auth/login/"
+    print("Please provide your credentials to log into AskAnna")
     username = input("Username: ")
     password = input("Password: ")
     login_dict = {
@@ -48,14 +43,10 @@ def get_user_info(token):
     ruser  = requests.get(url, headers=headers)
     print(ruser.text)
 
-def store_config(config):
-    original_config = load(open(os.path.expanduser("~/.askanna.yml"), 'r'), Loader=Loader)
-    original_config.update(**config)
-    output = dump(original_config, Dumper=Dumper) 
-    print(output)
-    return output
-
 def do_login():
+    """
+    Pipeline of actions to do login and store the config into local config
+    """
     token = login()
     new_config = {
         'auth': {
@@ -69,10 +60,9 @@ def do_login():
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
     init_checks()
-    config = load(open(os.path.expanduser("~/.askanna.yml"), 'r'), Loader=Loader)
+    config = get_config()
 
     click.echo("This is performing the login action")
-
 
     if config.get('auth'):
         if config['auth'].get('token'):

@@ -4,6 +4,13 @@ import confuse
 
 from pathlib import Path
 
+
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 CONFIG_USERCONFIG_FILE = "~/.config/askanna.yml"
 CONFIG_USERHOME_FILE = "~/.askanna.yml"
 
@@ -58,3 +65,14 @@ def check_for_project():
 
     else:
         return False
+
+def get_config() -> dict:
+    config = load(open(os.path.expanduser("~/.askanna.yml"), 'r'), Loader=Loader)
+    return config
+
+def store_config(config):
+    original_config = get_config()
+    original_config.update(**config)
+    output = dump(original_config, Dumper=Dumper) 
+    print(output)
+    return output
