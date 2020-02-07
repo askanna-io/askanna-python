@@ -48,7 +48,10 @@ def package(src):
     # shutil.rmtree(export_file_path) #delete dst before write to
     # shutil.copytree(src, export_file_path)
 
-    random_name = os.path.join("/", "tmp", f"{pwd_dir_name}_{random_suffix}.zip")
+    random_name = os.path.join("/", "tmp", "{pwd_dir_name}_{random_suffix}.zip".format(
+        pwd_dir_name=pwd_dir_name,
+        random_suffix=random_suffix
+    ))
 
     zipFilesInDir(src, random_name, lambda x: x)
     return random_name
@@ -63,6 +66,6 @@ def cli():
 
     ziparchive = package(pwd)
 
-    click.echo(f"Finished package: {ziparchive}")
+    click.echo("Finished package: {ziparchive}".format(ziparchive=ziparchive))
     click.echo("Uploading to AskAnna...")
  
