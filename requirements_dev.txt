@@ -10,3 +10,6 @@ sphinx-rtd-theme~=0.4.3
 
 # support for resumable files to simulate resumable.js
 resumable==0.1.1  # https://github.com/acroz/resumable.py
+
+# yaml support 
+PyYAML==5.3  # https://pypi.org/project/PyYAML/#description 
