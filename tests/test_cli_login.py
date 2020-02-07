@@ -12,6 +12,7 @@ class TestCliLogin(BaseCLItest):
     """
     verb = "login"
 
+    @unittest.skip("Skipping for now, as we don't have interactive CI now")
     def testCommandLoginBase(self):
         assert "login" in self.result.output
         self.assertIn("login", self.result.output)
