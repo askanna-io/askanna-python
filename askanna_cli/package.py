@@ -1,9 +1,10 @@
-import io
-import os
 import glob
-import requests
+import io
+import mimetypes
+import os
 import shutil
 import subprocess
+import sys
 import uuid
 import zipfile
 from zipfile import ZipFile
@@ -11,12 +12,8 @@ from zipfile import ZipFile
 import click
 import requests
 import resumable
-import mimetypes
-
 
 from askanna_cli.utils import check_for_project
-
-ASKANNA_FILEUPLOAD_ENDPOINT = "http://localhost:8005/api/v1/upload/"
 
 HELP = """
 Wrapper command to package the current working folder to archive
@@ -79,6 +76,9 @@ def _file_type(path):
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
+
+    ASKANNA_API_SERVER = 'http://localhost:8005/api/v1/'
+
     pwd = os.getcwd()
 
     click.echo("We are located in: {pwd}".format(pwd=pwd))
@@ -98,7 +98,9 @@ def cli():
     }
 
     # first register package
-    package_url = "http://localhost:8005/api/v1/package/"
+    package_url = "{ASKANNA_API_SERVER}package/".format(
+        ASKANNA_API_SERVER=ASKANNA_API_SERVER
+    )
     req = requests.post(
         package_url,
         json=package_dict
@@ -108,7 +110,9 @@ def cli():
     print("Package uuid: {uuid}".format(uuid=package_uuid))
 
     # use resumable chunk
-    chunk_url = "http://localhost:8005/api/v1/chunkpackagepart/"
+    chunk_url = "{ASKANNA_API_SERVER}chunkpackagepart/".format(
+        ASKANNA_API_SERVER=ASKANNA_API_SERVER
+    )
     chunk_dict = {
         "filename": "",
         "size": 0,
@@ -138,8 +142,9 @@ def cli():
 
         # do actual uploading
         # compose request with actual data
-        chunk_url_ep = "http://localhost:8005/api/v1/chunkpackagepart/{uuid}/chunk_receiver/".format(
-            uuid=chunk_uuid
+        chunk_url_ep = "{ASKANNA_API_SERVER}chunkpackagepart/{uuid}/chunk_receiver/".format(
+            uuid=chunk_uuid,
+            ASKANNA_API_SERVER=ASKANNA_API_SERVER
         )
 
         files = {
@@ -156,6 +161,7 @@ def cli():
             'resumableChunkNumber': chunk.index + 1,
             'resumableCurrentChunkSize': chunk.size
         }
+        
         specific_chunk_req = requests.post(
             chunk_url_ep,
             data=data,
@@ -163,3 +169,36 @@ def cli():
         )
         # print(specific_chunk_req.headers)
         # print(specific_chunk_req.text)
+
+    # Do final call when all chunks are uploaded
+    final_call_url = "{ASKANNA_API_SERVER}package/{package_uuid}/finish_upload/".format(
+        package_uuid=package_uuid,
+        ASKANNA_API_SERVER=ASKANNA_API_SERVER
+    )
+    final_call_dict = {
+        'package': package_uuid
+    }
+
+    data = {
+        'resumableChunkSize': resumable_file.chunk_size,
+        'resumableTotalSize': resumable_file.size,
+        'resumableType': _file_type(resumable_file.path),
+        'resumableIdentifier': str(resumable_file.unique_identifier),
+        'resumableFilename': os.path.basename(resumable_file.path),
+        'resumableRelativePath': resumable_file.path,
+        'resumableTotalChunks': len(resumable_file.chunks),
+        'resumableChunkNumber': 1,
+        'resumableCurrentChunkSize': 1
+    }
+    final_call_dict.update(**data)
+
+    final_call_req = requests.post(
+        final_call_url,
+        data=final_call_dict
+    )
+    if final_call_req.status_code == 200:
+        print('Package is uploaded correctly')
+        sys.exit(0)
+    else:
+        print("Package upload is not ok")
+        sys.exit(1)
