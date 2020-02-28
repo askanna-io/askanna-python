@@ -1,6 +1,5 @@
 import glob
 import io
-import mimetypes
 import os
 import shutil
 import subprocess
@@ -13,7 +12,7 @@ import click
 import requests
 import resumable
 
-from askanna_cli.utils import check_for_project
+from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit
 
 HELP = """
 Wrapper command to package the current working folder to archive
@@ -21,22 +20,6 @@ Afterwards we send this to the ASKANNA_FILEUPLOD_ENDPOINT
 """
 
 SHORT_HELP = "Package code for askanna"
-
-
-# Zip the files from given directory that matches the filter
-def zipFilesInDir(dirName, zipFileName, filter):
-    os.chdir(dirName)
-    # create a ZipFile object
-    with ZipFile(zipFileName, mode='w') as zipObj:
-        # Iterate over all the files in directory
-        for folderName, subfolders, filenames in os.walk('.'):
-            for filename in filenames:
-                if filter(filename):
-                    # create complete filepath of file in directory
-                    filePath = os.path.join(folderName, filename)
-                    # Add file to zip
-                    zipObj.write(filePath)
-
 
 def package(src):
 
@@ -52,32 +35,11 @@ def package(src):
     zipFilesInDir(src, random_name, lambda x: x)
     return random_name
 
-KiB = 1024
-MiB = 1024 * KiB
-
-def _file_type(path):
-    """Mimic the type parameter of a JS File object.
-    Resumable.js uses the File object's type attribute to guess mime type,
-    which is guessed from file extention accoring to
-    https://developer.mozilla.org/en-US/docs/Web/API/File/type.
-    Parameters
-    ----------
-    path : str
-        The path to guess the mime type of
-    Returns
-    -------
-    str
-        The inferred mime type, or '' if none could be inferred
-    """
-    type_, _ = mimetypes.guess_type(path)
-    # When no type can be inferred, File.type returns an empty string
-    return '' if type_ is None else type_
-
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
 
-    ASKANNA_API_SERVER = 'http://localhost:8005/api/v1/'
+    ASKANNA_API_SERVER = 'https://api.askanna.eu/api/v1/'
 
     pwd = os.getcwd()
 
@@ -121,7 +83,7 @@ def cli():
         "package": package_uuid,
     }
 
-    resumable_file = resumable.file.ResumableFile(ziparchive, 100*KiB)
+    resumable_file = resumable.file.ResumableFile(ziparchive, 100*diskunit.KiB)
     for chunk in resumable_file.chunks:
         config = chunk_dict.copy()
         config.update(**{
