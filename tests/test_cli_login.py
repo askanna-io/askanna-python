@@ -9,14 +9,7 @@ from .base import BaseCLItest
 #     """
 #     verb = "login"
 
-<<<<<<< HEAD
-    def testCommandLoginBase(self):
-        assert "login" in self.result.output
-        self.assertIn("login", self.result.output)
-        self.assertNotIn("noop", self.result.output)
-=======
 #     def testCommandLoginBase(self):
 #         assert "login" in self.result.output
 #         self.assertIn("login", self.result.output)
 #         self.assertNotIn("noop", self.result.output)
->>>>>>> origin/master
