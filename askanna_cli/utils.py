@@ -1,5 +1,27 @@
 import os
 import glob
+import confuse
+
+from pathlib import Path
+
+CONFIG_USERCONFIG_FILE = "~/.config/askanna.yml"
+CONFIG_USERHOME_FILE = "~/.askanna.yml"
+
+def init_checks():
+    create_config(CONFIG_USERCONFIG_FILE)
+    create_config(CONFIG_USERHOME_FILE)
+
+
+def create_config(location: str):
+    expanded_path = os.path.expanduser(location)
+    folder = os.path.dirname(expanded_path)
+    filename = os.path.basename(expanded_path)
+
+    if not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+
+    if not os.path.exists(expanded_path):
+        Path(expanded_path).touch()
 
 
 def update_available(silent_fail=True):

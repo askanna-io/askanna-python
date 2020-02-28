@@ -1,5 +1,7 @@
 stages:
   - test
+  - build
+  - verifybuild
 
 .test_template: &test_template
   stage: test
@@ -51,3 +53,47 @@ python 38:
   image: python:3.8
   script:
     - tox -e py38
+
+
+.build_docker_image_template: &build_docker_image_template
+  image: docker:git
+  stage: build
+  tags:
+    - normal
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t gitlab.askanna.io:4567/askanna/askanna-cli:$CI_COMMIT_REF_NAME .
+    - docker push gitlab.askanna.io:4567/askanna/askanna-cli:$CI_COMMIT_REF_NAME
+  except:
+    - triggers
+    - schedules
+    - branches
+
+build_docker_image_version:
+  <<: *build_docker_image_template
+  only:
+    refs:
+      - /v*.*.*/
+
+build_docker_image_master:
+  <<: *build_docker_image_template
+  except:
+    - triggers
+  only:
+    refs:
+      - master
+
+verify_docker_build:
+  stage: verifybuild
+  image: gitlab.askanna.io:4567/askanna/askanna-cli:$CI_COMMIT_REF_NAME
+  tags:
+    - normal
+  script:
+    - askanna
+  only:
+    refs:
+      - master
