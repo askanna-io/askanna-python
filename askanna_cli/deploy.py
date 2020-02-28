@@ -8,7 +8,7 @@ from askanna_cli.utils import check_for_project
 
 # FIXME: this will be an AskAnna public link in the future
 # For dev purposes, add your local path to the cookiecutter template
-#ASKANNA_FILEUPLOAD_ENDPOINT = "REPLACEME"
+# ASKANNA_FILEUPLOAD_ENDPOINT = "REPLACEME"
 ASKANNA_FILEUPLOAD_ENDPOINT = "http://localhost:8000/u/api/upload/"
 
 HELP = """
@@ -30,12 +30,13 @@ def cli():
         click.echo("Not in a project folder, exiting")
         return 0
 
-
     click.echo("\nPackaging your project...")
     export_file = '/tmp/{}_package/'.format(pwd.split('/')[-1])
-    #subprocess.Popen(f"python setup.py sdist bdist_wheel -d {export_file}",
+    # subprocess.Popen(f"python setup.py sdist bdist_wheel -d {export_file}",
     #                 shell=True)
-    subprocess.run(["python","setup.py", "sdist", "bdist_wheel", "-d", export_file], capture_output=True)
+    subprocess.run(
+        ["python", "setup.py", "sdist", "bdist_wheel", "-d", export_file],
+        capture_output=True)
 
     wheel_package = glob.glob(export_file + '*.whl')[0]
     click.echo("Finished package: {}".format(wheel_package.split('/')[-1]))
@@ -53,4 +54,3 @@ def cli():
         askanna_location = r.json()
         _location = askanna_location.get('crazyfile')
         click.echo("\t{_location}".format(_location=_location))
-
