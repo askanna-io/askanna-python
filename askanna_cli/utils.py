@@ -1,21 +1,34 @@
 import os
 import glob
-import confuse
+import mimetypes
+import collections
 
 from pathlib import Path
+import zipfile
+from zipfile import ZipFile
 
-CONFIG_USERCONFIG_FILE = "~/.config/askanna.yml"
+from yaml import load, dump
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+
 CONFIG_USERHOME_FILE = "~/.askanna.yml"
 
+StorageUnit = collections.namedtuple('StorageUnit', 
+[
+    'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'
+])
+
+diskunit = StorageUnit(B=1, KiB=1024**1, MiB=1024**2, GiB=1024**3, TiB=1024**4, PiB=1024**5)
+
 def init_checks():
-    create_config(CONFIG_USERCONFIG_FILE)
     create_config(CONFIG_USERHOME_FILE)
 
 
 def create_config(location: str):
     expanded_path = os.path.expanduser(location)
     folder = os.path.dirname(expanded_path)
-    filename = os.path.basename(expanded_path)
 
     if not os.path.exists(folder):
         os.makedirs(folder, exist_ok=True)
@@ -48,13 +61,56 @@ def check_for_project():
     we wish to perform a deploy action, we want to be on the same
     level with the ``setup.py`` to be able to package the file.
     """
-    cwd = os.getcwd()
-
     pyfiles = glob.glob('*.py')
 
     # look for the setup.py file
     if 'setup.py' in pyfiles:
         return True
-
     else:
         return False
+
+def get_config() -> dict:
+    config = load(open(os.path.expanduser(CONFIG_USERHOME_FILE), 'r'), Loader=Loader)
+    return config
+
+def store_config(config):
+    original_config = get_config()
+    original_config.update(**config)
+    output = dump(original_config, Dumper=Dumper) 
+    return output
+
+
+
+# Zip the files from given directory that matches the filter
+def zipFilesInDir(dirName, zipFileName, filter):
+    os.chdir(dirName)
+    # create a ZipFile object
+    with ZipFile(zipFileName, mode='w') as zipObj:
+        # Iterate over all the files in directory
+        for folderName, subfolders, filenames in os.walk('.'):
+            for filename in filenames:
+                if filter(filename):
+                    # create complete filepath of file in directory
+                    filePath = os.path.join(folderName, filename)
+                    # Add file to zip
+                    zipObj.write(filePath)
+
+
+def _file_type(path):
+    """Mimic the type parameter of a JS File object.
+    Resumable.js uses the File object's type attribute to guess mime type,
+    which is guessed from file extention accoring to
+    https://developer.mozilla.org/en-US/docs/Web/API/File/type.
+    Parameters
+    ----------
+    path : str
+        The path to guess the mime type of
+    Returns
+    -------
+    str
+        The inferred mime type, or '' if none could be inferred
+    """
+    type_, _ = mimetypes.guess_type(path)
+    # When no type can be inferred, File.type returns an empty string
+    return '' if type_ is None else type_
+
