@@ -39,7 +39,7 @@ def package(src):
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
 
-    ASKANNA_API_SERVER = 'https://api.askanna.eu/api/v1/'
+    ASKANNA_API_SERVER = 'https://api.askanna.eu/v1/'
 
     pwd = os.getcwd()
 
@@ -54,7 +54,7 @@ def cli():
     package_dict = {
         "filename": os.path.basename(ziparchive),
         "storage_location": "somewhere",
-        "project_id": 0,  # FIXME: Need to extract this from config or local config
+        "project_id": None,  # FIXME: Need to extract this from config or local config
         "size": os.stat(ziparchive).st_size, ## to be determined
         "created_by": 1,  # FIXME: our user
     }
