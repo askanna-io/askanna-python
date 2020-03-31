@@ -54,7 +54,7 @@ def cli():
     package_dict = {
         "filename": os.path.basename(ziparchive),
         "storage_location": "somewhere",
-        "project_id": None,  # FIXME: Need to extract this from config or local config
+        "project": "f1e2144a-87f9-4936-8562-4304c51332ea",  # FIXME: Need to extract this from config or local config
         "size": os.stat(ziparchive).st_size, ## to be determined
         "created_by": 1,  # FIXME: our user
     }
