@@ -13,6 +13,7 @@ import requests
 import resumable
 
 from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit
+from askanna_cli.utils import init_checks, get_config, store_config
 
 HELP = """
 Wrapper command to package the current working folder to archive
@@ -21,16 +22,17 @@ Afterwards we send this to the ASKANNA_FILEUPLOD_ENDPOINT
 
 SHORT_HELP = "Package code for askanna"
 
-def package(src):
+
+def package(src: str) -> str:
 
     pwd_dir_name = os.path.basename(src)
     random_suffix = uuid.uuid4().hex
 
     random_name = os.path.join(
         "/", "tmp", "{pwd_dir_name}_{random_suffix}.zip".format(
-        pwd_dir_name=pwd_dir_name,
-        random_suffix=random_suffix
-    ))
+            pwd_dir_name=pwd_dir_name,
+            random_suffix=random_suffix
+        ))
 
     zipFilesInDir(src, random_name, lambda x: x)
     return random_name
@@ -38,8 +40,9 @@ def package(src):
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
-
-    ASKANNA_API_SERVER = 'https://api.askanna.eu/v1/'
+    config = get_config()
+    token = config['auth']['token']
+    ASKANNA_API_SERVER = config['askanna']['remote']
 
     pwd = os.getcwd()
 
@@ -50,12 +53,13 @@ def cli():
 
     click.echo("Finished package: {ziparchive}".format(ziparchive=ziparchive))
     click.echo("Uploading to AskAnna...")
- 
+
     package_dict = {
         "filename": os.path.basename(ziparchive),
-        "storage_location": "somewhere",
-        "project": "f1e2144a-87f9-4936-8562-4304c51332ea",  # FIXME: Need to extract this from config or local config
-        "size": os.stat(ziparchive).st_size, ## to be determined
+        "storage_location": "",
+        # FIXME: Need to extract this from config or local config
+        "project": "f1e2144a-87f9-4936-8562-4304c51332ea",
+        "size": os.stat(ziparchive).st_size,  # to be determined
         "created_by": 1,  # FIXME: our user
     }
 
@@ -69,6 +73,7 @@ def cli():
     )
     res = req.json()
     package_uuid = res.get('uuid')
+    print(req.text)
     print("Package uuid: {uuid}".format(uuid=package_uuid))
 
     # use resumable chunk
@@ -123,7 +128,7 @@ def cli():
             'resumableChunkNumber': chunk.index + 1,
             'resumableCurrentChunkSize': chunk.size
         }
-        
+
         specific_chunk_req = requests.post(
             chunk_url_ep,
             data=data,
