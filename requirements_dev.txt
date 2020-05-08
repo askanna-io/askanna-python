@@ -13,3 +13,6 @@ resumable==0.1.1  # https://github.com/acroz/resumable.py
 
 # yaml support 
 PyYAML==5.3  # https://pypi.org/project/PyYAML/#description 
+
+# dotenv support
+python-dotenv

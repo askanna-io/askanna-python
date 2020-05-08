@@ -1,9 +1,12 @@
-import importlib
-
-import click
-
-import askanna_cli
+# -*- coding: utf-8 -*-
+from askanna_cli.utils import init_checks, get_config, store_config
 from askanna_cli.utils import update_available
+import askanna_cli
+import click
+import importlib
+from dotenv import find_dotenv, load_dotenv
+load_dotenv(find_dotenv())
+
 
 HELP = """
 AskAnna CLI helps you running DSP
@@ -34,10 +37,11 @@ commands = [
     "login",
     "logout",
     "createproject",
-    "run",
+    # "run",
+    "payload",
     "package",
-    "mock",
-    "deploy",
+    # "mock",
+    # "deploy",
 ]
 
 for command in commands:
@@ -45,3 +49,7 @@ for command in commands:
     command_module = importlib.import_module(module_path)
     command_name = command.replace('_', '-')
     cli.add_command(command_module.cli, command_name)
+
+
+# perform initial checks on config and auth status
+init_checks()

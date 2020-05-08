@@ -18,8 +18,8 @@ You can find your API key in AskAnna WebUI:
 
 SHORT_HELP = "Save your AskAnna API key"
 
-def login():
-    url = "https://api.askanna.eu/rest-auth/login/"
+def login(server):
+    url = "{server}rest-auth/login/".format(server=server.replace("v1/", ''))
     print("Please provide your credentials to log into AskAnna")
     username = input("Username: ")
     password = input("Password: ")
@@ -32,9 +32,9 @@ def login():
     token = r.json().get('key')
     return str(token)
 
-def get_user_info(token):
+def get_user_info(token, server):
 
-    url = "https://api.askanna.eu/rest-auth/user"
+    url = "{server}rest-auth/user".format(server=server.replace("v1/", ''))
 
     headers = {
         'user-agent': 'askanna-cli/0.0.1',
@@ -43,11 +43,11 @@ def get_user_info(token):
     ruser  = requests.get(url, headers=headers)
     print(ruser.text)
 
-def do_login():
+def do_login(server):
     """
     Pipeline of actions to do login and store the config into local config
     """
-    token = login()
+    token = login(server=server)
     new_config = {
         'auth': {
             'token': token
@@ -59,10 +59,11 @@ def do_login():
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
-    init_checks()
     config = get_config()
 
-    click.echo("This is performing the login action")
+    ASKANNA_API_SERVER = config['askanna']['remote']
+
+    click.echo("Login into AskAnna")
 
     if config.get('auth'):
         if config['auth'].get('token'):
@@ -70,10 +71,10 @@ def cli():
             # validate_token()
             token = config['auth']['token']
             # Showcase with this token, who we are
-            get_user_info(token)
+            get_user_info(token, server=ASKANNA_API_SERVER)
             sys.exit()
         else:
             # click.echo("Logging in for you")
-            do_login()
+            do_login(server=ASKANNA_API_SERVER)
     else:
-        do_login()
+        do_login(server=ASKANNA_API_SERVER)

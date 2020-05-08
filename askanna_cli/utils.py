@@ -59,12 +59,12 @@ def check_for_project():
     """
     Performs a check if we are operating within a project folder. When
     we wish to perform a deploy action, we want to be on the same
-    level with the ``setup.py`` to be able to package the file.
+    level with the ``askanna.yml`` to be able to package the file.
     """
-    pyfiles = glob.glob('*.py')
+    pyfiles = glob.glob('*.yml')
 
     # look for the setup.py file
-    if 'setup.py' in pyfiles:
+    if 'askanna.yml' in pyfiles:
         return True
     else:
         return False
