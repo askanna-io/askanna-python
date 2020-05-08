@@ -48,3 +48,9 @@ docs/_build
 
 # mypy cache
 .mypy_cache
+
+# exclude vscode
+.vscode
+
+# exclude .askanna config
+.askanna/
