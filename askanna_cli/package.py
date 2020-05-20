@@ -14,6 +14,7 @@ import resumable
 
 from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit
 from askanna_cli.utils import init_checks, get_config, store_config
+from askanna_cli.core.upload import Upload
 
 HELP = """
 Wrapper command to package the current working folder to archive
@@ -42,130 +43,32 @@ def package(src: str) -> str:
 def cli():
     config = get_config()
     token = config['auth']['token']
-    ASKANNA_API_SERVER = config['askanna']['remote']
+    api_server = config['askanna']['remote']
+    project = config.get('project', {})
+    project_uuid = project.get('uuid')
 
-    pwd = os.getcwd()
+    if not project_uuid:
+        print("Cannot upload unregistered project to AskAnna")
+        sys.exit(1)
 
-    click.echo("We are located in: {pwd}".format(pwd=pwd))
-    click.echo("\nPackaging your project...")
+    cwd = os.getcwd()
+    package_archive = package(cwd)
 
-    ziparchive = package(pwd)
-
-    click.echo("Finished package: {ziparchive}".format(ziparchive=ziparchive))
     click.echo("Uploading to AskAnna...")
 
-    package_dict = {
-        "filename": os.path.basename(ziparchive),
-        "storage_location": "",
-        # FIXME: Need to extract this from config or local config
-        "project": "f1e2144a-87f9-4936-8562-4304c51332ea",
-        "size": os.stat(ziparchive).st_size,  # to be determined
-        "created_by": 1,  # FIXME: our user
+    fileinfo = {
+        "filename": os.path.basename(package_archive),
+        "size": os.stat(package_archive).st_size,
     }
-
-    # first register package
-    package_url = "{ASKANNA_API_SERVER}package/".format(
-        ASKANNA_API_SERVER=ASKANNA_API_SERVER
+    uploader = Upload(
+        token=token,
+        api_server=api_server,
+        project_uuid=project_uuid
     )
-    req = requests.post(
-        package_url,
-        json=package_dict
-    )
-    res = req.json()
-    package_uuid = res.get('uuid')
-    print(req.text)
-    print("Package uuid: {uuid}".format(uuid=package_uuid))
-
-    # use resumable chunk
-    chunk_url = "{ASKANNA_API_SERVER}chunkpackagepart/".format(
-        ASKANNA_API_SERVER=ASKANNA_API_SERVER
-    )
-    chunk_dict = {
-        "filename": "",
-        "size": 0,
-        "file_no": 0,
-        "is_last": False,
-        "package": package_uuid,
-    }
-
-    resumable_file = resumable.file.ResumableFile(ziparchive, 100*diskunit.KiB)
-    for chunk in resumable_file.chunks:
-        config = chunk_dict.copy()
-        config.update(**{
-            "filename": chunk.index + 1,
-            "size": chunk.size,
-            "file_no": chunk.index + 1,
-            "is_last": len(resumable_file.chunks) == chunk.index + 1
-        })
-
-        # request chunk id from API
-        req_chunk = requests.post(
-            chunk_url,
-            json=config
-        )
-        chunk_uuid = req_chunk.json().get('uuid')
-        # print(req_chunk.text)
-        # print(chunk_uuid)
-
-        # do actual uploading
-        # compose request with actual data
-        chunk_url_ep = "{ASKANNA_API_SERVER}chunkpackagepart/{uuid}/chunk_receiver/".format(
-            uuid=chunk_uuid,
-            ASKANNA_API_SERVER=ASKANNA_API_SERVER
-        )
-
-        files = {
-            'file': io.BytesIO(chunk.read())
-        }
-        data = {
-            'resumableChunkSize': resumable_file.chunk_size,
-            'resumableTotalSize': resumable_file.size,
-            'resumableType': _file_type(resumable_file.path),
-            'resumableIdentifier': str(resumable_file.unique_identifier),
-            'resumableFilename': os.path.basename(resumable_file.path),
-            'resumableRelativePath': resumable_file.path,
-            'resumableTotalChunks': len(resumable_file.chunks),
-            'resumableChunkNumber': chunk.index + 1,
-            'resumableCurrentChunkSize': chunk.size
-        }
-
-        specific_chunk_req = requests.post(
-            chunk_url_ep,
-            data=data,
-            files=files
-        )
-        # print(specific_chunk_req.headers)
-        # print(specific_chunk_req.text)
-
-    # Do final call when all chunks are uploaded
-    final_call_url = "{ASKANNA_API_SERVER}package/{package_uuid}/finish_upload/".format(
-        package_uuid=package_uuid,
-        ASKANNA_API_SERVER=ASKANNA_API_SERVER
-    )
-    final_call_dict = {
-        'package': package_uuid
-    }
-
-    data = {
-        'resumableChunkSize': resumable_file.chunk_size,
-        'resumableTotalSize': resumable_file.size,
-        'resumableType': _file_type(resumable_file.path),
-        'resumableIdentifier': str(resumable_file.unique_identifier),
-        'resumableFilename': os.path.basename(resumable_file.path),
-        'resumableRelativePath': resumable_file.path,
-        'resumableTotalChunks': len(resumable_file.chunks),
-        'resumableChunkNumber': 1,
-        'resumableCurrentChunkSize': 1
-    }
-    final_call_dict.update(**data)
-
-    final_call_req = requests.post(
-        final_call_url,
-        data=final_call_dict
-    )
-    if final_call_req.status_code == 200:
-        print('Package is uploaded correctly')
+    status, msg = uploader.upload(package_archive, config, fileinfo)
+    if status:
+        print(msg)
         sys.exit(0)
     else:
-        print("Package upload is not ok")
+        print(msg)
         sys.exit(1)

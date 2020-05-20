@@ -69,8 +69,44 @@ def check_for_project():
     else:
         return False
 
+def scan_config_in_path(cwd=None):
+    """
+    Look for askanna.yml in parent directories
+    """
+    if not cwd:
+        cwd = os.getcwd()
+    project_configfile = ""
+    # first check whether we already can find in the current workdir
+    if contains_configfile(cwd):
+        project_configfile = os.path.join(cwd, "askanna.yml")
+    else:
+        # traverse up all directories untill we find an askanna.yml file
+        split_path = os.path.split(cwd)
+        # in any other cases, look in parent directories
+        while split_path[1] is not "":
+            print(split_path[0])
+            if contains_configfile(split_path[0]):
+                project_configfile = os.path.join(
+                    split_path[0],
+                    "askanna.yml"
+                )
+                break
+            split_path = os.path.split(split_path[0])
+    return project_configfile
+
+def read_config(path:str) -> dict:
+    return load(open(os.path.expanduser(path), 'r'), Loader=Loader)
+
+def contains_configfile(path:str, filename:str="askanna.yml") -> bool:
+    return os.path.isfile(
+        os.path.join(path, filename)
+    )
+
 def get_config() -> dict:
-    config = load(open(os.path.expanduser(CONFIG_USERHOME_FILE), 'r'), Loader=Loader)
+    config = read_config(CONFIG_USERHOME_FILE)
+    project_config = scan_config_in_path()
+    if project_config:
+        config.update(**read_config(project_config))
     return config
 
 def store_config(config):
@@ -78,7 +114,6 @@ def store_config(config):
     original_config.update(**config)
     output = dump(original_config, Dumper=Dumper) 
     return output
-
 
 
 # Zip the files from given directory that matches the filter
