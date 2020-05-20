@@ -14,7 +14,7 @@ import resumable
 
 from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit, scan_config_in_path
 from askanna_cli.utils import init_checks, get_config, store_config
-from askanna_cli.core.upload import Upload
+from askanna_cli.core.upload import Upload, PackageUpload, ArtifactUpload
 
 HELP = """
 Wrapper command to package the current working folder to archive
@@ -79,10 +79,11 @@ def cli():
         "filename": os.path.basename(package_archive),
         "size": os.stat(package_archive).st_size,
     }
-    uploader = Upload(
+    uploader = ArtifactUpload(
         token=token,
         api_server=api_server,
-        project_uuid=project_uuid
+        project_uuid=project_uuid,
+        JOBRUN_SHORT_UUID='5B4O-Gaob-LqcG-dpf7'
     )
     status, msg = uploader.upload(package_archive, config, fileinfo)
     if status:

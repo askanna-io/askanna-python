@@ -40,6 +40,7 @@ commands = [
     # "run",
     "payload",
     "package",
+    "artifact",
     # "mock",
     # "deploy",
 ]

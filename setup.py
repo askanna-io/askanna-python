@@ -23,8 +23,8 @@ test_requirements = []
 
 # FIXME: add license information
 setup(
-    author="Antonis Sgouros",
-    author_email='antonis@askanna.io',
+    author="AskAnna",
+    author_email='devops@askanna.io',
     python_requires='>=3.5',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
@@ -47,7 +47,7 @@ setup(
     include_package_data=True,
     keywords='askanna',
     name='askanna-cli',
-    packages=find_packages(include=['askanna_cli'], exclude=['tests']),
+    packages=find_packages(include=['askanna_cli', 'askanna_cli.core'], exclude=['tests']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
