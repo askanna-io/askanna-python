@@ -130,6 +130,45 @@ def zipFilesInDir(dirName, zipFileName, filter):
                     # Add file to zip
                     zipObj.write(filePath)
 
+def zipAFile(zipObj:ZipFile, dirpath:str, filepath:str, prefixdir:str) -> None:
+    # create complete filepath of file in directory
+    filePath = os.path.join(dirpath, filepath)
+    # Add file to zip
+    zipObj.write(filePath)
+
+
+def zipFolder(zipObj:ZipFile, dirpath:str, prefixdir:str):
+    os.chdir(dirpath)
+    # Iterate over all the files in directory
+    for folderName, subfolders, filenames in os.walk('.'):
+        for filename in filenames:
+            # create complete filepath of file in directory
+            filePath = os.path.join(folderName, filename)
+            # Add file to zip
+            zipObj.write(filePath, os.path.join(prefixdir, filePath))
+
+
+def zipPaths(zipObj:ZipFile, paths:list, cwd:str):
+    for targetloc in paths:
+        if targetloc.startswith('/'):
+            prefixdir = targetloc
+        else:
+            prefixdir = targetloc
+            targetloc = os.path.join(cwd, targetloc)
+
+        # check for existence
+
+        if not os.path.exists(targetloc):
+            print(targetloc, "does not exists ... skipping")
+            continue
+
+        if os.path.isdir(targetloc):
+            zipFolder(zipObj, targetloc, prefixdir=prefixdir)
+        else:
+            # we got a file?
+            zipAFile(zipObj, dirpath=os.path.dirname(targetloc),
+                        filepath=os.path.basename(targetloc), prefixdir=prefixdir)
+
 
 def _file_type(path):
     """Mimic the type parameter of a JS File object.

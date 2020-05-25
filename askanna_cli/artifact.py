@@ -12,6 +12,7 @@ import click
 import requests
 import resumable
 
+from askanna_cli.utils import zipAFile, zipFolder, zipPaths
 from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit, scan_config_in_path
 from askanna_cli.utils import init_checks, get_config, store_config
 from askanna_cli.core.upload import Upload, PackageUpload, ArtifactUpload
@@ -24,19 +25,17 @@ Afterwards we send this to the ASKANNA_FILEUPLOD_ENDPOINT
 SHORT_HELP = "Package code for askanna"
 
 
-def package(src: str) -> str:
+def create_artifact(jobname:str) -> str:
+    cwd = os.getcwd()
+    config = get_config()
 
-    pwd_dir_name = os.path.basename(src)
-    random_suffix = uuid.uuid4().hex
+    paths = config[jobname].get('output', {}).get('paths')
 
-    random_name = os.path.join(
-        "/", "tmp", "{pwd_dir_name}_{random_suffix}.zip".format(
-            pwd_dir_name=pwd_dir_name,
-            random_suffix=random_suffix
-        ))
+    zipFileName = '/tmp/artifact.zip'
+    with ZipFile(zipFileName, mode='w') as zipObj:
+        zipPaths(zipObj, paths, cwd)
 
-    zipFilesInDir(src, random_name, lambda x: x)
-    return random_name
+    return zipFileName
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
@@ -46,6 +45,9 @@ def cli():
     api_server = config['askanna']['remote']
     project = config.get('project', {})
     project_uuid = project.get('uuid')
+
+    jobrun_short_uuid = os.getenv('JOBRUN_SHORT_UUID')
+    jobrun_jobname = os.getenv('JOBRUN_JOBNAME')
 
     if not project_uuid:
         print("Cannot upload unregistered project to AskAnna")
@@ -71,21 +73,21 @@ def cli():
         print("You are not at the root folder of the project '{}'".format(project_folder))
         upload_folder = ask_which_folder(cwd, project_folder)
 
-    package_archive = package(upload_folder)
+    artifact_archive = create_artifact(jobname=jobrun_jobname)
 
     click.echo("Uploading '{}' to AskAnna...".format(upload_folder))
 
     fileinfo = {
-        "filename": os.path.basename(package_archive),
-        "size": os.stat(package_archive).st_size,
+        "filename": os.path.basename(artifact_archive),
+        "size": os.stat(artifact_archive).st_size,
     }
     uploader = ArtifactUpload(
         token=token,
         api_server=api_server,
         project_uuid=project_uuid,
-        JOBRUN_SHORT_UUID='5B4O-Gaob-LqcG-dpf7'
+        JOBRUN_SHORT_UUID=jobrun_short_uuid
     )
-    status, msg = uploader.upload(package_archive, config, fileinfo)
+    status, msg = uploader.upload(artifact_archive, config, fileinfo)
     if status:
         print(msg)
         sys.exit(0)
