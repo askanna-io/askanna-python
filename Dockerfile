@@ -1,4 +1,5 @@
-FROM python:3-slim
+ARG PY_VERSION=3-slim
+FROM python:$PY_VERSION
 MAINTAINER AskAnna
 
 # Add repo to /code/

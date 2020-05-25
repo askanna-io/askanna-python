@@ -62,12 +62,13 @@ python 38:
     - normal
   variables:
     DOCKER_TLS_CERTDIR: ""
+    PY_VERSION: "3-slim"
   services:
     - docker:dind
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t gitlab.askanna.io:4567/askanna/askanna-cli:$CI_COMMIT_REF_NAME .
-    - docker push gitlab.askanna.io:4567/askanna/askanna-cli:$CI_COMMIT_REF_NAME
+    - docker build -t ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}$CI_COMMIT_REF_NAME --build-arg PY_VERSION=${PY_VERSION} .
+    - docker push $CI_REGISTRY/askanna/askanna-cli:${PY_VERSION}$CI_COMMIT_REF_NAME
   except:
     - triggers
     - schedules
