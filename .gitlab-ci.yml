@@ -54,6 +54,11 @@ python 38:
   script:
     - tox -e py38
 
+python 39:
+  <<: *test_template
+  image: python:3.9-rc-buster
+  script:
+    - tox -e py39
 
 .build_docker_image_template: &build_docker_image_template
   image: docker:git
@@ -95,6 +100,61 @@ verify_docker_build:
     - normal
   script:
     - askanna
+  only:
+    refs:
+      - master
+
+build_docker_image_py35:
+  <<: *build_docker_image_template
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    PY_VERSION: "3.5-slim"
+  except:
+    - triggers
+  only:
+    refs:
+      - master
+
+build_docker_image_py36:
+  <<: *build_docker_image_template
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    PY_VERSION: "3.6-slim"
+  except:
+    - triggers
+  only:
+    refs:
+      - master
+
+build_docker_image_py37:
+  <<: *build_docker_image_template
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    PY_VERSION: "3.7-slim"
+  except:
+    - triggers
+  only:
+    refs:
+      - master
+
+build_docker_image_py38:
+  <<: *build_docker_image_template
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    PY_VERSION: "3.8-slim"
+  except:
+    - triggers
+  only:
+    refs:
+      - master
+
+build_docker_image_py39:
+  <<: *build_docker_image_template
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    PY_VERSION: "3.9-rc-buster"
+  except:
+    - triggers
   only:
     refs:
       - master
