@@ -72,8 +72,8 @@ python 39:
     - docker:dind
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION} .
-    - docker push ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}${CI_COMMIT_REF_NAME}
+    - docker build -t ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION} .
+    - docker push ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}-${CI_COMMIT_REF_NAME}
   except:
     - triggers
     - schedules
@@ -109,7 +109,6 @@ image_py35:
   variables:
     DOCKER_TLS_CERTDIR: ""
     PY_VERSION: "3.5-slim"
-    CI_COMMIT_REF_NAME: "-${CI_COMMIT_REF_NAME}"
   except:
     - triggers
   only:
@@ -121,7 +120,6 @@ image_py36:
   variables:
     DOCKER_TLS_CERTDIR: ""
     PY_VERSION: "3.6-slim"
-    CI_COMMIT_REF_NAME: "-${CI_COMMIT_REF_NAME}"
   except:
     - triggers
   only:
@@ -133,7 +131,6 @@ image_py37:
   variables:
     DOCKER_TLS_CERTDIR: ""
     PY_VERSION: "3.7-slim"
-    CI_COMMIT_REF_NAME: "-${CI_COMMIT_REF_NAME}"
   except:
     - triggers
   only:
@@ -145,7 +142,6 @@ image_py38:
   variables:
     DOCKER_TLS_CERTDIR: ""
     PY_VERSION: "3.8-slim"
-    CI_COMMIT_REF_NAME: "-${CI_COMMIT_REF_NAME}"
   except:
     - triggers
   only:
@@ -157,7 +153,6 @@ image_py39:
   variables:
     DOCKER_TLS_CERTDIR: ""
     PY_VERSION: "3.9-rc-buster"
-    CI_COMMIT_REF_NAME: "-${CI_COMMIT_REF_NAME}"
   except:
     - triggers
   only:
