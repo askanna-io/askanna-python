@@ -4,11 +4,7 @@ askanna_cli specific exceptions.
 Exit codes follow the sysexits.h convention:
 https://www.freebsd.org/cli/man.cgi?query=sysexits&sektion=3
 """
-
-import sys
-import warnings
-
-from click import BadParameter, ClickException
+from click import ClickException
 
 
 class AskAnnaException(ClickException):

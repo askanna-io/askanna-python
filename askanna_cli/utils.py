@@ -4,7 +4,6 @@ import mimetypes
 import collections
 
 from pathlib import Path
-import zipfile
 from zipfile import ZipFile
 
 from yaml import load, dump
@@ -15,12 +14,13 @@ except ImportError:
 
 CONFIG_USERHOME_FILE = "~/.askanna.yml"
 
-StorageUnit = collections.namedtuple('StorageUnit', 
-[
-    'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'
-])
+StorageUnit = collections.namedtuple('StorageUnit',
+                                     [
+                                         'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'
+                                     ])
 
 diskunit = StorageUnit(B=1, KiB=1024**1, MiB=1024**2, GiB=1024**3, TiB=1024**4, PiB=1024**5)
+
 
 def init_checks():
     create_config(CONFIG_USERHOME_FILE)
@@ -69,16 +69,56 @@ def check_for_project():
     else:
         return False
 
+
+def scan_config_in_path(cwd=None):
+    """
+    Look for askanna.yml in parent directories
+    """
+    if not cwd:
+        cwd = os.getcwd()
+    project_configfile = ""
+    # first check whether we already can find in the current workdir
+    if contains_configfile(cwd):
+        project_configfile = os.path.join(cwd, "askanna.yml")
+    else:
+        # traverse up all directories untill we find an askanna.yml file
+        split_path = os.path.split(cwd)
+        # in any other cases, look in parent directories
+        while split_path[1] != "":
+            print(split_path[0])
+            if contains_configfile(split_path[0]):
+                project_configfile = os.path.join(
+                    split_path[0],
+                    "askanna.yml"
+                )
+                break
+            split_path = os.path.split(split_path[0])
+    return project_configfile
+
+
+def read_config(path: str) -> dict:
+    return load(open(os.path.expanduser(path), 'r'), Loader=Loader)
+
+
+def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
+    return os.path.isfile(
+        os.path.join(path, filename)
+    )
+
+
 def get_config() -> dict:
-    config = load(open(os.path.expanduser(CONFIG_USERHOME_FILE), 'r'), Loader=Loader)
+    config = read_config(CONFIG_USERHOME_FILE)
+    project_config = scan_config_in_path()
+    if project_config:
+        config.update(**read_config(project_config))
     return config
+
 
 def store_config(config):
     original_config = get_config()
     original_config.update(**config)
-    output = dump(original_config, Dumper=Dumper) 
+    output = dump(original_config, Dumper=Dumper)
     return output
-
 
 
 # Zip the files from given directory that matches the filter
@@ -94,6 +134,46 @@ def zipFilesInDir(dirName, zipFileName, filter):
                     filePath = os.path.join(folderName, filename)
                     # Add file to zip
                     zipObj.write(filePath)
+
+
+def zipAFile(zipObj: ZipFile, dirpath: str, filepath: str, prefixdir: str) -> None:
+    # create complete filepath of file in directory
+    filePath = os.path.join(dirpath, filepath)
+    # Add file to zip
+    zipObj.write(filePath)
+
+
+def zipFolder(zipObj: ZipFile, dirpath: str, prefixdir: str):
+    os.chdir(dirpath)
+    # Iterate over all the files in directory
+    for folderName, subfolders, filenames in os.walk('.'):
+        for filename in filenames:
+            # create complete filepath of file in directory
+            filePath = os.path.join(folderName, filename)
+            # Add file to zip
+            zipObj.write(filePath, os.path.join(prefixdir, filePath))
+
+
+def zipPaths(zipObj: ZipFile, paths: list, cwd: str):
+    for targetloc in paths:
+        if targetloc.startswith('/'):
+            prefixdir = targetloc
+        else:
+            prefixdir = targetloc
+            targetloc = os.path.join(cwd, targetloc)
+
+        # check for existence
+
+        if not os.path.exists(targetloc):
+            print(targetloc, "does not exists ... skipping")
+            continue
+
+        if os.path.isdir(targetloc):
+            zipFolder(zipObj, targetloc, prefixdir=prefixdir)
+        else:
+            # we got a file?
+            zipAFile(zipObj, dirpath=os.path.dirname(targetloc),
+                     filepath=os.path.basename(targetloc), prefixdir=prefixdir)
 
 
 def _file_type(path):
@@ -113,4 +193,3 @@ def _file_type(path):
     type_, _ = mimetypes.guess_type(path)
     # When no type can be inferred, File.type returns an empty string
     return '' if type_ is None else type_
-
