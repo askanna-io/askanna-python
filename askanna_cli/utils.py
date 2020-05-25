@@ -84,7 +84,7 @@ def scan_config_in_path(cwd=None):
         # traverse up all directories untill we find an askanna.yml file
         split_path = os.path.split(cwd)
         # in any other cases, look in parent directories
-        while split_path[1] is not "":
+        while split_path[1] != "":
             print(split_path[0])
             if contains_configfile(split_path[0]):
                 project_configfile = os.path.join(
@@ -100,7 +100,7 @@ def read_config(path: str) -> dict:
     return load(open(os.path.expanduser(path), 'r'), Loader=Loader)
 
 
-def contains_configfile(path: str, filename: str="askanna.yml") -> bool:
+def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
     return os.path.isfile(
         os.path.join(path, filename)
     )
