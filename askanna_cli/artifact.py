@@ -18,11 +18,10 @@ from askanna_cli.utils import init_checks, get_config, store_config
 from askanna_cli.core.upload import Upload, PackageUpload, ArtifactUpload
 
 HELP = """
-Wrapper command to package the current working folder to archive
-Afterwards we send this to the ASKANNA_FILEUPLOD_ENDPOINT
+After a jobrun, we can add outputfiles to an archinve (artifact)
 """
 
-SHORT_HELP = "Package code for askanna"
+SHORT_HELP = "Create artifact from jobrun"
 
 
 def create_artifact(jobname:str) -> str:
