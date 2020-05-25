@@ -56,7 +56,7 @@ python 38:
 
 python 39:
   <<: *test_template
-  image: python:3.9-rc-alpine
+  image: python:3.9-rc-buster
   script:
     - tox -e py39
 
@@ -152,7 +152,7 @@ build_docker_image_py39:
   <<: *build_docker_image_template
   variables:
     DOCKER_TLS_CERTDIR: ""
-    PY_VERSION: "3.9-rc-alpine"
+    PY_VERSION: "3.9-rc-buster"
   except:
     - triggers
   only:
