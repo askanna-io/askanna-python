@@ -1,19 +1,12 @@
-import glob
-import io
+
 import os
-import shutil
-import subprocess
 import sys
 import uuid
-import zipfile
-from zipfile import ZipFile
 
 import click
-import requests
-import resumable
 
-from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit, scan_config_in_path
-from askanna_cli.utils import init_checks, get_config, store_config
+from askanna_cli.utils import zipFilesInDir, scan_config_in_path
+from askanna_cli.utils import get_config
 from askanna_cli.core.upload import Upload
 
 HELP = """

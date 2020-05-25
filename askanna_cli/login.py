@@ -4,8 +4,7 @@ import os
 import click
 import requests
 
-from askanna_cli.exceptions import AlreadyLoggedInException
-from askanna_cli.utils import init_checks, get_config, store_config
+from askanna_cli.utils import get_config, store_config
 
 HELP = """
 Add your AskAnna API key to your global configuration file
@@ -17,6 +16,7 @@ You can find your API key in AskAnna WebUI:
 """
 
 SHORT_HELP = "Save your AskAnna API key"
+
 
 def login(server):
     url = "{server}rest-auth/login/".format(server=server.replace("v1/", ''))
@@ -32,6 +32,7 @@ def login(server):
     token = r.json().get('key')
     return str(token)
 
+
 def get_user_info(token, server):
 
     url = "{server}rest-auth/user".format(server=server.replace("v1/", ''))
@@ -40,8 +41,9 @@ def get_user_info(token, server):
         'user-agent': 'askanna-cli/0.0.1',
         'Authorization': "Token {token}".format(token=token)
     }
-    ruser  = requests.get(url, headers=headers)
+    ruser = requests.get(url, headers=headers)
     print(ruser.text)
+
 
 def do_login(server):
     """
@@ -55,7 +57,8 @@ def do_login(server):
     }
     config = store_config(new_config)
     with open(os.path.expanduser("~/.askanna.yml"), "w") as fd:
-        fd.write(config)    
+        fd.write(config)
+
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():

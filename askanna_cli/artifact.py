@@ -1,21 +1,12 @@
-import glob
-import io
 import os
-import shutil
-import subprocess
 import sys
-import uuid
-import zipfile
 from zipfile import ZipFile
-
 import click
-import requests
-import resumable
 
-from askanna_cli.utils import zipAFile, zipFolder, zipPaths
-from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit, scan_config_in_path
-from askanna_cli.utils import init_checks, get_config, store_config
-from askanna_cli.core.upload import Upload, PackageUpload, ArtifactUpload
+from askanna_cli.utils import zipPaths
+from askanna_cli.utils import scan_config_in_path
+from askanna_cli.utils import get_config
+from askanna_cli.core.upload import ArtifactUpload
 
 HELP = """
 After a jobrun, we can add outputfiles to an archinve (artifact)
@@ -24,7 +15,7 @@ After a jobrun, we can add outputfiles to an archinve (artifact)
 SHORT_HELP = "Create artifact from jobrun"
 
 
-def create_artifact(jobname:str) -> str:
+def create_artifact(jobname: str) -> str:
     cwd = os.getcwd()
     config = get_config()
 
@@ -69,7 +60,8 @@ def cli():
             return project_folder
 
     if not cwd == project_folder:
-        print("You are not at the root folder of the project '{}'".format(project_folder))
+        print("You are not at the root folder of the project '{}'".format(
+            project_folder))
         upload_folder = ask_which_folder(cwd, project_folder)
 
     artifact_archive = create_artifact(jobname=jobrun_jobname)

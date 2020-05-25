@@ -1,8 +1,4 @@
 import click
-# import requests
-
-from askanna_cli.exceptions import AlreadyLoggedInException
-
 
 HELP = """
 Remove the AskAnna API key that is saved in your global configuration file

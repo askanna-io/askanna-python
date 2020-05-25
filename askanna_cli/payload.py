@@ -1,21 +1,11 @@
 # -*- coding: utf-8 -*-
-import glob
-import io
 import os
-import shutil
-import subprocess
 import sys
-import uuid
-import zipfile
-from zipfile import ZipFile
 
 import click
 import requests
-import resumable
 
-from askanna_cli.utils import check_for_project
-from askanna_cli.utils import init_checks, get_config, store_config
-
+from askanna_cli.utils import get_config
 # read defaults from the environment
 default_jobrun_uuid = os.getenv('JOBRUN_UUID')
 default_payload_uuid = os.getenv('PAYLOAD_UUID')

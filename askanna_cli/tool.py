@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from askanna_cli.utils import init_checks, get_config, store_config
+from askanna_cli.utils import init_checks
 from askanna_cli.utils import update_available
 import askanna_cli
 import click

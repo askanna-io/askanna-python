@@ -1,8 +1,7 @@
-import requests
-
 from askanna_cli.core.config import Config
-from askanna_cli.core.user import User
 from askanna_cli.core.session import Session
+
+
 class Client:
     """
     Client for communication with AskAnna API service

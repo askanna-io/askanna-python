@@ -1,10 +1,9 @@
 import io
 import os
-import uuid
 import requests
 import resumable
 
-from askanna_cli.utils import check_for_project, zipFilesInDir, _file_type, diskunit
+from askanna_cli.utils import _file_type, diskunit
 
 
 class Upload:
@@ -134,6 +133,7 @@ class Upload:
             files=files,
             headers=self.headers
         )
+        assert specific_chunk_req.status_code == 200, "Code could not be uploaded"
 
     def chunk_dict_template(self):
         return {
@@ -171,6 +171,7 @@ class Upload:
         else:
             return False, "Package upload failed"
 
+
 class PackageUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/packagechunk/"
@@ -181,7 +182,7 @@ class PackageUpload(Upload):
 class ArtifactUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/{CHUNK_UUID}/chunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
     tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/finish_upload/"
 
     def url_template_arguments(self):
