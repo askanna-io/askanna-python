@@ -111,6 +111,12 @@ def get_config() -> dict:
     project_config = scan_config_in_path()
     if project_config:
         config.update(**read_config(project_config))
+
+    # overwrite the user token if AA_TOKEN is set in the environment
+    is_token_set = os.getenv('AA_TOKEN')
+    if is_token_set:
+        config['auth'] = config.get('auth', {})
+        config['auth']['token'] = is_token_set
     return config
 
 
