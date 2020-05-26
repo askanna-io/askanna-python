@@ -112,6 +112,12 @@ def get_config() -> dict:
     if project_config:
         config.update(**read_config(project_config))
 
+    # overwrite the AA remote if AA_REMOTE is set in the environment
+    is_remote_set = os.getenv('AA_REMOTE')
+    if is_remote_set:
+        config['askanna'] = config.get('askanna', {})
+        config['askanna']['remote'] = is_remote_set
+
     # overwrite the user token if AA_TOKEN is set in the environment
     is_token_set = os.getenv('AA_TOKEN')
     if is_token_set:
