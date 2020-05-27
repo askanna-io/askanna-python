@@ -123,6 +123,13 @@ def get_config() -> dict:
     if is_token_set:
         config['auth'] = config.get('auth', {})
         config['auth']['token'] = is_token_set
+
+    # overwrite the project token if set in the env
+    is_project_set = os.getenv('PROJECT_UUID')
+    if is_project_set:
+        config['project'] = config.get('project', {})
+        config['project']['uid'] = is_project_set
+
     return config
 
 
