@@ -128,7 +128,7 @@ def get_config() -> dict:
     is_project_set = os.getenv('PROJECT_UUID')
     if is_project_set:
         config['project'] = config.get('project', {})
-        config['project']['uid'] = is_project_set
+        config['project']['uuid'] = is_project_set
 
     return config
 
