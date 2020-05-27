@@ -30,9 +30,10 @@ def cli():
         sys.exit(1)
 
     download_url = "/".join([
-        api_server, 'project',
+        'project',
         project_short_uuid, 'packages',
         package_uuid, 'download', ''])
+    download_url = api_server + download_url
 
     headers = {
         'user-agent': 'askanna-cli/0.0.1',
