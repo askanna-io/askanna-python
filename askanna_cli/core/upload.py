@@ -12,6 +12,9 @@ class Upload:
     tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/packagechunk/{CHUNK_UUID}/chunk/"
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/finish_upload/"
 
+    tpl_upload_pass = "uploaded"
+    tpl_upload_fail = "failed"
+
     def __init__(self, token: str, api_server: str, project_uuid: str, *args, **kwargs):
         self.headers = {
             'user-agent': 'askanna-cli/0.0.1',
@@ -167,9 +170,9 @@ class Upload:
 
         if final_call_req.status_code == 200:
             # print(final_call_req.text)
-            return True, 'Package is uploaded'
+            return True, self.tpl_upload_pass
         else:
-            return False, "Package upload failed"
+            return False, self.tpl_upload_fail
 
 
 class PackageUpload(Upload):
@@ -178,12 +181,18 @@ class PackageUpload(Upload):
     tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/packagechunk/{CHUNK_UUID}/chunk/"
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/finish_upload/"
 
+    tpl_upload_pass = "Package is uploaded"
+    tpl_upload_fail = "Package upload failed"
+
 
 class ArtifactUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/"
     tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
     tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/finish_upload/"
+
+    tpl_upload_pass = "Artifact is uploaded"
+    tpl_upload_fail = "Artifact upload failed"
 
     def url_template_arguments(self):
         """

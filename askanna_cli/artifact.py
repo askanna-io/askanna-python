@@ -15,8 +15,7 @@ After a jobrun, we can add outputfiles to an archinve (artifact)
 SHORT_HELP = "Create artifact from jobrun"
 
 
-def create_artifact(jobname: str) -> str:
-    cwd = os.getcwd()
+def create_artifact(jobname: str, cwd: str) -> str:
     config = get_config()
 
     paths = config[jobname].get('output', {}).get('paths')
@@ -64,9 +63,9 @@ def cli():
             project_folder))
         upload_folder = ask_which_folder(cwd, project_folder)
 
-    artifact_archive = create_artifact(jobname=jobrun_jobname)
+    artifact_archive = create_artifact(jobname=jobrun_jobname, cwd=upload_folder)
 
-    click.echo("Uploading '{}' to AskAnna...".format(upload_folder))
+    click.echo("Uploading artifact to AskAnna...")
 
     fileinfo = {
         "filename": os.path.basename(artifact_archive),
