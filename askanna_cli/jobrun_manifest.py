@@ -1,6 +1,4 @@
-
 import os
-import sys
 
 import click
 import requests
@@ -13,6 +11,7 @@ JobRun Manifest downloader intended to use in askanna-runner
 
 SHORT_HELP = "Download manifest for jobrun"
 
+
 @click.option('--output', '-o', default='/entrypoint.sh', show_default=True,
               type=click.Path())
 @click.command(help=HELP, short_help=SHORT_HELP)
@@ -21,7 +20,6 @@ def cli(output):
     token = config['auth']['token']
     api_server = config['askanna']['remote']
     jobrun_short_uuid = os.getenv("JOBRUN_SHORT_UUID")
-
 
     download_url = "/".join([
         'jobrun',
