@@ -184,6 +184,7 @@ class PackageUpload(Upload):
     tpl_upload_pass = "Package is uploaded"
     tpl_upload_fail = "Package upload failed"
 
+
 class ArtifactUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/"

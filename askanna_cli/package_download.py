@@ -1,13 +1,11 @@
 
 import os
 import sys
-import uuid
 
 import click
 import requests
 from zipfile import ZipFile
 
-from askanna_cli.utils import scan_config_in_path
 from askanna_cli.utils import get_config
 
 HELP = """
