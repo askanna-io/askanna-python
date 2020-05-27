@@ -41,6 +41,7 @@ commands = [
     "payload",
     "package",
     "package_download",
+    "jobrun_manifest",
     "artifact",
     # "mock",
     # "deploy",
