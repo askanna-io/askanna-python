@@ -15,9 +15,14 @@ requirements = [
     'Click>=7.0',
     'cookiecutter>=1.6.0',
     'requests>=2.22.0',
+    'PyYAML==5.3',
+    'python-dotenv==0.13.0',
+    'resumable==0.1.1'
 ]
 
-setup_requirements = []
+setup_requirements = [
+    'wheel~=0.32.1'
+]
 
 test_requirements = []
 
