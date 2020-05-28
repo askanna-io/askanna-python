@@ -19,13 +19,34 @@ Quickstart
 
 Install askanna-cli::
 
-   pip install git+git@gitlab.askanna.io:askanna/askanna-cli.git#egg=askanna-cli
+   pip install git+https://gitlab.askanna.io/open/askanna-cli.git#egg=askanna-cli
+
+Login to askanna:
+
+   askanna login
+
+When used in a CI, one can configure authentication by setting an environment variable:
+
+   AA_REMOTE=https://beta-api.askanna.eu/v1/
+   AA_TOKEN=<your api token>
+
+Upload your package to AskAnna:
+First setup your `askanna.yml`:
+
+   project:
+      url: "https://beta.askanna.eu/workspace/project/7MQT-6309-9g3t-R5QR/"
+      name: "AskAnna Sandbox"
+      uuid: "f1e2144a-87f9-4936-8562-4304c51332ea"
+
+Values on the URL and `uuid` needs to be configured for your own project.
+
+Uploading a package from a CI environment requires the following variables to be set:
 
 
-.. note::
+   AA_REMOTE=https://beta-api.askanna.eu/v1/
+   AA_TOKEN=<your api token>
+   PROJECT_UUID=<uuid for your project>
 
-   The install method is currently limited to people with direct access to the
-   AskAnna Gitlab instance.
 
 
 Features
