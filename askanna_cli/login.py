@@ -42,7 +42,11 @@ def get_user_info(token, server):
         'Authorization': "Token {token}".format(token=token)
     }
     ruser = requests.get(url, headers=headers)
-    print(ruser.text)
+    if ruser.status_code == 200:
+        res = ruser.json()
+        print("{} {}".format(res['first_name'], res['last_name']))
+    else:
+        print("Could not connect to AskAnna at this moment")
 
 
 def do_login(server):
@@ -75,7 +79,7 @@ def cli():
             token = config['auth']['token']
             # Showcase with this token, who we are
             get_user_info(token, server=ASKANNA_API_SERVER)
-            sys.exit()
+            sys.exit(0)
         else:
             # click.echo("Logging in for you")
             do_login(server=ASKANNA_API_SERVER)

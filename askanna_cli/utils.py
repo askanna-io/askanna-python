@@ -36,6 +36,13 @@ def create_config(location: str):
     if not os.path.exists(expanded_path):
         Path(expanded_path).touch()
 
+        # write initial config since it didn't exist
+        store_config({
+            'askanna': {
+                'remote': 'https://beta-api.askanna.eu/v1/'
+            }
+        })
+
 
 def update_available(silent_fail=True):
     """
@@ -85,7 +92,6 @@ def scan_config_in_path(cwd=None):
         split_path = os.path.split(cwd)
         # in any other cases, look in parent directories
         while split_path[1] != "":
-            print(split_path[0])
             if contains_configfile(split_path[0]):
                 project_configfile = os.path.join(
                     split_path[0],
