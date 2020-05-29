@@ -113,6 +113,7 @@ def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
 
 
 def get_config() -> dict:
+    init_checks()
     config = read_config(CONFIG_USERHOME_FILE) or {}
     project_config = scan_config_in_path()
     if project_config:
