@@ -7,14 +7,14 @@ import click
 
 from askanna_cli.utils import zipFilesInDir, scan_config_in_path
 from askanna_cli.utils import get_config
-from askanna_cli.core.upload import Upload
+from askanna_cli.core.upload import PackageUpload
 
 HELP = """
 Wrapper command to package the current working folder to archive
-Afterwards we send this to the ASKANNA_FILEUPLOD_ENDPOINT
+Afterwards we push this to AskAnna
 """
 
-SHORT_HELP = "Package code for askanna"
+SHORT_HELP = "Push code to AskAnna"
 
 
 def package(src: str) -> str:
@@ -72,7 +72,7 @@ def cli():
         "filename": os.path.basename(package_archive),
         "size": os.stat(package_archive).st_size,
     }
-    uploader = Upload(
+    uploader = PackageUpload(
         token=token,
         api_server=api_server,
         project_uuid=project_uuid

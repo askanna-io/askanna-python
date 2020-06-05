@@ -39,12 +39,11 @@ commands = [
     "createproject",
     # "run",
     "payload",
-    "package",
+    "push",
     "package_download",
     "jobrun_manifest",
     "artifact",
-    # "mock",
-    # "deploy",
+    "upload_result",
 ]
 
 for command in commands:
