@@ -105,7 +105,10 @@ def scan_config_in_path(cwd=None):
 
 
 def read_config(path: str) -> dict:
-    return load(open(os.path.expanduser(path), 'r'), Loader=Loader)
+    """
+    Reading existing config or return default dict
+    """
+    return load(open(os.path.expanduser(path), 'r'), Loader=Loader) or {}
 
 
 def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
