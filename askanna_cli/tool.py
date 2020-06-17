@@ -37,14 +37,11 @@ commands = [
     "login",
     "logout",
     "createproject",
-    # "run",
     "payload",
-    "package",
+    "push",
     "package_download",
     "jobrun_manifest",
     "artifact",
-    # "mock",
-    # "deploy",
 ]
 
 for command in commands:
