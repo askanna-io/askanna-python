@@ -9,7 +9,7 @@ from askanna_cli.utils import _file_type, diskunit
 class Upload:
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_SUUID}/chunk/"
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
     tpl_upload_pass = "uploaded"
