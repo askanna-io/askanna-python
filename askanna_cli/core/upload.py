@@ -9,7 +9,7 @@ from askanna_cli.utils import _file_type, diskunit
 class Upload:
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_SUUID}/chunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
     tpl_upload_pass = "uploaded"
@@ -65,10 +65,10 @@ class Upload:
             **self.url_template_arguments()
         )
 
-    def upload_chunk_url(self, chunk_suuid: str) -> str:
+    def upload_chunk_url(self, chunk_uuid: str) -> str:
         arguments = self.url_template_arguments()
         arguments.update({
-            'CHUNK_SUUID': chunk_suuid
+            'CHUNK_UUID': chunk_uuid
         })
         return self.tpl_upload_chunk_url.format(
             **arguments
@@ -120,7 +120,7 @@ class Upload:
             json=config,
             headers=self.headers
         )
-        chunk_suuid = req_chunk.json().get('short_uuid')
+        chunk_uuid = req_chunk.json().get('uuid')
 
         files = {
             'file': io.BytesIO(chunk.read())
@@ -132,7 +132,7 @@ class Upload:
         })
 
         specific_chunk_req = self.session.post(
-            self.upload_chunk_url(chunk_suuid=chunk_suuid),
+            self.upload_chunk_url(chunk_uuid=chunk_uuid),
             data=data,
             files=files,
             headers=self.headers
@@ -179,7 +179,7 @@ class Upload:
 class PackageUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_SUUID}/chunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
     tpl_upload_pass = "Package is uploaded"
@@ -189,7 +189,7 @@ class PackageUpload(Upload):
 class ArtifactUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_SUUID}/chunk/"  # noqa
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
     tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
 
     tpl_upload_pass = "Artifact is uploaded"
