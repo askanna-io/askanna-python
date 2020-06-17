@@ -10,11 +10,11 @@ from askanna_cli.utils import get_config
 from askanna_cli.core.upload import Upload
 
 HELP = """
-Wrapper command to package the current working folder to archive
-Afterwards we send this to the ASKANNA_FILEUPLOD_ENDPOINT
+Wrapper command to push the current working folder to archive
+Afterwards we send this to the ASKANNA_FILEUPLOAD_ENDPOINT
 """
 
-SHORT_HELP = "Package code for askanna"
+SHORT_HELP = "Push code to AskAnna"
 
 
 def package(src: str) -> str:
