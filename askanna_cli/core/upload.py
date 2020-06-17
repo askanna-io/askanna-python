@@ -212,5 +212,5 @@ class ArtifactUpload(Upload):
             "size": 0,
             "file_no": 0,
             "is_last": False,
-            "artifact": self.suuid,
+            "artifact": self.uuid,
         }
