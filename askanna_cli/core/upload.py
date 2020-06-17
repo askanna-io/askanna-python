@@ -65,10 +65,10 @@ class Upload:
             **self.url_template_arguments()
         )
 
-    def upload_chunk_url(self, chunk_uuid: str) -> str:
+    def upload_chunk_url(self, chunk_suuid: str) -> str:
         arguments = self.url_template_arguments()
         arguments.update({
-            'CHUNK_UUID': chunk_uuid
+            'CHUNK_SUUID': chunk_suuid
         })
         return self.tpl_upload_chunk_url.format(
             **arguments
@@ -120,7 +120,7 @@ class Upload:
             json=config,
             headers=self.headers
         )
-        chunk_uuid = req_chunk.json().get('short_uuid')
+        chunk_suuid = req_chunk.json().get('short_uuid')
 
         files = {
             'file': io.BytesIO(chunk.read())
@@ -132,7 +132,7 @@ class Upload:
         })
 
         specific_chunk_req = self.session.post(
-            self.upload_chunk_url(chunk_uuid=chunk_uuid),
+            self.upload_chunk_url(chunk_suuid=chunk_suuid),
             data=data,
             files=files,
             headers=self.headers
