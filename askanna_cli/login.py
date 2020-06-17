@@ -68,7 +68,7 @@ def do_login(server):
 def cli():
     config = get_config()
 
-    ASKANNA_API_SERVER = config['askanna']['remote']
+    ASKANNA_API_SERVER = config.get('askanna', {}).get('remote')
 
     click.echo("Login into AskAnna")
 

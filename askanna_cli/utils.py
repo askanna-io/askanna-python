@@ -37,11 +37,13 @@ def create_config(location: str):
         Path(expanded_path).touch()
 
         # write initial config since it didn't exist
-        store_config({
-            'askanna': {
-                'remote': 'https://beta-api.askanna.eu/v1/'
-            }
-        })
+        with open(expanded_path, 'w') as f:
+            config = store_config({
+                'askanna': {
+                    'remote': 'https://beta-api.askanna.eu/v1/'
+                }
+            })
+            f.write(config)
 
 
 def update_available(silent_fail=True):
@@ -140,9 +142,9 @@ def get_config() -> dict:
     return config
 
 
-def store_config(config):
+def store_config(new_config):
     original_config = get_config()
-    original_config.update(**config)
+    original_config.update(**new_config)
     output = dump(original_config, Dumper=Dumper)
     return output
 
