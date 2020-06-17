@@ -33,12 +33,13 @@ def cli():
     token = config['auth']['token']
     api_server = config['askanna']['remote']
     project = config.get('project', {})
+    project_suuid = project.get('suuid')
     project_uuid = project.get('uuid')
 
-    jobrun_short_uuid = os.getenv('JOBRUN_SHORT_UUID')
+    jobrun_short_uuid = os.getenv('JOBRUN_SUUID')
     jobrun_jobname = os.getenv('JOBRUN_JOBNAME')
 
-    if not project_uuid:
+    if not project_suuid:
         print("Cannot upload unregistered project to AskAnna")
         sys.exit(1)
 
@@ -75,7 +76,7 @@ def cli():
         token=token,
         api_server=api_server,
         project_uuid=project_uuid,
-        JOBRUN_SHORT_UUID=jobrun_short_uuid
+        JOBRUN_SUUID=jobrun_short_uuid
     )
     status, msg = uploader.upload(artifact_archive, config, fileinfo)
     if status:

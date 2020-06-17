@@ -8,22 +8,22 @@ from askanna_cli.utils import _file_type, diskunit
 
 class Upload:
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/packagechunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/packagechunk/{CHUNK_UUID}/chunk/"
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/finish_upload/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
     tpl_upload_pass = "uploaded"
     tpl_upload_fail = "failed"
 
     def __init__(self, token: str, api_server: str, project_uuid: str, *args, **kwargs):
         self.headers = {
-            'user-agent': 'askanna-cli/0.0.1',
+            'user-agent': 'askanna-cli/0.2.0',
             'Authorization': 'Token {token}'.format(
                 token=token
             )
         }
         self.ASKANNA_API_SERVER = api_server
-        self.uuid = None
+        self.suuid = None
         self.session = requests.Session()
         self.project_uuid = project_uuid
         self.resumable_file = None
@@ -50,7 +50,7 @@ class Upload:
         """
         return {
             'ASKANNA_API_SERVER': self.ASKANNA_API_SERVER,
-            'PACKAGE_UUID': self.uuid
+            'PACKAGE_SUUID': self.suuid
         }
 
     @property
@@ -102,7 +102,8 @@ class Upload:
 
         # the result
         self.uuid = res.get('uuid')
-        return self.uuid
+        self.suuid = res.get('short_uuid')
+        return self.suuid
 
     def upload_chunk(self, chunk, chunk_dict):
         config = chunk_dict.copy()
@@ -119,7 +120,7 @@ class Upload:
             json=config,
             headers=self.headers
         )
-        chunk_uuid = req_chunk.json().get('uuid')
+        chunk_uuid = req_chunk.json().get('short_uuid')
 
         files = {
             'file': io.BytesIO(chunk.read())
@@ -177,19 +178,19 @@ class Upload:
 
 class PackageUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/packagechunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/packagechunk/{CHUNK_UUID}/chunk/"
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_UUID}/finish_upload/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_SUUID}/chunk/"
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
     tpl_upload_pass = "Package is uploaded"
     tpl_upload_fail = "Package upload failed"
 
 
 class ArtifactUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/artifact/{ARTIFACT_UUID}/finish_upload/"
+    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_SUUID}/chunk/"  # noqa
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
 
     tpl_upload_pass = "Artifact is uploaded"
     tpl_upload_fail = "Artifact upload failed"
@@ -201,8 +202,8 @@ class ArtifactUpload(Upload):
         """
         return {
             'ASKANNA_API_SERVER': self.ASKANNA_API_SERVER,
-            'ARTIFACT_UUID': self.uuid,
-            'JOBRUN_SHORT_UUID': self.kwargs.get('JOBRUN_SHORT_UUID')
+            'ARTIFACT_SUUID': self.suuid,
+            'JOBRUN_SUUID': self.kwargs.get('JOBRUN_SUUID')
         }
 
     def chunk_dict_template(self):
@@ -211,5 +212,5 @@ class ArtifactUpload(Upload):
             "size": 0,
             "file_no": 0,
             "is_last": False,
-            "artifact": self.uuid,
+            "artifact": self.suuid,
         }
