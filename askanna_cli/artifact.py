@@ -43,6 +43,18 @@ def cli():
         print("Cannot upload unregistered project to AskAnna")
         sys.exit(1)
 
+    # first check whether we need to create artifacts or not
+    # if output is not specifed
+    # or if output.paths is not specified
+    # then we skip this step and report this to the stdout
+
+    output_defined = config[jobrun_jobname].get('output')
+    paths_defined = config[jobrun_jobname].get('output', {}).get('paths')
+
+    if None in [output_defined, paths_defined]:
+        print("Artifact creation aborted, no `output` or `output/paths` defined in `askanna.yml`")
+        sys.exit(0)
+
     cwd = os.getcwd()
 
     upload_folder = cwd
