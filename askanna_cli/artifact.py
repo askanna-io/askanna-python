@@ -32,7 +32,7 @@ def cli():
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
-    
+
     project_uuid = os.getenv('PROJECT_UUID')
     project_suuid = os.getenv('PROJECT_SUUID')
 
