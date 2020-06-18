@@ -32,11 +32,11 @@ def cli():
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
-    project = config.get('project', {})
-    project_suuid = project.get('suuid')
-    project_uuid = project.get('uuid')
 
-    jobrun_short_uuid = os.getenv('JOBRUN_SUUID')
+    project_uuid = os.getenv('PROJECT_UUID')
+    project_suuid = os.getenv('PROJECT_SUUID')
+
+    jobrun_suuid = os.getenv('JOBRUN_SUUID')
     jobrun_jobname = os.getenv('JOBRUN_JOBNAME')
 
     if not project_suuid:
@@ -76,7 +76,7 @@ def cli():
         token=token,
         api_server=api_server,
         project_uuid=project_uuid,
-        JOBRUN_SUUID=jobrun_short_uuid
+        JOBRUN_SUUID=jobrun_suuid
     )
     status, msg = uploader.upload(artifact_archive, config, fileinfo)
     if status:
