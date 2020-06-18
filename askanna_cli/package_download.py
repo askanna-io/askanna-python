@@ -20,14 +20,8 @@ def cli():
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
-    project = config.get('project', {})
-    project_uuid = project.get('uuid')
     project_suuid = os.getenv('PROJECT_SUUID')
     package_suuid = os.getenv('PACKAGE_SUUID')
-
-    if not project_uuid:
-        print("Cannot download project from AskAnna")
-        sys.exit(1)
 
     download_url = "/".join([
         'project',
