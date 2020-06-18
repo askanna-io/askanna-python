@@ -83,7 +83,6 @@ def cli():
             sys.exit(1)
         j = r.json()
         project_uuid = j.get('uuid')
-        
 
     if not project_uuid:
         print("Cannot upload unregistered project to AskAnna")
