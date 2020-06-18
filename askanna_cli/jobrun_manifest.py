@@ -19,15 +19,15 @@ def cli(output):
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
-    jobrun_short_uuid = os.getenv("JOBRUN_SHORT_UUID")
+    jobrun_suuid = os.getenv("JOBRUN_SUUID")
 
     download_url = "/".join([
         'jobrun',
-        jobrun_short_uuid, 'manifest', ''])
+        jobrun_suuid, 'manifest', ''])
     download_url = api_server + download_url
 
     headers = {
-        'user-agent': 'askanna-cli/0.0.1',
+        'user-agent': 'askanna-cli/0.2.0',
         'Authorization': 'Token {token}'.format(
             token=token
         )
