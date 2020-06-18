@@ -1,3 +1,4 @@
+import getpass
 import sys
 import os
 
@@ -22,7 +23,7 @@ def login(server):
     url = "{server}rest-auth/login/".format(server=server.replace("v1/", ''))
     print("Please provide your credentials to log into AskAnna")
     username = input("Username: ")
-    password = input("Password: ")
+    password = getpass.getpass("Password: ")
     login_dict = {
         'username': username.strip(),
         'password': password.strip()
