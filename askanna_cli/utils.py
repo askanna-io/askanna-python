@@ -1,7 +1,9 @@
-import os
+
+import collections
 import glob
 import mimetypes
-import collections
+import os
+import re
 
 from pathlib import Path
 from zipfile import ZipFile
@@ -224,3 +226,13 @@ def _file_type(path):
     type_, _ = mimetypes.guess_type(path)
     # When no type can be inferred, File.type returns an empty string
     return '' if type_ is None else type_
+
+
+def string_expand_variables(strings: list) -> list:
+    var_matcher = re.compile(r"\$\{(?P<MYVAR>[\w\-]+)\}")
+    for idx, line in enumerate(strings):
+        matches = var_matcher.findall(line)
+        for m in matches:
+            line = line.replace("${"+m+"}", os.getenv(m.strip()))
+        strings[idx] = line
+    return strings

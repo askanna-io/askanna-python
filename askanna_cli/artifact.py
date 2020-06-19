@@ -5,7 +5,7 @@ import click
 
 from askanna_cli.utils import zipPaths
 from askanna_cli.utils import scan_config_in_path
-from askanna_cli.utils import get_config
+from askanna_cli.utils import get_config, string_expand_variables
 from askanna_cli.core.upload import ArtifactUpload
 
 HELP = """
@@ -19,6 +19,9 @@ def create_artifact(jobname: str, cwd: str) -> str:
     config = get_config()
 
     paths = config[jobname].get('output', {}).get('paths')
+
+    # expand and translate paths if they are configured with variables
+    paths = string_expand_variables(paths)
 
     zipFileName = '/tmp/artifact.zip'
     with ZipFile(zipFileName, mode='w') as zipObj:
