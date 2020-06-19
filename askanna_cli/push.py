@@ -47,7 +47,7 @@ def cli():
     if not push_target:
         print("`push-target` is not set, please set the `push-target` in order to push to AskAnna")
         sys.exit(1)
-    match_pattern = re.compile(r"https:\/\/(?P<askanna_host>[\w\d\.\-]+)\/project\/(?P<project_suuid>[\w-]+)/")
+    match_pattern = re.compile(r"https:\/\/(?P<askanna_host>[\w\d\.\-]+)\/project\/(?P<project_suuid>[\w-]+)/") # noqa
     matches = match_pattern.match(push_target)
     matches_dict = matches.groupdict()
     api_host = matches_dict.get("askanna_host")
