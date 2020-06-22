@@ -1,34 +1,29 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from zipfile import ZipFile
 import click
 
-from askanna_cli.utils import zipPaths
 from askanna_cli.utils import scan_config_in_path
-from askanna_cli.utils import get_config, string_expand_variables
-from askanna_cli.core.upload import ArtifactUpload
+from askanna_cli.utils import get_config
+from askanna_cli.core.upload import ResultUpload
 
 HELP = """
-After a jobrun, we can add outputfiles to an archinve (artifact)
+After a jobrun, we can add the jobresult to askanna
 """
 
-SHORT_HELP = "Create artifact from jobrun"
+SHORT_HELP = "Upload the result from a jobrun"
 
 
-def create_artifact(jobname: str, cwd: str) -> str:
+def create_jobresult(jobname: str, cwd: str) -> str:
     config = get_config()
 
-    paths = config[jobname].get('output', {}).get('paths')
+    paths = config[jobname].get('output', {}).get('result')
 
-    # expand and translate paths if they are configured with variables
-    paths = string_expand_variables(paths)
+    if isinstance(paths, list):
+        print("Please enter a path in output/result, not a list")
+        sys.exit(1)
 
-    zipFileName = '/tmp/artifact.zip'
-    with ZipFile(zipFileName, mode='w') as zipObj:
-        zipPaths(zipObj, paths, cwd)
-
-    return zipFileName
+    return paths
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
@@ -36,16 +31,15 @@ def cli():
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
+    project = config.get('project', {})
+    project_uuid = project.get('uuid')
 
-    project_uuid = os.getenv('PROJECT_UUID')
-    project_suuid = os.getenv('PROJECT_SUUID')
-
+    jobrun_uuid = os.getenv('JOBRUN_UUID')
     jobrun_suuid = os.getenv('JOBRUN_SUUID')
     jobrun_jobname = os.getenv('JOBRUN_JOBNAME')
 
-    if not project_suuid:
-        print("Cannot upload unregistered project to AskAnna")
-        sys.exit(1)
+    result_uuid = os.getenv('RESULT_UUID')
+    result_suuid = os.getenv('RESULT_SUUID')
 
     # first check whether we need to create artifacts or not
     # if output is not specifed
@@ -53,10 +47,10 @@ def cli():
     # then we skip this step and report this to the stdout
 
     output_defined = config[jobrun_jobname].get('output')
-    paths_defined = config[jobrun_jobname].get('output', {}).get('paths')
+    result_defined = config[jobrun_jobname].get('output', {}).get('result')
 
-    if None in [output_defined, paths_defined]:
-        print("Artifact creation aborted, no `output` or `output/paths` defined in `askanna.yml`")
+    if None in [output_defined, result_defined]:
+        print("Result storage aborted, no `output` or `output/result` defined in `askanna.yml`")
         sys.exit(0)
 
     cwd = os.getcwd()
@@ -80,21 +74,30 @@ def cli():
             project_folder))
         upload_folder = ask_which_folder(cwd, project_folder)
 
-    artifact_archive = create_artifact(jobname=jobrun_jobname, cwd=upload_folder)
+    # First check whether we have a result defined
+    paths = config[jobrun_jobname].get('output', {}).get('result')
+    if not paths:
+        print("No output was defined in output/result, not uploading to AskAnna")
+        sys.exit(0)
 
-    click.echo("Uploading artifact to AskAnna...")
+    jobresult_archive = create_jobresult(jobname=jobrun_jobname, cwd=upload_folder)
+
+    click.echo("Uploading result to AskAnna...")
 
     fileinfo = {
-        "filename": os.path.basename(artifact_archive),
-        "size": os.stat(artifact_archive).st_size,
+        "filename": os.path.basename(jobresult_archive),
+        "size": os.stat(jobresult_archive).st_size,
     }
-    uploader = ArtifactUpload(
+    uploader = ResultUpload(
         token=token,
         api_server=api_server,
         project_uuid=project_uuid,
-        JOBRUN_SUUID=jobrun_suuid
+        JOBRUN_UUID=jobrun_uuid,
+        JOBRUN_SUUID=jobrun_suuid,
+        RESULT_UUID=result_uuid,
+        RESULT_SUUID=result_suuid,
     )
-    status, msg = uploader.upload(artifact_archive, config, fileinfo)
+    status, msg = uploader.upload(jobresult_archive, config, fileinfo)
     if status:
         print(msg)
         sys.exit(0)

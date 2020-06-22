@@ -214,3 +214,38 @@ class ArtifactUpload(Upload):
             "is_last": False,
             "artifact": self.uuid,
         }
+
+
+class ResultUpload(Upload):
+    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
+
+    tpl_upload_pass = "Result is uploaded"
+    tpl_upload_fail = "Result upload failed"
+
+    def url_template_arguments(self):
+        return {
+            'ASKANNA_API_SERVER': self.ASKANNA_API_SERVER,
+            'JOBRUN_SUUID': self.kwargs.get('JOBRUN_SUUID'),
+            'RESULT_UUID': self.uuid,
+            'RESULT_SUUID': self.kwargs.get('RESULT_SUUID')
+        }
+
+    def chunk_dict_template(self):
+        return {
+            "filename": "",
+            "size": 0,
+            "file_no": 0,
+            "is_last": False,
+            "joboutput": self.uuid,
+        }
+
+    def create_entry(self, config: dict = None, fileinfo: dict = {}) -> str:
+        """
+        We don't have to create a new entry as the RESULT_UUID is already defined in the enviroment
+        """
+        # the result
+        self.uuid = os.getenv('RESULT_UUID')
+        return self.uuid
