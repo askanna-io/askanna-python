@@ -6,7 +6,7 @@ import click
 
 from askanna_cli.utils import zipPaths
 from askanna_cli.utils import scan_config_in_path
-from askanna_cli.utils import get_config
+from askanna_cli.utils import get_config, string_expand_variables
 from askanna_cli.core.upload import ArtifactUpload
 
 HELP = """
@@ -21,6 +21,9 @@ def create_artifact(jobname: str, cwd: str) -> str:
 
     paths = config[jobname].get('output', {}).get('paths')
 
+    # expand and translate paths if they are configured with variables
+    paths = string_expand_variables(paths)
+
     zipFileName = '/tmp/artifact.zip'
     with ZipFile(zipFileName, mode='w') as zipObj:
         zipPaths(zipObj, paths, cwd)
@@ -33,15 +36,28 @@ def cli():
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
-    project = config.get('project', {})
-    project_uuid = project.get('uuid')
 
-    jobrun_short_uuid = os.getenv('JOBRUN_SHORT_UUID')
+    project_uuid = os.getenv('PROJECT_UUID')
+    project_suuid = os.getenv('PROJECT_SUUID')
+
+    jobrun_suuid = os.getenv('JOBRUN_SUUID')
     jobrun_jobname = os.getenv('JOBRUN_JOBNAME')
 
-    if not project_uuid:
+    if not project_suuid:
         print("Cannot upload unregistered project to AskAnna")
         sys.exit(1)
+
+    # first check whether we need to create artifacts or not
+    # if output is not specifed
+    # or if output.paths is not specified
+    # then we skip this step and report this to the stdout
+
+    output_defined = config[jobrun_jobname].get('output')
+    paths_defined = config[jobrun_jobname].get('output', {}).get('paths')
+
+    if None in [output_defined, paths_defined]:
+        print("Artifact creation aborted, no `output` or `output/paths` defined in `askanna.yml`")
+        sys.exit(0)
 
     cwd = os.getcwd()
 
@@ -76,7 +92,7 @@ def cli():
         token=token,
         api_server=api_server,
         project_uuid=project_uuid,
-        JOBRUN_SHORT_UUID=jobrun_short_uuid
+        JOBRUN_SUUID=jobrun_suuid
     )
     status, msg = uploader.upload(artifact_archive, config, fileinfo)
     if status:

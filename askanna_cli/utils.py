@@ -1,7 +1,9 @@
-import os
+
+import collections
 import glob
 import mimetypes
-import collections
+import os
+import re
 
 from pathlib import Path
 from zipfile import ZipFile
@@ -37,11 +39,13 @@ def create_config(location: str):
         Path(expanded_path).touch()
 
         # write initial config since it didn't exist
-        store_config({
-            'askanna': {
-                'remote': 'https://beta-api.askanna.eu/v1/'
-            }
-        })
+        with open(expanded_path, 'w') as f:
+            config = store_config({
+                'askanna': {
+                    'remote': 'https://beta-api.askanna.eu/v1/'
+                }
+            })
+            f.write(config)
 
 
 def update_available(silent_fail=True):
@@ -103,7 +107,10 @@ def scan_config_in_path(cwd=None):
 
 
 def read_config(path: str) -> dict:
-    return load(open(os.path.expanduser(path), 'r'), Loader=Loader)
+    """
+    Reading existing config or return default dict
+    """
+    return load(open(os.path.expanduser(path), 'r'), Loader=Loader) or {}
 
 
 def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
@@ -140,9 +147,9 @@ def get_config() -> dict:
     return config
 
 
-def store_config(config):
+def store_config(new_config):
     original_config = get_config()
-    original_config.update(**config)
+    original_config.update(**new_config)
     output = dump(original_config, Dumper=Dumper)
     return output
 
@@ -219,3 +226,13 @@ def _file_type(path):
     type_, _ = mimetypes.guess_type(path)
     # When no type can be inferred, File.type returns an empty string
     return '' if type_ is None else type_
+
+
+def string_expand_variables(strings: list) -> list:
+    var_matcher = re.compile(r"\$\{(?P<MYVAR>[\w\-]+)\}")
+    for idx, line in enumerate(strings):
+        matches = var_matcher.findall(line)
+        for m in matches:
+            line = line.replace("${"+m+"}", os.getenv(m.strip()))
+        strings[idx] = line
+    return strings

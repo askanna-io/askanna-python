@@ -1,6 +1,4 @@
-
 import os
-import sys
 
 import click
 import requests
@@ -20,23 +18,17 @@ def cli():
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
-    project = config.get('project', {})
-    project_uuid = project.get('uuid')
-    project_short_uuid = os.getenv('PROJECT_SHORT_UUID')
-    package_uuid = os.getenv('PACKAGE_UUID')
-
-    if not project_uuid:
-        print("Cannot download project from AskAnna")
-        sys.exit(1)
+    project_suuid = os.getenv('PROJECT_SUUID')
+    package_suuid = os.getenv('PACKAGE_SUUID')
 
     download_url = "/".join([
         'project',
-        project_short_uuid, 'packages',
-        package_uuid, 'download', ''])
+        project_suuid, 'packages',
+        package_suuid, 'download', ''])
     download_url = api_server + download_url
 
     headers = {
-        'user-agent': 'askanna-cli/0.0.1',
+        'user-agent': 'askanna-cli/0.2.0',
         'Authorization': 'Token {token}'.format(
             token=token
         )

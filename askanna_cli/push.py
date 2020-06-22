@@ -1,17 +1,19 @@
 
 import os
+import re
 import sys
 import uuid
 
 import click
+import requests
 
 from askanna_cli.utils import zipFilesInDir, scan_config_in_path
 from askanna_cli.utils import get_config
 from askanna_cli.core.upload import PackageUpload
 
 HELP = """
-Wrapper command to package the current working folder to archive
-Afterwards we push this to AskAnna
+Wrapper command to push the current working folder to archive
+Afterwards we send this to the ASKANNA_FILEUPLOAD_ENDPOINT
 """
 
 SHORT_HELP = "Push code to AskAnna"
@@ -39,6 +41,51 @@ def cli():
     api_server = config['askanna']['remote']
     project = config.get('project', {})
     project_uuid = project.get('uuid')
+
+    # read and parse the push-target from askanna
+    push_target = config.get('push-target')
+    if not push_target:
+        print("`push-target` is not set, please set the `push-target` in order to push to AskAnna")
+        sys.exit(1)
+    match_pattern = re.compile(r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/project\/(?P<project_suuid>[\w-]+)/") # noqa
+    matches = match_pattern.match(push_target)
+    matches_dict = matches.groupdict()
+    api_host = matches_dict.get("askanna_host")
+    http_scheme = matches_dict.get("http_scheme")
+    if api_host:
+        # first also modify the first part
+        if api_host.startswith('localhost'):
+            api_host = api_host
+        elif api_host not in ['askanna.eu']:
+            first_part = api_host.split('.')[0]
+            last_part = api_host.split('.')[1:]
+            api_host = ".".join(
+                [first_part+"-api"]+last_part
+            )
+        else:
+            api_host = 'api.' + api_host
+        api_server = "{}://{}/v1/".format(http_scheme, api_host)
+    project_suuid = matches_dict.get("project_suuid")
+
+    if project_suuid:
+        # make an extra call to askanna to query for the full uuid for this project
+        r = requests.get(
+            "{api_server}project/{project_suuid}".format(
+                api_server=api_server,
+                project_suuid=project_suuid
+            ),
+            headers={
+                'user-agent': 'askanna-cli/0.2.0',
+                'Authorization': 'Token {token}'.format(
+                    token=token
+                )
+            }
+        )
+        if not r.status_code == 200:
+            print("Couldn't find specified project {}".format(push_target))
+            sys.exit(1)
+        j = r.json()
+        project_uuid = j.get('uuid')
 
     if not project_uuid:
         print("Cannot upload unregistered project to AskAnna")
