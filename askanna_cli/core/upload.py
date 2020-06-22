@@ -217,19 +217,20 @@ class ArtifactUpload(Upload):
 
 
 class ResultUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/result/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/result/{RESULT_UUID}/resultchunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/result/{RESULT_UUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SHORT_UUID}/result/{RESULT_UUID}/finish_upload/"
+    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
 
-    tpl_upload_pass = "Artifact is uploaded"
-    tpl_upload_fail = "Artifact upload failed"
+    tpl_upload_pass = "Result is uploaded"
+    tpl_upload_fail = "Result upload failed"
 
     def url_template_arguments(self):
         return {
             'ASKANNA_API_SERVER': self.ASKANNA_API_SERVER,
+            'JOBRUN_SUUID': self.kwargs.get('JOBRUN_SUUID'),
             'RESULT_UUID': self.uuid,
-            'JOBRUN_SHORT_UUID': self.kwargs.get('JOBRUN_SHORT_UUID')
+            'RESULT_SUUID': self.kwargs.get('RESULT_SUUID')
         }
 
     def chunk_dict_template(self):
@@ -248,4 +249,3 @@ class ResultUpload(Upload):
         # the result
         self.uuid = os.getenv('RESULT_UUID')
         return self.uuid
-

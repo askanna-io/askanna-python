@@ -21,11 +21,11 @@ def create_jobresult(jobname: str, cwd: str) -> str:
 
     paths = config[jobname].get('output', {}).get('result')
 
-    zipFileName = '/tmp/jobresult.zip'
-    with ZipFile(zipFileName, mode='w') as zipObj:
-        zipPaths(zipObj, paths, cwd)
+    if type(paths) == type([]):
+        print("Please enter a path in output/result, not a list")
+        sys.exit(1)
 
-    return zipFileName
+    return paths
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
@@ -36,12 +36,24 @@ def cli():
     project = config.get('project', {})
     project_uuid = project.get('uuid')
 
-    jobrun_short_uuid = os.getenv('JOBRUN_SHORT_UUID')
+    jobrun_uuid = os.getenv('JOBRUN_UUID')
+    jobrun_suuid = os.getenv('JOBRUN_SUUID')
     jobrun_jobname = os.getenv('JOBRUN_JOBNAME')
 
-    if not project_uuid:
-        print("Cannot upload unregistered project to AskAnna")
-        sys.exit(1)
+    result_uuid = os.getenv('RESULT_UUID')
+    result_suuid = os.getenv('RESULT_SUUID')
+
+    # first check whether we need to create artifacts or not
+    # if output is not specifed
+    # or if output.paths is not specified
+    # then we skip this step and report this to the stdout
+
+    output_defined = config[jobrun_jobname].get('output')
+    result_defined = config[jobrun_jobname].get('output', {}).get('result')
+
+    if None in [output_defined, result_defined]:
+        print("Result storage aborted, no `output` or `output/result` defined in `askanna.yml`")
+        sys.exit(0)
 
     cwd = os.getcwd()
 
@@ -64,13 +76,11 @@ def cli():
             project_folder))
         upload_folder = ask_which_folder(cwd, project_folder)
 
-    ## First check whether we have a result defined
+    # First check whether we have a result defined
     paths = config[jobrun_jobname].get('output', {}).get('result')
     if not paths:
         print("No output was defined in output/result, not uploading to AskAnna")
         sys.exit(0)
-
-
 
     jobresult_archive = create_jobresult(jobname=jobrun_jobname, cwd=upload_folder)
 
@@ -84,7 +94,10 @@ def cli():
         token=token,
         api_server=api_server,
         project_uuid=project_uuid,
-        JOBRUN_SHORT_UUID=jobrun_short_uuid
+        JOBRUN_UUID=jobrun_uuid,
+        JOBRUN_SUUID=jobrun_suuid,
+        RESULT_UUID=result_uuid,
+        RESULT_SUUID=result_suuid,
     )
     status, msg = uploader.upload(jobresult_archive, config, fileinfo)
     if status:
