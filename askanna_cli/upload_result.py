@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from zipfile import ZipFile
 import click
 
-from askanna_cli.utils import zipPaths
 from askanna_cli.utils import scan_config_in_path
 from askanna_cli.utils import get_config
 from askanna_cli.core.upload import ResultUpload
@@ -21,7 +19,7 @@ def create_jobresult(jobname: str, cwd: str) -> str:
 
     paths = config[jobname].get('output', {}).get('result')
 
-    if type(paths) == type([]):
+    if isinstance(paths, list):
         print("Please enter a path in output/result, not a list")
         sys.exit(1)
 
