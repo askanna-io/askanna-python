@@ -13,6 +13,11 @@ ENV LIBRARY_PATH=/lib:/usr/lib
 ENV PATH /root/.yarn/bin:$PATH
 ENV PYTHONUNBUFFERED 1
 
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    unzip
+
 RUN pip install -U pip \
     && pip install -r requirements_dev.txt \
     && rm -rf /root/.cache
