@@ -33,19 +33,14 @@ export AA_TOKEN=<your api token, can be found in ~/.askanna.yml>
 Upload your package to AskAnna:
 First setup your `askanna.yml`:
 ```yml
-project:
-   url: "https://beta.askanna.eu/workspace/project/7MQT-6309-9g3t-R5QR/"
-   name: "AskAnna Sandbox"
-   uuid: "f1e2144a-87f9-4936-8562-4304c51332ea"
+push-target: https://beta.askanna.eu/project/7MQT-6309-9g3t-R5QR/
 ```
-Values on the URL and `uuid` needs to be configured for your own project.
+Values on the URL and `project-uuid` needs to be configured for your own project.
 
 Uploading a package from a CI environment requires the following variables to be set:
 
 ```bash
-export AA_REMOTE=https://beta-api.askanna.eu/v1/
 export AA_TOKEN=<your api token>
-export PROJECT_UUID=<uuid for your project>
 ```
 
 ## Features
