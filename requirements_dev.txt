@@ -3,7 +3,7 @@ wheel~=0.32.1
 tox~=3.5.2
 Sphinx~=1.8.1
 Click~=7.0
-flake8==3.5.0
+flake8==3.8.3
 pytest~=5.3.1
 cookiecutter~=1.6.0
 sphinx-rtd-theme~=0.4.3
