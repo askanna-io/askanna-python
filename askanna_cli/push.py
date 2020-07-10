@@ -44,10 +44,12 @@ def cli():
 
     # read and parse the push-target from askanna
     push_target = config.get('push-target')
+
     if not push_target:
         print("`push-target` is not set, please set the `push-target` in order to push to AskAnna")
         sys.exit(1)
-    match_pattern = re.compile(r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/project\/(?P<project_suuid>[\w-]+)/") # noqa
+
+    match_pattern = re.compile(r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace>[\w-]+\/)?project\/(?P<project_suuid>[\w-]+)\/") # noqa
     matches = match_pattern.match(push_target)
     matches_dict = matches.groupdict()
     api_host = matches_dict.get("askanna_host")
