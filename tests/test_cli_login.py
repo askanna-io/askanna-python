@@ -1,4 +1,4 @@
-from .base import BaseCLItest
+# from .base import BaseCLItest
 
 
 # class TestCliLogin(BaseCLItest):
