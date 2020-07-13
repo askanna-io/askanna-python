@@ -49,5 +49,4 @@ class TestCliPush(BaseCLItest):
             }],
         ]
         for target in targets:
-            print(target)
             self.assertDictEqual(extract_push_target(target[0]), target[1])
