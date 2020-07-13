@@ -9,7 +9,7 @@ class BaseCLItest(unittest.TestCase):
     verb = ""
 
     def setUp(self):
-        self.result = CliRunner().invoke(cli, self.verb)
+        self.result = CliRunner().invoke(cli, ['--help', self.verb, ])
 
     def testCommandLineAccess(self):
         assert self.result.exit_code == 0

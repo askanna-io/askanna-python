@@ -34,6 +34,17 @@ def package(src: str) -> str:
     return random_name
 
 
+def extract_push_target(push_target):
+    """
+    Extract push target from the url configured
+    Workspace is optional
+    """
+    match_pattern = re.compile(r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace_suuid>[\w-]+){0,1}\/{0,1}project\/(?P<project_suuid>[\w-]+)\/{0,1}")  # noqa
+    matches = match_pattern.match(push_target)
+    matches_dict = matches.groupdict()
+    return matches_dict
+
+
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
     config = get_config()
@@ -49,9 +60,7 @@ def cli():
         print("`push-target` is not set, please set the `push-target` in order to push to AskAnna")
         sys.exit(1)
 
-    match_pattern = re.compile(r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace>[\w-]+\/)?project\/(?P<project_suuid>[\w-]+)\/") # noqa
-    matches = match_pattern.match(push_target)
-    matches_dict = matches.groupdict()
+    matches_dict = extract_push_target(push_target)
     api_host = matches_dict.get("askanna_host")
     http_scheme = matches_dict.get("http_scheme")
     if api_host:
