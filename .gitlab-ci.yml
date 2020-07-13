@@ -9,8 +9,8 @@ stages:
     - pip install -U pip
     - pip install -U -r requirements_dev.txt
   tags:
-    - normal
-  
+    - kubernetes
+
 python3:
   <<: *test_template
   image: python:3-slim
@@ -64,7 +64,7 @@ python 39:
   image: docker:git
   stage: build
   tags:
-    - normal
+    - docker
   variables:
     DOCKER_TLS_CERTDIR: ""
     PY_VERSION: "3-slim"
@@ -97,7 +97,7 @@ verify_docker_build:
   stage: verifybuild
   image: ${CI_REGISTRY}/askanna/askanna-cli:${CI_COMMIT_REF_NAME}
   tags:
-    - normal
+    - kubernetes
   script:
     - askanna
   only:
