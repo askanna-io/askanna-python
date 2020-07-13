@@ -1,7 +1,7 @@
 include requirements_dev.txt
 include AUTHORS.rst
-include HISTORY.rst
-include README.rst
+include HISTORY.md
+include README.md
 
 recursive-include tests *
 recursive-exclude * __pycache__

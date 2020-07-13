@@ -1,10 +1,10 @@
 bumpversion~=0.5.3
-wheel~=0.32.1
-tox~=3.5.2
+wheel~=0.34.2
+tox~=3.16.0
 Sphinx~=1.8.1
-Click~=7.0
-flake8==3.8.3
-pytest~=5.3.1
+Click~=7.1
+flake8~=3.8.3
+pytest~=5.4.3
 cookiecutter~=1.6.0
 sphinx-rtd-theme~=0.4.3
 

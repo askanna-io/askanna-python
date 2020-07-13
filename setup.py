@@ -8,11 +8,11 @@ from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
+with open('HISTORY.md') as history_file:
     history = history_file.read()
 
 requirements = [
-    'Click>=7.0',
+    'Click>=7.1',
     'cookiecutter>=1.6.0',
     'requests>=2.22.0',
     'PyYAML==5.3',
@@ -21,7 +21,7 @@ requirements = [
 ]
 
 setup_requirements = [
-    'wheel~=0.32.1'
+    'wheel~=0.34.2'
 ]
 
 test_requirements = []
