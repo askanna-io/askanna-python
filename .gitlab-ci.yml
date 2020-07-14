@@ -97,7 +97,7 @@ verify_docker_build:
   stage: verifybuild
   variables:
     PY_VERSION: "3-slim"
-  image: ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+  image: $CI_REGISTRY_IMAGE:${PY_VERSION}-${CI_COMMIT_REF_NAME}
   tags:
     - kubernetes
   script:
