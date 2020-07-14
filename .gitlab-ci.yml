@@ -72,8 +72,8 @@ python 39:
     - docker:dind
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION} .
-    - docker push ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+    - docker build -t ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION} .
+    - docker push ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME}
   except:
     - triggers
     - schedules
@@ -95,7 +95,9 @@ build_docker_image_master:
 
 verify_docker_build:
   stage: verifybuild
-  image: ${CI_REGISTRY}/askanna/askanna-cli:${CI_COMMIT_REF_NAME}
+  variables:
+    PY_VERSION: "3-slim"
+  image: $CI_REGISTRY_IMAGE:${PY_VERSION}-${CI_COMMIT_REF_NAME}
   tags:
     - kubernetes
   script:
