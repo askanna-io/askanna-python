@@ -72,7 +72,7 @@ python 39:
     - docker:dind
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t ${CI_REGISTRY}/askanna/askanna-cli:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION} .
+    - docker build -t ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION} .
     - docker push ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME}
   except:
     - triggers
