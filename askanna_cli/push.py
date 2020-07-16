@@ -5,6 +5,7 @@ import sys
 import uuid
 
 import click
+import git
 import requests
 
 from askanna_cli.utils import zipFilesInDir, scan_config_in_path
@@ -12,8 +13,8 @@ from askanna_cli.utils import get_config
 from askanna_cli.core.upload import PackageUpload
 
 HELP = """
-Wrapper command to push the current working folder to archive
-Afterwards we send this to the ASKANNA_FILEUPLOAD_ENDPOINT
+Wrapper command to push the current working folder to archive.\n
+Afterwards we send this to AskAnna
 """
 
 SHORT_HELP = "Push code to AskAnna"
@@ -46,7 +47,8 @@ def extract_push_target(push_target):
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
-def cli():
+@click.option('--message', '-m', default='', type=str, help='Add description to this code')
+def cli(message):
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
@@ -81,7 +83,7 @@ def cli():
     if project_suuid:
         # make an extra call to askanna to query for the full uuid for this project
         r = requests.get(
-            "{api_server}project/{project_suuid}".format(
+            "{api_server}project/{project_suuid}/".format(
                 api_server=api_server,
                 project_suuid=project_suuid
             ),
@@ -124,6 +126,17 @@ def cli():
 
     package_archive = package(upload_folder)
 
+    # attach message to this package upload
+    if not message:
+        # try git
+        try:
+            repo = git.Repo(".")
+        except Exception as e:
+            print(e)
+        else:
+            commit = repo.head.commit
+            message = commit.message
+
     click.echo("Uploading '{}' to AskAnna...".format(upload_folder))
 
     fileinfo = {
@@ -133,7 +146,8 @@ def cli():
     uploader = PackageUpload(
         token=token,
         api_server=api_server,
-        project_uuid=project_uuid
+        project_uuid=project_uuid,
+        description=message
     )
     status, msg = uploader.upload(package_archive, config, fileinfo)
     if status:

@@ -16,3 +16,6 @@ PyYAML==5.3  # https://pypi.org/project/PyYAML/#description
 
 # dotenv support
 python-dotenv
+
+# git support
+gitpython==3.1.3

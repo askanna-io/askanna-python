@@ -17,7 +17,8 @@ requirements = [
     'requests>=2.22.0',
     'PyYAML==5.3',
     'python-dotenv==0.13.0',
-    'resumable==0.1.1'
+    'resumable==0.1.1',
+    'gitpython==3.1.3'
 ]
 
 setup_requirements = [
