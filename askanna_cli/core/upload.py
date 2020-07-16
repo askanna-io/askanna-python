@@ -85,12 +85,17 @@ class Upload:
         self.upload_file(file_obj)
         return self.finish_upload()
 
+    def create_entry_extrafields(self):
+        return {}
+
     def create_entry(self, config: dict = None, fileinfo: dict = {}) -> str:
         info_dict = {
             "filename": fileinfo.get('filename'),
             "project": self.project_uuid,
             "size": fileinfo.get('size')
         }
+
+        info_dict.update(**self.create_entry_extrafields())
 
         # the request to AskAnna API
         req = self.session.post(
@@ -184,6 +189,12 @@ class PackageUpload(Upload):
 
     tpl_upload_pass = "Package is uploaded"
     tpl_upload_fail = "Package upload failed"
+
+    def create_entry_extrafields(self):
+        return {
+            'title': self.kwargs.get('description', "")[:50],
+            'description': self.kwargs.get('description')
+        }
 
 
 class ArtifactUpload(Upload):
