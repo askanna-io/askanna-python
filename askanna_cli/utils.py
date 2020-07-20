@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 from zipfile import ZipFile
 
+import requests
 from yaml import load, dump
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -236,3 +237,43 @@ def string_expand_variables(strings: list) -> list:
             line = line.replace("${"+m+"}", os.getenv(m.strip()))
         strings[idx] = line
     return strings
+
+
+def getProjectInfo(project_suuid, api_server, token):
+    r = requests.get(
+        "{api_server}project/{project_suuid}/".format(
+            api_server=api_server,
+            project_suuid=project_suuid
+        ),
+        headers={
+            'user-agent': 'askanna-cli/0.2.0',
+            'Authorization': 'Token {token}'.format(
+                token=token
+            )
+        }
+    )
+    if not r.status_code == 200:
+        return {}
+
+    return r.json()
+
+
+def getProjectPackages(project, api_server, token, offset=0, limit=1):
+    r = requests.get(
+        "{api_server}project/{project_suuid}/packages/?offset={offset}&limit={limit}".format(
+            api_server=api_server,
+            project_suuid=project['short_uuid'],
+            offset=offset,
+            limit=limit
+        ),
+        headers={
+            'user-agent': 'askanna-cli/0.2.0',
+            'Authorization': 'Token {token}'.format(
+                token=token
+            )
+        }
+    )
+    if not r.status_code == 200:
+        return []
+
+    return r.json()
