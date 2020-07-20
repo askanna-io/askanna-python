@@ -1,4 +1,5 @@
-
+import json
+import logging
 import os
 import re
 import sys
@@ -6,11 +7,12 @@ import uuid
 
 import click
 import git
-import requests
 
 from askanna_cli.utils import zipFilesInDir, scan_config_in_path
-from askanna_cli.utils import get_config
+from askanna_cli.utils import get_config, getProjectInfo, getProjectPackages
 from askanna_cli.core.upload import PackageUpload
+
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 HELP = """
 Wrapper command to push the current working folder to archive.\n
@@ -35,6 +37,59 @@ def package(src: str) -> str:
     return random_name
 
 
+def check_existing_package(project, push_target, upload_folder, api_server, token) -> bool:
+
+    # check existence of .askanna folder in `upload_folder`
+    askanna_folder = os.path.join(upload_folder, ".askanna")
+    if not(os.path.exists(
+        askanna_folder
+    ) and os.path.isdir(askanna_folder)):
+        packages = getProjectPackages(project, api_server, token)
+        return len(packages) > 0
+    # read contents from .askanna folder
+    try:
+        with open(os.path.join(
+            askanna_folder,
+            'PACKAGE-INFO'
+        )) as f:
+            j = json.loads(f.read())
+    except Exception as e:
+        # information is not there
+        # please retrieve this info from askanna
+        logging.debug(e)
+        packages = getProjectPackages(project, api_server, token)
+        return len(packages) > 0
+    else:
+        if push_target in j.keys():
+            return True
+        else:
+            return False
+
+    return True
+
+
+def writePackageInfo(project, push_target, upload_folder):
+    askanna_folder = os.path.join(upload_folder, ".askanna")
+    os.makedirs(askanna_folder, exist_ok=True)
+
+    # does the file exist? create one if not
+
+    try:
+        with open(os.path.join(askanna_folder, 'PACKAGE-INFO')) as f:
+            j = json.loads(f.read())
+    except Exception:
+        with open(os.path.join(askanna_folder, 'PACKAGE-INFO'), 'w') as f:
+            f.write(json.dumps({
+                push_target: project
+            }, indent=2))
+    else:
+        with open(os.path.join(askanna_folder, 'PACKAGE-INFO'), 'w') as f:
+            j.update(**{
+                push_target: project
+            })
+            f.write(json.dumps(j, indent=2))
+
+
 def extract_push_target(push_target):
     """
     Extract push target from the url configured
@@ -47,8 +102,9 @@ def extract_push_target(push_target):
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
+@click.option('--force', '-f', is_flag=True, help='Force push')
 @click.option('--message', '-m', default='', type=str, help='Add description to this code')
-def cli(message):
+def cli(force, message):
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
@@ -80,29 +136,30 @@ def cli(message):
         api_server = "{}://{}/v1/".format(http_scheme, api_host)
     project_suuid = matches_dict.get("project_suuid")
 
+    project_info = {}
     if project_suuid:
         # make an extra call to askanna to query for the full uuid for this project
-        r = requests.get(
-            "{api_server}project/{project_suuid}/".format(
-                api_server=api_server,
-                project_suuid=project_suuid
-            ),
-            headers={
-                'user-agent': 'askanna-cli/0.2.0',
-                'Authorization': 'Token {token}'.format(
-                    token=token
-                )
-            }
-        )
-        if not r.status_code == 200:
+        project_info = getProjectInfo(project_suuid, api_server, token)
+        if project_info == {}:
             print("Couldn't find specified project {}".format(push_target))
             sys.exit(1)
-        j = r.json()
-        project_uuid = j.get('uuid')
+
+        project_uuid = project_info.get('uuid')
 
     if not project_uuid:
         print("Cannot upload unregistered project to AskAnna")
         sys.exit(1)
+
+    def ask_overwrite() -> bool:
+        confirm = input("Do you want to replace the current code on AskAnna? [y/n]: ")
+        answer = confirm.strip()
+        if answer not in ['n', 'y']:
+            print("Invalid option selected, choose from: y or n")
+            return ask_overwrite()
+        if confirm == 'y':
+            return True
+        else:
+            return False
 
     cwd = os.getcwd()
 
@@ -114,6 +171,7 @@ def cli(message):
         confirm = input("Proceed upload [c]urrent or [p]roject folder? : ")
         answer = confirm.strip()
         if answer not in ['c', 'p']:
+            print("Invalid option selected, choose from: c or p")
             return ask_which_folder(cwd, project_folder)
         if confirm == 'c':
             return cwd
@@ -123,6 +181,17 @@ def cli(message):
     if not cwd == project_folder:
         print("You are not at the root folder of the project '{}'".format(project_folder))
         upload_folder = ask_which_folder(cwd, project_folder)
+
+    # check for existing package
+    if check_existing_package(project_info, push_target, upload_folder, api_server, token):
+        # ask for confirmation if `-f` flag is not set
+        overwrite = force
+        if not force:
+            overwrite = ask_overwrite()
+
+        if not overwrite:
+            print("We are not pushing your code to AskAnna. You choose not to replace your existing code.")
+            sys.exit(0)
 
     package_archive = package(upload_folder)
 
@@ -152,6 +221,9 @@ def cli(message):
     status, msg = uploader.upload(package_archive, config, fileinfo)
     if status:
         print(msg)
+
+        # create log that this package was uploaded once
+        writePackageInfo(project_info, push_target, upload_folder)
         sys.exit(0)
     else:
         print(msg)
