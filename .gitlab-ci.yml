@@ -2,6 +2,7 @@ stages:
   - test
   - build
   - verifybuild
+  - publish
 
 .test_template: &test_template
   stage: test
@@ -158,6 +159,22 @@ image_py39:
     PY_VERSION: "3.9-rc-buster"
   except:
     - triggers
+  only:
+    refs:
+      - master
+
+
+publish_to_pypi:
+  stage: publish
+  image: python:3-slim
+  tags:
+    - kubernetes
+  before_script:
+    - echo $PYPIRC | base64 -d > ~/.pypirc
+    - pip install -U pip wheel twine
+  script:
+    - python3 setup.py sdist bdist_wheel
+    - twine upload --verbose --non-interactive --config-file ~/.pypirc -r pypi dist/*
   only:
     refs:
       - master

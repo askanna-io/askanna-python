@@ -12,7 +12,7 @@ provides facilities for supporting every part of the data science process.
 ### Install askanna-cli::
 
 ```
-pip install git+https://gitlab.askanna.io/open/askanna-cli.git#egg=askanna-cli
+pip install askanna
 ```
 
 ### Login to askanna:

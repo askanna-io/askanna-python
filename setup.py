@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
-with open('HISTORY.md') as history_file:
+with open('CHANGELOG.md') as history_file:
     history = history_file.read()
 
 requirements = [
@@ -50,9 +50,10 @@ setup(
     },
     install_requires=requirements,
     long_description=readme + '\n\n' + history,
+    long_description_content_type='text/markdown',
     include_package_data=True,
     keywords='askanna',
-    name='askanna-cli',
+    name='askanna',
     packages=find_packages(include=['askanna_cli', 'askanna_cli.core'], exclude=['tests']),
     setup_requires=setup_requirements,
     test_suite='tests',
