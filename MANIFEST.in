@@ -1,6 +1,6 @@
 include requirements_dev.txt
 include AUTHORS.rst
-include HISTORY.md
+include CHANGELOG.md
 include README.md
 
 recursive-include tests *
