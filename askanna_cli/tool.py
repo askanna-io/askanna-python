@@ -43,6 +43,7 @@ commands = [
     "jobrun_manifest",
     "artifact",
     "upload_result",
+    "variable",
 ]
 
 for command in commands:
