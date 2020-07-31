@@ -37,7 +37,7 @@ def list():
     url = base_url + "variable/"
 
     headers = {
-        'user-agent': 'askanna-cli/0.2.1',
+        'user-agent': 'askanna-cli/0.3.0',
         'Authorization': "Token {token}".format(token=token)
     }
     # first try to get the variable (if http=200, then access and ok)
@@ -64,7 +64,7 @@ def change(id, value):
     url = base_url + "variable/{}/".format(id)
 
     headers = {
-        'user-agent': 'askanna-cli/0.2.1',
+        'user-agent': 'askanna-cli/0.3.0',
         'Authorization': "Token {token}".format(token=token)
     }
     click.echo("Let's change variable {}".format(id))
