@@ -54,3 +54,6 @@ docs/_build
 
 # exclude .askanna config
 .askanna/
+
+# MacOS
+.DS_Store
