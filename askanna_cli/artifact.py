@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import time
 from zipfile import ZipFile
+import requests
 import click
 
 from askanna_cli.utils import zipPaths
@@ -9,11 +11,15 @@ from askanna_cli.utils import scan_config_in_path
 from askanna_cli.utils import get_config, string_expand_variables
 from askanna_cli.core.upload import ArtifactUpload
 
-HELP = """
-After a jobrun, we can add outputfiles to an archinve (artifact)
-"""
 
-SHORT_HELP = "Create artifact from jobrun"
+@click.group()
+def cli1():
+    pass
+
+
+@click.group()
+def cli2():
+    pass
 
 
 def create_artifact(jobname: str, cwd: str) -> str:
@@ -31,8 +37,9 @@ def create_artifact(jobname: str, cwd: str) -> str:
     return zipFileName
 
 
-@click.command(help=HELP, short_help=SHORT_HELP)
-def cli():
+@cli1.command(help="After a run of a job, we can save job run artifacts to an archive",
+              short_help="Save artifact from a job run")
+def add():
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
@@ -101,3 +108,47 @@ def cli():
     else:
         print(msg)
         sys.exit(1)
+
+
+@cli2.command(help="Download an artifact of a job run", short_help="Download a job run artifact")
+@click.option('--id', '-i', required=True, type=str, help='Job run SUUID')
+@click.option('--output', '-o', show_default=True, type=click.Path())
+def get(id, output):
+    """
+    Download an artifact of a job run
+    """
+
+    config = get_config()
+    token = config['auth']['token']
+    ASKANNA_API_SERVER = config.get('askanna', {}).get('remote')
+
+    base_url = "{server}".format(server=ASKANNA_API_SERVER)
+    url = base_url + "artifact/{}".format(id)
+
+    headers = {
+        'user-agent': 'askanna-cli/0.3.0',
+        'Authorization': "Token {token}".format(token=token)
+    }
+
+    r = requests.get(url, headers=headers, stream=True)
+    if r.status_code != 200:
+        print("We cannot find this artifact for you")
+        sys.exit(1)
+
+    if not output:
+        output = "artifact_{suuid}_{datetime}.zip".format(suuid=id, datetime=time.strftime("%Y%m%d-%H%M%S"))
+
+    if os.path.exists(output):
+        print("The output file already exists. We will not overwrite the existing file.")
+        sys.exit(1)
+
+    with open(output, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            f.write(chunk)
+
+    print("We have succesfully downloaded the job run artifact.")
+    print("The artifact is saved in: {file}".format(file=output))
+
+
+cli = click.CommandCollection(sources=[cli1, cli2], help="Save and download job run artifacts",
+                              short_help="Save and download job run artifacts")

@@ -1,5 +1,11 @@
 # History
 
+## 0.3.0 (2020-07-31)
+* changed `askanna artifact` to `askanna artifact add`
+* adding `askanna artifact get`
+* adding `askanna variable list` to get a list of variables in askanna
+* adding `askanna variable change` to modify the value of a variable
+
 ## 0.2.0 (2020-07-23)
 * adding askanna push -f
 * adding askanna push -m "push message"
