@@ -16,7 +16,7 @@ requirements = [
     'cookiecutter>=1.6.0',
     'requests>=2.22.0',
     'PyYAML==5.3',
-    'python-dotenv==0.13.0',
+    'python-dotenv==0.14.0',
     'resumable==0.1.1',
     'gitpython==3.1.3'
 ]
