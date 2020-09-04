@@ -206,6 +206,10 @@ def cli(force, message):
             commit = repo.head.commit
             message = commit.message
 
+    # if there is still no message set then use the zipfilename
+    if not message:
+        message = os.path.basename(package_archive)
+
     click.echo("Uploading '{}' to AskAnna...".format(upload_folder))
 
     fileinfo = {
