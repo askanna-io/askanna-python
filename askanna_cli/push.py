@@ -8,6 +8,7 @@ import uuid
 import click
 import git
 
+from askanna_cli import config_dirs
 from askanna_cli.utils import zipFilesInDir, scan_config_in_path
 from askanna_cli.utils import get_config, getProjectInfo, getProjectPackages
 from askanna_cli.core.upload import PackageUpload
@@ -39,8 +40,8 @@ def package(src: str) -> str:
 
 def check_existing_package(project, push_target, upload_folder, api_server, token) -> bool:
 
-    # check existence of .askanna folder in `upload_folder`
-    askanna_folder = os.path.join(upload_folder, ".askanna")
+    # check existence the usercache folder
+    askanna_folder = config_dirs.user_cache_dir
     if not(os.path.exists(
         askanna_folder
     ) and os.path.isdir(askanna_folder)):
@@ -69,7 +70,7 @@ def check_existing_package(project, push_target, upload_folder, api_server, toke
 
 
 def writePackageInfo(project, push_target, upload_folder):
-    askanna_folder = os.path.join(upload_folder, ".askanna")
+    askanna_folder = config_dirs.user_cache_dir
     os.makedirs(askanna_folder, exist_ok=True)
 
     # does the file exist? create one if not
