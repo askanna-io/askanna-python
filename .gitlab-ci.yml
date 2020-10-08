@@ -19,11 +19,15 @@ python3:
   script:
     - pytest
 
-python flake:
-  <<: *test_template 
+python flake8:
+  stage: test
   image: python:3-slim
   script:
+    - pip install tox
     - tox -e flake8
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
 
 python lint:
   <<: *test_template
@@ -62,7 +66,7 @@ python 39:
   script:
     - tox -e py39
 
-.build_docker_image_template: &build_docker_image_template  
+.build_docker_image_template: &build_docker_image_template
   stage: build
   tags:
     - kubernetes
@@ -73,7 +77,7 @@ python 39:
     PY_VERSION: "3-slim"
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION} 
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION}
   except:
     - triggers
     - schedules
@@ -108,7 +112,7 @@ verify_docker_build:
 
 image_py35:
   <<: *build_docker_image_template
-  variables:    
+  variables:
     PY_VERSION: "3.5-slim"
   except:
     - triggers
