@@ -57,3 +57,7 @@ docs/_build
 
 # MacOS
 .DS_Store
+
+# Running tox
+.eggs/
+gl-code-quality-report.json

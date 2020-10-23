@@ -28,7 +28,7 @@ def cli():
     download_url = api_server + download_url
 
     headers = {
-        'user-agent': 'askanna-cli/0.3.0',
+        'user-agent': 'askanna-cli/0.3.1',
         'Authorization': 'Token {token}'.format(
             token=token
         )

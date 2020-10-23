@@ -39,7 +39,7 @@ def get_user_info(token, server):
     url = "{server}rest-auth/user".format(server=server.replace("v1/", ''))
 
     headers = {
-        'user-agent': 'askanna-cli/0.3.0',
+        'user-agent': 'askanna-cli/0.3.1',
         'Authorization': "Token {token}".format(token=token)
     }
     ruser = requests.get(url, headers=headers)

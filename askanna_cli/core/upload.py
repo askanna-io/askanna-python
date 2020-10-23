@@ -17,7 +17,7 @@ class Upload:
 
     def __init__(self, token: str, api_server: str, project_uuid: str, *args, **kwargs):
         self.headers = {
-            'user-agent': 'askanna-cli/0.2.0',
+            'user-agent': 'askanna-cli/0.3.1',
             'Authorization': 'Token {token}'.format(
                 token=token
             )
