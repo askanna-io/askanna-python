@@ -60,6 +60,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://gitlab.askanna.io/open/askanna-cli',
-    version='0.3.0',
+    version='0.3.1',
     zip_safe=False,
 )
