@@ -37,7 +37,7 @@ def list():
     url = base_url + "variable/"
 
     headers = {
-        'user-agent': 'askanna-cli/0.3.0',
+        'user-agent': 'askanna-cli/0.3.1',
         'Authorization': "Token {token}".format(token=token)
     }
     # first try to get the variable (if http=200, then access and ok)
