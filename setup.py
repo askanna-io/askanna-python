@@ -4,6 +4,7 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+from askanna_cli import __version__ as askanna_version
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
@@ -60,6 +61,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://gitlab.askanna.io/open/askanna-cli',
-    version='0.3.0',
+    version=askanna_version,
     zip_safe=False,
 )
