@@ -8,9 +8,9 @@ __version__ = '0.3.1'
 
 try:
     from appdirs import AppDirs
-except:
+except Exception as e:
     # we are propably within an installation
-    pass
+    print(e)
 else:
     appname = "askanna"
     appauthor = "askanna"
