@@ -2,7 +2,7 @@ import click
 import requests
 import os
 import yaml
-from askanna_cli.utils import get_config
+from askanna.cli.utils import get_config
 
 HELP = """
 This command will allow you to create a project

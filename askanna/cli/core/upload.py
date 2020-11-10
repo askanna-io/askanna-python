@@ -3,7 +3,7 @@ import os
 import requests
 import resumable
 
-from askanna_cli.utils import _file_type, diskunit
+from askanna.cli.utils import _file_type, diskunit
 
 
 class Upload:

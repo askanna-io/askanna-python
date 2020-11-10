@@ -4,7 +4,7 @@ import click
 import requests
 import subprocess
 
-from askanna_cli.utils import check_for_project
+from askanna.cli.utils import check_for_project
 
 # FIXME: this will be an AskAnna public link in the future
 # For dev purposes, add your local path to the cookiecutter template

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Top-level package for askanna-cli."""
+"""Top-level package for askanna."""
 
 __author__ = """Anthony Leung"""
 __email__ = 'anthony@askanna.io'

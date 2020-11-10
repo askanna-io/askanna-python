@@ -7,11 +7,11 @@ from zipfile import ZipFile
 import requests
 import click
 
-import askanna_cli
-from askanna_cli.utils import zipPaths
-from askanna_cli.utils import scan_config_in_path
-from askanna_cli.utils import get_config, string_expand_variables
-from askanna_cli.core.upload import ArtifactUpload
+import askanna
+from askanna.cli.utils import zipPaths
+from askanna.cli.utils import scan_config_in_path
+from askanna.cli.utils import get_config, string_expand_variables
+from askanna.cli.core.upload import ArtifactUpload
 
 
 @click.group()
@@ -227,7 +227,7 @@ def get(id, output):
     url = base_url + "artifact/{}".format(id)
 
     headers = {
-        'user-agent': 'askanna-cli/{version}'.format(version=askanna_cli.__version__),
+        'user-agent': 'askanna-cli/{version}'.format(version=askanna.__version__),
         'Authorization': "Token {token}".format(token=token)
     }
 

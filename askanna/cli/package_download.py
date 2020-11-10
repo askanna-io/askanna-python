@@ -4,7 +4,7 @@ import click
 import requests
 from zipfile import ZipFile
 
-from askanna_cli.utils import get_config
+from askanna.cli.utils import get_config
 
 HELP = """
 Package downloader, intended for use with runner and unpacks code to /code

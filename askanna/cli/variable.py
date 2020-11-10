@@ -3,7 +3,7 @@ import sys
 import click
 import requests
 
-from askanna_cli.utils import get_config
+from askanna.cli.utils import get_config
 
 HELP = """
 Change variables in AskAnna

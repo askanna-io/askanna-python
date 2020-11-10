@@ -4,7 +4,7 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
-from askanna_cli import __version__ as askanna_version
+from askanna import __version__ as askanna_version
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
@@ -47,7 +47,7 @@ setup(
     description="AskAnna Command line and library interface",
     entry_points={
         'console_scripts': [
-            'askanna=askanna_cli.tool:cli',
+            'askanna=askanna.cli.tool:cli',
         ],
     },
     install_requires=requirements,
@@ -56,7 +56,7 @@ setup(
     include_package_data=True,
     keywords='askanna',
     name='askanna',
-    packages=find_packages(include=['askanna_cli', 'askanna_cli.core'], exclude=['tests']),
+    packages=find_packages(include=['askanna'], exclude=['tests']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,

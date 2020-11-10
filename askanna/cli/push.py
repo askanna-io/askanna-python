@@ -8,10 +8,10 @@ import uuid
 import click
 import git
 
-from askanna_cli import config_dirs
-from askanna_cli.utils import zipFilesInDir, scan_config_in_path
-from askanna_cli.utils import get_config, getProjectInfo, getProjectPackages
-from askanna_cli.core.upload import PackageUpload
+from askanna import config_dirs
+from askanna.cli.utils import zipFilesInDir, scan_config_in_path
+from askanna.cli.utils import get_config, getProjectInfo, getProjectPackages
+from askanna.cli.core.upload import PackageUpload
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 

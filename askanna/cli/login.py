@@ -5,7 +5,7 @@ import os
 import click
 import requests
 
-from askanna_cli.utils import get_config, store_config
+from askanna.cli.utils import get_config, store_config
 
 HELP = """
 Add your AskAnna API key to your global configuration file
