@@ -2,7 +2,7 @@ import unittest
 
 from click.testing import CliRunner
 
-from askanna_cli.tool import cli
+from askanna.cli.tool import cli
 
 
 class BaseCLItest(unittest.TestCase):

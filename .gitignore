@@ -61,3 +61,6 @@ docs/_build
 # Running tox
 .eggs/
 gl-code-quality-report.json
+
+.venv
+.venv*

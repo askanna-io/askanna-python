@@ -5,7 +5,7 @@ import sys
 import click
 import requests
 
-from askanna_cli.utils import get_config
+from askanna.cli.utils import get_config
 # read defaults from the environment
 default_jobrun_suuid = os.getenv('JOBRUN_SUUID')
 default_payload_suuid = os.getenv('PAYLOAD_SUUID')

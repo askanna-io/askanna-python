@@ -51,8 +51,8 @@ def create_config(location: str):
 
 def update_available(silent_fail=True):
     """
-    Check whether most recent Gitlab release of askanna_cli is newer than the
-    askanna_cli version in use. If a newer version is available, return a
+    Check whether most recent Gitlab release of askanna is newer than the
+    askanna version in use. If a newer version is available, return a
     link to the release on Gitlab, otherwise return ``None``.
     """
     try:
@@ -63,7 +63,7 @@ def update_available(silent_fail=True):
         if not silent_fail:
             raise
 
-        # Don't let this interfere with askanna_cli usage
+        # Don't let this interfere with askanna usage
         return None
 
 
