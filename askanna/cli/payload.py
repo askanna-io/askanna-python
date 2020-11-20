@@ -3,8 +3,8 @@ import os
 import sys
 
 import click
-import requests
 
+from askanna.cli.core import client as askanna_client
 from askanna.cli.utils import get_config
 # read defaults from the environment
 default_jobrun_suuid = os.getenv('JOBRUN_SUUID')
@@ -26,7 +26,6 @@ SHORT_HELP = "Get payload from AskAnna"
               type=click.Path())
 def cli(jobrun, payload, output):
     config = get_config()
-    token = config['auth']['token']
     ASKANNA_API_SERVER = config['askanna']['remote']
 
     # we assume we can get jobrun id and the payload
@@ -35,15 +34,9 @@ def cli(jobrun, payload, output):
         PAYLOAD_SUUID=payload,
         ASKANNA_API_SERVER=ASKANNA_API_SERVER
     )
-    headers = {
-        'Authorization': "Token {usertoken}".format(
-            usertoken=token
-        )
-    }
 
-    req = requests.get(
-        payload_url,
-        headers=headers
+    req = askanna_client.get(
+        payload_url
     )
 
     if not req.status_code == 200:

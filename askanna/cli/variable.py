@@ -1,8 +1,8 @@
 import sys
 
 import click
-import requests
 
+from askanna.cli.core import client as askanna_client
 from askanna.cli.utils import get_config
 
 HELP = """
@@ -29,19 +29,13 @@ def list():
     """
 
     config = get_config()
-    token = config['auth']['token']
-
     ASKANNA_API_SERVER = config.get('askanna', {}).get('remote')
 
     base_url = "{server}".format(server=ASKANNA_API_SERVER)
     url = base_url + "variable/"
 
-    headers = {
-        'user-agent': 'askanna-cli/0.3.1',
-        'Authorization': "Token {token}".format(token=token)
-    }
     # first try to get the variable (if http=200, then access and ok)
-    r = requests.get(url, headers=headers)
+    r = askanna_client.get(url)
     if r.status_code != 200:
         print("We cannot find variables for you")
         sys.exit(1)
@@ -56,21 +50,14 @@ def list():
 @click.option('--value', '-v', required=True, type=str, help='New value to set')
 def change(id, value):
     config = get_config()
-    token = config['auth']['token']
-
     ASKANNA_API_SERVER = config.get('askanna', {}).get('remote')
 
     base_url = "{server}".format(server=ASKANNA_API_SERVER)
     url = base_url + "variable/{}/".format(id)
-
-    headers = {
-        'user-agent': 'askanna-cli/0.3.0',
-        'Authorization': "Token {token}".format(token=token)
-    }
     click.echo("Let's change variable {}".format(id))
 
     # first try to get the variable (if http=200, then access and ok)
-    r = requests.get(url, headers=headers)
+    r = askanna_client.get(url)
     if r.status_code != 200:
         print("We cannot find the variable you tried to change, or you don't have access to change this variable.")
         print("No change performed")
@@ -78,12 +65,11 @@ def change(id, value):
 
     # emit update request (PATCH)
 
-    r = requests.patch(
+    r = askanna_client.patch(
         url,
         data={
             "value": value
-        },
-        headers=headers
+        }
     )
 
     # show success or failure
