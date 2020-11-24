@@ -19,3 +19,9 @@ class Session:
 
     def post(self, url, **kwargs):
         return self.session.post(url, **kwargs)
+
+    def create(self, url, **kwargs):
+        return self.post(url, **kwargs)
+
+    def delete(self, url, **kwargs):
+        return self.session.delete(url, **kwargs)

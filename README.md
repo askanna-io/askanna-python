@@ -1,21 +1,23 @@
-# askanna-cli
+# AskAnna CLI
 
-
-askanna-cli offers a CLI interface for creating AskAnna and supported DSP
-projects. It simplifies the communication with the AskAnna platform and
-provides facilities for supporting every part of the data science process.
+The AskAnna CLI offers a command-line interface to the AskAnna platform. It
+simplifies the communication with the AskAnna platform and provides facilities
+for supporting every part of a data science project.
 
 ## Documentation
 
+For the latest version check the
+[AskAnna Documentation](https:/docs.askanna.io).
+
 ## Quickstart
 
-### Install askanna-cli::
+### Install AskAnna
 
 ```
 pip install askanna
 ```
 
-### Login to askanna:
+### Login to askanna
 
 ```
 askanna login
@@ -23,37 +25,42 @@ askanna login
 
 This will create a `.askanna.yml` in your home folder.
 
-When used in a CI, one can configure authentication by setting an environment variable:
+When used in a CI, one can configure authentication by setting an environment
+variable:
 
 ```bash
 export AA_REMOTE=https://beta-api.askanna.eu/v1/
-export AA_TOKEN=<your api token, can be found in ~/.askanna.yml>
+export AA_TOKEN={{ API TOKEN }}
 ```
 
-Upload your package to AskAnna:
-First setup your `askanna.yml`:
-```yml
-push-target: https://beta.askanna.eu/project/7MQT-6309-9g3t-R5QR/
-```
-Values on the URL and `project-uuid` needs to be configured for your own project.
+The API token can be found in the created `.askanna.yml` file or in the
+curl information on a job run page in the AskAnna platform.
 
-Uploading a package from a CI environment requires the following variables to be set:
+### How to push your package to AskAnna
+
+First add a `askanna.yml` file to the main directory of your project. In
+AskAnna create a project, copy the push-target and add it to the `askanna.yml`
+file.
+
+Next run `askanna push` and your code will be uploaded to the project in
+AskAnna.
+
+You can also push code from a CI environment. This requires the following
+environment variables to be set:
 
 ```bash
-export AA_TOKEN=<your api token>
+export AA_TOKEN={{ API TOKEN }}
 ```
-
-## Features
 
 ## Running Tests
 
 Does the code actually work?
+
 ```bash
 source <YOURVIRTUALENV>/bin/activate
 (myenv) $ pip install tox
 (myenv) $ tox
 ```
-
    
 ## Credits
 

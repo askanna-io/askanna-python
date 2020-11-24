@@ -11,12 +11,9 @@ HELP = """
 Add your AskAnna API key to your global configuration file
 (~/.askanna.yml). This is necessary to gain access to projects associated with
 your AskAnna account.
-
-You can find your API key in AskAnna WebUI:
-    https://askanna.io  #FIXME
 """
 
-SHORT_HELP = "Save your AskAnna API key"
+SHORT_HELP = "Login and save your AskAnna API key"
 
 
 def login(server):

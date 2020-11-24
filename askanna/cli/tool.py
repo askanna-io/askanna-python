@@ -9,15 +9,15 @@ load_dotenv(find_dotenv())
 
 
 HELP = """
-AskAnna CLI helps you running DSP
+The AskAnna CLI helps you running data science projects on AskAnna.
 """
 
-SHORT_HELP = "AskAnna command-line client"
+SHORT_HELP = "AskAnna CLI client"
 
 EPILOG = """
 For usage and help on a specific command, run it with a --help flag, e.g.:
 
-    askanna createproject --help
+    askanna login --help
 """
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
@@ -29,7 +29,7 @@ CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help']}
 def cli():
     update_url = update_available()
     if update_url:
-        click.echo("INFO: A newer version of askanna is available. Update "
+        click.echo("INFO: A newer version of AskAnna is available. Update "
                    "via pip or get it at {}".format(update_url), err=True)
 
 

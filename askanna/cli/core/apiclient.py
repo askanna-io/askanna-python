@@ -38,3 +38,9 @@ class Client:
 
     def post(self, url, **kwargs):
         return self.session.post(url, **kwargs)
+
+    def create(self, url, **kwargs):
+        return self.session.create(url, **kwargs)
+
+    def delete(self, url, **kwargs):
+        return self.session.delete(url, **kwargs)
