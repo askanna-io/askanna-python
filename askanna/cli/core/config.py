@@ -12,6 +12,10 @@ class Config:
         self.user = self.user_from_config()
 
     @property
+    def remote(self):
+        return self.config.get("askanna", {}).get("remote", "https://api.askanna.eu/v1/")
+
+    @property
     def auth(self):
         return self.config.get('auth', {})
 

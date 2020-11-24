@@ -20,7 +20,8 @@ requirements = [
     'python-dotenv==0.14.0',
     'resumable==0.1.1',
     'gitpython==3.1.3',
-    'appdirs==1.4.4'
+    'appdirs==1.4.4',
+    'dataclasses; python_version=="3.6.*"'
 ]
 
 setup_requirements = [
@@ -33,13 +34,12 @@ test_requirements = []
 setup(
     author="AskAnna",
     author_email='devops@askanna.io',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
