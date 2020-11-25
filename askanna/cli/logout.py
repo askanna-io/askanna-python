@@ -1,8 +1,12 @@
+import os
+
 import click
+
+from askanna.cli.utils import store_config
 
 HELP = """
 Remove the AskAnna API key that is saved in your global configuration file
-(~/.askanna.yml) if any.
+(~/.askanna.yml).
 """
 
 SHORT_HELP = "Forget saved AskAnna API key"
@@ -10,4 +14,8 @@ SHORT_HELP = "Forget saved AskAnna API key"
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
-    click.echo("This is performing the logout action")
+    new_config = {"auth": {}}
+    config = store_config(new_config)
+    with open(os.path.expanduser("~/.askanna.yml"), "w") as fd:
+        fd.write(config)
+    click.echo("You have been logged out!")
