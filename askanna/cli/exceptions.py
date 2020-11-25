@@ -1,5 +1,5 @@
 """
-askanna_cli specific exceptions.
+askanna.cli specific exceptions.
 
 Exit codes follow the sysexits.h convention:
 https://www.freebsd.org/cli/man.cgi?query=sysexits&sektion=3
