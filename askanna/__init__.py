@@ -4,7 +4,7 @@
 
 __author__ = """Anthony Leung"""
 __email__ = 'anthony@askanna.io'
-__version__ = '0.3.1'
+__version__ = '0.4.0'
 
 try:
     from appdirs import AppDirs
