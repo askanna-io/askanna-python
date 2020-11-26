@@ -16,11 +16,11 @@ requirements = [
     'Click>=7.1',
     'cookiecutter>=1.6.0',
     'requests>=2.22.0',
-    'PyYAML==5.3',
-    'python-dotenv==0.14.0',
-    'resumable==0.1.1',
-    'gitpython==3.1.3',
-    'appdirs==1.4.4',
+    'PyYAML>=5.3',
+    'python-dotenv>=0.14.0',
+    'resumable>=0.1.1',
+    'gitpython>=3.1.3',
+    'appdirs>=1.4.4',
     'dataclasses; python_version=="3.6.*"'
 ]
 
@@ -63,7 +63,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://gitlab.askanna.io/open/askanna-cli',
+    url='https://gitlab.askanna.io/askanna/askanna-cli',
     version=askanna_version,
     zip_safe=False,
 )
