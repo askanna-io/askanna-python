@@ -12,7 +12,7 @@ To install AskAnna CLI, run this command in your terminal:
 
 .. code-block:: console
 
-   $ pip install askanna-cli
+   $ pip install askanna
 
 
 From sources

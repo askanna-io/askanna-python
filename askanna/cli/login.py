@@ -3,20 +3,17 @@ import sys
 import os
 
 import click
-import requests
 
-from askanna_cli.utils import get_config, store_config
+from askanna.cli.core import client as askanna_client
+from askanna.cli.utils import get_config, store_config
 
 HELP = """
 Add your AskAnna API key to your global configuration file
 (~/.askanna.yml). This is necessary to gain access to projects associated with
 your AskAnna account.
-
-You can find your API key in AskAnna WebUI:
-    https://askanna.io  #FIXME
 """
 
-SHORT_HELP = "Save your AskAnna API key"
+SHORT_HELP = "Login and save your AskAnna API key"
 
 
 def login(server):
@@ -29,20 +26,17 @@ def login(server):
         'password': password.strip()
     }
 
-    r = requests.post(url, json=login_dict)
-    token = r.json().get('key')
-    return str(token)
+    r = askanna_client.post(url, json=login_dict)
+    if r.status_code == 200:
+        token = r.json().get('key')
+        return str(token)
+    return None
 
 
 def get_user_info(token, server):
 
     url = "{server}rest-auth/user".format(server=server.replace("v1/", ''))
-
-    headers = {
-        'user-agent': 'askanna-cli/0.3.1',
-        'Authorization': "Token {token}".format(token=token)
-    }
-    ruser = requests.get(url, headers=headers)
+    ruser = askanna_client.get(url)
     if ruser.status_code == 200:
         res = ruser.json()
         print("{} {}".format(res['first_name'], res['last_name']))

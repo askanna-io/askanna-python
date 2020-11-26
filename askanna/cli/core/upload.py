@@ -1,9 +1,9 @@
 import io
 import os
-import requests
 import resumable
 
-from askanna_cli.utils import _file_type, diskunit
+from askanna.cli.core import client as askanna_client
+from askanna.cli.utils import _file_type, diskunit
 
 
 class Upload:
@@ -16,15 +16,8 @@ class Upload:
     tpl_upload_fail = "failed"
 
     def __init__(self, token: str, api_server: str, project_uuid: str, *args, **kwargs):
-        self.headers = {
-            'user-agent': 'askanna-cli/0.3.1',
-            'Authorization': 'Token {token}'.format(
-                token=token
-            )
-        }
         self.ASKANNA_API_SERVER = api_server
         self.suuid = None
-        self.session = requests.Session()
         self.project_uuid = project_uuid
         self.resumable_file = None
         self.kwargs = kwargs
@@ -98,10 +91,9 @@ class Upload:
         info_dict.update(**self.create_entry_extrafields())
 
         # the request to AskAnna API
-        req = self.session.post(
+        req = askanna_client.post(
             self.register_upload_url,
-            json=info_dict,
-            headers=self.headers
+            json=info_dict
         )
         res = req.json()
 
@@ -120,10 +112,9 @@ class Upload:
         })
 
         # request chunk id from API
-        req_chunk = self.session.post(
+        req_chunk = askanna_client.post(
             self.register_chunk_url,
-            json=config,
-            headers=self.headers
+            json=config
         )
         chunk_uuid = req_chunk.json().get('uuid')
 
@@ -136,11 +127,10 @@ class Upload:
             'resumableCurrentChunkSize': chunk.size
         })
 
-        specific_chunk_req = self.session.post(
+        specific_chunk_req = askanna_client.post(
             self.upload_chunk_url(chunk_uuid=chunk_uuid),
             data=data,
-            files=files,
-            headers=self.headers
+            files=files
         )
         assert specific_chunk_req.status_code == 200, "Code could not be uploaded"
 
@@ -168,10 +158,9 @@ class Upload:
         # Do final call when all chunks are uploaded
         final_call_dict = self.chunk_baseinfo
 
-        final_call_req = self.session.post(
+        final_call_req = askanna_client.post(
             self.final_upload_url,
-            data=final_call_dict,
-            headers=self.headers
+            data=final_call_dict
         )
 
         if final_call_req.status_code == 200:

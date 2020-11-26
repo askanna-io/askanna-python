@@ -4,14 +4,13 @@ import os
 import sys
 import time
 from zipfile import ZipFile
-import requests
 import click
 
-import askanna_cli
-from askanna_cli.utils import zipPaths
-from askanna_cli.utils import scan_config_in_path
-from askanna_cli.utils import get_config, string_expand_variables
-from askanna_cli.core.upload import ArtifactUpload
+from askanna.cli.core import client as askanna_client
+from askanna.cli.utils import zipPaths
+from askanna.cli.utils import scan_config_in_path
+from askanna.cli.utils import get_config, string_expand_variables
+from askanna.cli.core.upload import ArtifactUpload
 
 
 @click.group()
@@ -113,10 +112,9 @@ def add():
 
 
 class ChunkedDownload:
-    def __init__(self, url, follow_redirects=True, headers=None, cookies=None, session=None, output=None):
+    def __init__(self, url, client, output=None):
         """
         Takes an url to download from, this can be a url which could redirect to another URI.
-        We will follow the redirects when `follow_redirects` is True.
         """
         self.history = []
         self.download_queue = []
@@ -127,8 +125,7 @@ class ChunkedDownload:
         self.size = 0
         self.accept_ranges = 'none'
 
-        self.headers = headers
-        self.session = session or self.setup_session(headers=headers)
+        self.client = client
         self.perform_preflight(url=url)
 
     @property
@@ -138,22 +135,12 @@ class ChunkedDownload:
         """
         return self.history[-1][1]
 
-    def setup_session(self, headers=None):
-        """
-        Setup a new requests session where we can work from.
-        This will allow us to store the relevant auth/cookies into this session
-        """
-        s = requests.Session()
-        if headers:
-            s.headers.update(headers)
-        return s
-
     def perform_preflight(self, url):
         """
-        We take the session from self.session and will do a preflight request to
+        We take the session from self.client and will do a preflight request to
         determine whether the url will result in a (final) http_response_code=200
         """
-        r = self.session.head(url)
+        r = self.client.head(url)
         self.history.append([url, r.status_code, r.headers])
 
         if r.status_code in [301, 302] and r.headers.get('Location'):
@@ -191,7 +178,7 @@ class ChunkedDownload:
             }
 
             try:
-                r = self.session.get(self.url, stream=True, headers=range_header)
+                r = self.client.get(self.url, stream=True, headers=range_header)
                 # so far so good on the download, save the result
                 with open('file_{}.part'.format(chunk[0]), 'wb') as f:
                     for dlchunk in r.iter_content(chunk_size=1024):
@@ -220,16 +207,10 @@ def get(id, output):
     Download an artifact of a job run
     """
     config = get_config()
-    token = config['auth']['token']
     ASKANNA_API_SERVER = config.get('askanna', {}).get('remote')
 
     base_url = "{server}".format(server=ASKANNA_API_SERVER)
     url = base_url + "artifact/{}".format(id)
-
-    headers = {
-        'user-agent': 'askanna-cli/{version}'.format(version=askanna_cli.__version__),
-        'Authorization': "Token {token}".format(token=token)
-    }
 
     if not output:
         output = "artifact_{suuid}_{datetime}.zip".format(suuid=id, datetime=time.strftime("%Y%m%d-%H%M%S"))
@@ -238,7 +219,9 @@ def get(id, output):
         print("The output file already exists. We will not overwrite the existing file.")
         sys.exit(1)
 
-    stable_download = ChunkedDownload(url=url, headers=headers, output=output)
+    stable_download = ChunkedDownload(url=url,
+                                      client=askanna_client,
+                                      output=output)
     if stable_download.status_code != 200:
         print("We cannot find this artifact for you")
         sys.exit(1)

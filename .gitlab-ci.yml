@@ -33,14 +33,8 @@ python lint:
   <<: *test_template
   image: python:3-slim
   script:
-    - flake8 askanna_cli tests
+    - flake8 askanna tests
   allow_failure: true
-
-python 35:
-  <<: *test_template
-  image: python:3.5
-  script:
-    - tox -e py35
 
 python 36:
   <<: *test_template

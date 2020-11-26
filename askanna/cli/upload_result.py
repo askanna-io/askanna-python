@@ -3,9 +3,9 @@ import os
 import sys
 import click
 
-from askanna_cli.utils import scan_config_in_path
-from askanna_cli.utils import get_config
-from askanna_cli.core.upload import ResultUpload
+from askanna.cli.utils import scan_config_in_path
+from askanna.cli.utils import get_config
+from askanna.cli.core.upload import ResultUpload
 
 HELP = """
 After a jobrun, we can add the jobresult to askanna
