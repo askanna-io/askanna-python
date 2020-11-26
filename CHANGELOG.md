@@ -1,5 +1,13 @@
 # History
 
+## 0.4.0 (2020-11-26)
+
+- drop support for Python 3.5 because we use `dataclasses`
+- reorganisation of CLI setup in the code base to prepare for SDK development
+- reorganize how authentication and requests are made for all API communication
+- adding logout for CLI
+- adding variable management for CLI
+
 ## 0.3.1 (2020-10-23)
 
 - Improve artifact download to be more reliable in case of download failures
