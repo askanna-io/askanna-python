@@ -59,7 +59,7 @@ setup(
     include_package_data=True,
     keywords='askanna',
     name='askanna',
-    packages=find_packages(include=['askanna'], exclude=['tests']),
+    packages=find_packages(exclude=['tests']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
