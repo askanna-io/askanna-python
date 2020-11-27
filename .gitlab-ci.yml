@@ -70,7 +70,7 @@ python 39:
   variables:
     PY_VERSION: "3-slim"
   script:
-    - if [ $CI_COMMIT_REF_NAME == "master" ] ; then export DESTINATION="${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME}" ; else export DESTINATION="${CI_REGISTRY_IMAGE}/wip:${PY_VERSION}-${CI_COMMIT_REF_NAME}"; fi
+    - if [ $CI_COMMIT_REF_NAME == "master" ] ; then export DESTINATION="${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_SLUG}" ; else export DESTINATION="${CI_REGISTRY_IMAGE}/wip:${PY_VERSION}-${CI_COMMIT_REF_SLUG}"; fi
     - echo "Building image to " $DESTINATION
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${DESTINATION} --build-arg PY_VERSION=${PY_VERSION}
@@ -124,11 +124,11 @@ image_py39:
   stage: verifybuild
   variables:
     PY_VERSION: "3-slim"
-  image: $CI_REGISTRY_IMAGE:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+  image: $CI_REGISTRY_IMAGE:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
   tags:
     - kubernetes
   script:
-    - echo "Using production image " $CI_REGISTRY_IMAGE:$PY_VERSION-$CI_COMMIT_REF_NAME
+    - echo "Using production image " $CI_REGISTRY_IMAGE:$PY_VERSION-$CI_COMMIT_REF_SLUG
     - python -V
     - askanna --version
     - askanna
@@ -140,11 +140,11 @@ image_py39:
   stage: verifybuild
   variables:
     PY_VERSION: "3-slim"
-  image: $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+  image: $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
   tags:
     - kubernetes
   script:
-    - echo "Using WIP image " $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+    - echo "Using WIP image " $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
     - python -V
     - askanna --version
     - askanna
