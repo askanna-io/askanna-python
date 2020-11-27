@@ -56,7 +56,7 @@ python 38:
 
 python 39:
   <<: *test_template
-  image: python:3.9-rc-buster
+  image: python:3.9-slim
   script:
     - tox -e py39
 
@@ -70,12 +70,13 @@ python 39:
   variables:
     PY_VERSION: "3-slim"
   script:
+    - if [ $CI_COMMIT_REF_NAME == "master" ] ; then export DESTINATION="${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME}" ; else export DESTINATION="${CI_REGISTRY_IMAGE}/wip:${PY_VERSION}-${CI_COMMIT_REF_NAME}"; fi
+    - echo "Building image to " $DESTINATION
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_NAME} --build-arg PY_VERSION=${PY_VERSION}
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${DESTINATION} --build-arg PY_VERSION=${PY_VERSION}
   except:
     - triggers
     - schedules
-    - branches
 
 build_docker_image_version:
   <<: *build_docker_image_template
@@ -91,38 +92,12 @@ build_docker_image_master:
     refs:
       - master
 
-verify_docker_build:
-  stage: verifybuild
-  variables:
-    PY_VERSION: "3-slim"
-  image: $CI_REGISTRY_IMAGE:${PY_VERSION}-${CI_COMMIT_REF_NAME}
-  tags:
-    - kubernetes
-  script:
-    - askanna
-  only:
-    refs:
-      - master
-
-image_py35:
-  <<: *build_docker_image_template
-  variables:
-    PY_VERSION: "3.5-slim"
-  except:
-    - triggers
-  only:
-    refs:
-      - master
-
 image_py36:
   <<: *build_docker_image_template
   variables:
     PY_VERSION: "3.6-slim"
   except:
     - triggers
-  only:
-    refs:
-      - master
 
 image_py37:
   <<: *build_docker_image_template
@@ -130,9 +105,6 @@ image_py37:
     PY_VERSION: "3.7-slim"
   except:
     - triggers
-  only:
-    refs:
-      - master
 
 image_py38:
   <<: *build_docker_image_template
@@ -140,19 +112,91 @@ image_py38:
     PY_VERSION: "3.8-slim"
   except:
     - triggers
-  only:
-    refs:
-      - master
 
 image_py39:
   <<: *build_docker_image_template
   variables:
-    PY_VERSION: "3.9-rc-buster"
+    PY_VERSION: "3.9-slim"
   except:
     - triggers
+
+.verify_docker_build: &verify_docker_build
+  stage: verifybuild
+  variables:
+    PY_VERSION: "3-slim"
+  image: $CI_REGISTRY_IMAGE:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+  tags:
+    - kubernetes
+  script:
+    - echo "Using production image " $CI_REGISTRY_IMAGE:$PY_VERSION-$CI_COMMIT_REF_NAME
+    - python -V
+    - askanna --version
+    - askanna
   only:
     refs:
       - master
+
+.verify_docker_build_wip: &verify_docker_build_wip
+  stage: verifybuild
+  variables:
+    PY_VERSION: "3-slim"
+  image: $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+  tags:
+    - kubernetes
+  script:
+    - echo "Using WIP image " $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_NAME}
+    - python -V
+    - askanna --version
+    - askanna
+  except:
+    refs:
+      - master
+
+verify_docker_build_master:
+  <<: *verify_docker_build
+
+verify_docker_build_master_py36:
+  <<: *verify_docker_build
+  variables:
+    PY_VERSION: "3.6-slim"
+
+verify_docker_build_master_py37:
+  <<: *verify_docker_build
+  variables:
+    PY_VERSION: "3.7-slim"
+
+verify_docker_build_master_py38:
+  <<: *verify_docker_build
+  variables:
+    PY_VERSION: "3.8-slim"
+
+verify_docker_build_master_py39:
+  <<: *verify_docker_build
+  variables:
+    PY_VERSION: "3.9-slim"
+
+verify_docker_build_wip:
+  <<: *verify_docker_build_wip
+
+verify_docker_build_wip_py36:
+  <<: *verify_docker_build_wip
+  variables:
+    PY_VERSION: "3.6-slim"
+
+verify_docker_build_wip_py37:
+  <<: *verify_docker_build_wip
+  variables:
+    PY_VERSION: "3.7-slim"
+
+verify_docker_build_wip_py38:
+  <<: *verify_docker_build_wip
+  variables:
+    PY_VERSION: "3.8-slim"
+
+verify_docker_build_wip_py39:
+  <<: *verify_docker_build_wip
+  variables:
+    PY_VERSION: "3.9-slim"
 
 publish_to_pypi:
   stage: publish
