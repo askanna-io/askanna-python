@@ -30,8 +30,9 @@ setup_requirements = [
 
 test_requirements = []
 
-# FIXME: add license information
 setup(
+    name='askanna',
+    version=askanna_version,
     author="AskAnna",
     author_email='devops@askanna.io',
     python_requires='>=3.6',
@@ -45,25 +46,29 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         "Topic :: Scientific/Engineering",
     ],
-    description="AskAnna Command line and library interface",
     entry_points={
         'console_scripts': [
             'askanna=askanna.cli.tool:cli',
         ],
     },
     install_requires=requirements,
+    description="AskAnna CLI is part of the AskAnna platform to kickstart your data science projects",
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/markdown',
     include_package_data=True,
-    keywords='askanna',
-    name='askanna',
+    keywords='askanna ml ai data',
+    license="Apache License 2.0",
     packages=find_packages(exclude=['tests']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://gitlab.askanna.io/askanna/askanna-cli',
-    version=askanna_version,
+    url='https://askanna.io',
+    project_urls={
+        "Documentation": "https://docs.askanna.io/#/cli",
+        "Source Code": "https://gitlab.askanna.io/askanna/askanna-cli",
+    },
     zip_safe=False,
 )
