@@ -3,8 +3,8 @@
 """Top-level package for askanna."""
 
 __author__ = """Anthony Leung"""
-__email__ = 'anthony@askanna.io'
-__version__ = '0.4.0'
+__email__ = "anthony@askanna.io"
+__version__ = "0.4.1"
 
 try:
     from appdirs import AppDirs
