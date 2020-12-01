@@ -70,7 +70,7 @@ python 39:
   variables:
     PY_VERSION: "3-slim"
   script:
-    - if [ $CI_COMMIT_REF_NAME == "master" ] ; then export DESTINATION="${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_SLUG}" ; else export DESTINATION="${CI_REGISTRY_IMAGE}/wip:${PY_VERSION}-${CI_COMMIT_REF_SLUG}"; fi
+    - if [ $CI_COMMIT_REF_NAME == "master" ] ; then export DESTINATION="${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_SLUG}" ; else export DESTINATION="${CI_REGISTRY_IMAGE}/review/${CI_COMMIT_REF_SLUG}:${PY_VERSION}"; fi
     - echo "Building image to " $DESTINATION
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${DESTINATION} --build-arg PY_VERSION=${PY_VERSION}
@@ -136,18 +136,9 @@ image_py39:
     refs:
       - master
 
-.verify_docker_build_wip: &verify_docker_build_wip
-  stage: verifybuild
-  variables:
-    PY_VERSION: "3-slim"
-  image: $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
-  tags:
-    - kubernetes
-  script:
-    - echo "Using WIP image " $CI_REGISTRY_IMAGE/wip:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
-    - python -V
-    - askanna --version
-    - askanna
+.verify_docker_build_review: &verify_docker_build_review
+  extends: .verify_docker_build  
+  image: $CI_REGISTRY_IMAGE/review/${CI_COMMIT_REF_SLUG}:${PY_VERSION}
   except:
     refs:
       - master
@@ -175,26 +166,26 @@ verify_docker_build_master_py39:
   variables:
     PY_VERSION: "3.9-slim"
 
-verify_docker_build_wip:
-  <<: *verify_docker_build_wip
+verify_docker_build_review:
+  <<: *verify_docker_build_review
 
-verify_docker_build_wip_py36:
-  <<: *verify_docker_build_wip
+verify_docker_build_review_py36:
+  <<: *verify_docker_build_review
   variables:
     PY_VERSION: "3.6-slim"
 
-verify_docker_build_wip_py37:
-  <<: *verify_docker_build_wip
+verify_docker_build_review_py37:
+  <<: *verify_docker_build_review
   variables:
     PY_VERSION: "3.7-slim"
 
-verify_docker_build_wip_py38:
-  <<: *verify_docker_build_wip
+verify_docker_build_review_py38:
+  <<: *verify_docker_build_review
   variables:
     PY_VERSION: "3.8-slim"
 
-verify_docker_build_wip_py39:
-  <<: *verify_docker_build_wip
+verify_docker_build_review_py39:
+  <<: *verify_docker_build_review
   variables:
     PY_VERSION: "3.9-slim"
 
