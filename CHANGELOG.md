@@ -1,5 +1,9 @@
 # History
 
+## 0.4.1 (2020-12-01)
+
+- Use Python to create a tmp directory so it works on all Python supported platforms
+
 ## 0.4.0 (2020-11-26)
 
 - Adding variable management for CLI
