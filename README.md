@@ -61,10 +61,28 @@ source <YOURVIRTUALENV>/bin/activate
 (myenv) $ pip install tox
 (myenv) $ tox
 ```
-   
+
+## Make a new release
+
+We use `bumpversion` to bump the version number of a release:
+
+```bash
+# upgrade version by 0.0.x
+bumpversion patch
+
+# upgrade version by 0.x.0
+bumpversion minor
+
+# upgrade version by x.0.0
+bumpversion major
+```
+
 ## Credits
 
 Tools used in rendering this package:
 
 * Cookiecutter: https://github.com/audreyr/cookiecutter
 * `cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
+
+
