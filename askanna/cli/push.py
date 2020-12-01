@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sys
+import tempfile
 import uuid
 
 import click
@@ -28,8 +29,11 @@ def package(src: str) -> str:
     pwd_dir_name = os.path.basename(src)
     random_suffix = uuid.uuid4().hex
 
+    # make a temporary directory
+    tmpdir = tempfile.mkdtemp(prefix="askanna-package")
+
     random_name = os.path.join(
-        "/", "tmp", "{pwd_dir_name}_{random_suffix}.zip".format(
+        tmpdir, "{pwd_dir_name}_{random_suffix}.zip".format(
             pwd_dir_name=pwd_dir_name,
             random_suffix=random_suffix
         ))
@@ -229,6 +233,12 @@ def cli(force, message):
 
         # create log that this package was uploaded once
         writePackageInfo(project_info, push_target, upload_folder)
+        # remove temporary zipfile from the system (including the parent folder, this was the temp folder)
+        try:
+            os.remove(package_archive)
+            os.rmdir(os.path.dirname(package_archive))
+        except OSError as e:
+            print("Error in removing the tmpfile of askanna-push: {}: {}".format(package_archive, e.strerror))
         sys.exit(0)
     else:
         print(msg)
