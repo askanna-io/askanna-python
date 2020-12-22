@@ -37,7 +37,6 @@ commands = [
     "login",
     "logout",
     "init",
-    "createproject",
     "payload",
     "push",
     "package_download",
