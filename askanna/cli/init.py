@@ -5,7 +5,7 @@ import yaml
 from askanna.cli.utils import get_config
 
 HELP = """
-This command will allow you to create a project
+This command will allow you to create an AskAnna project
 """
 
 SHORT_HELP = "Create an AskAnna project"
