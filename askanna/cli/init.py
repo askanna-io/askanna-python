@@ -72,12 +72,7 @@ class CreateProject:
         askanna_project_file = os.path.join(cwd, "askanna.yml")
         if not os.path.exists(askanna_project_file):
             with open(askanna_project_file, 'w') as pf:
-                pf.write(yaml.dump({
-                    "push_target": self.push_target,
-                    "first job":
-                        {"job": ""
-                         }
-                }, indent=2))
+                pf.write(yaml.dump({"push-target": self.push_target}, indent=2))
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
