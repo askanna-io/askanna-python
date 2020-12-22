@@ -4,6 +4,7 @@ import glob
 import mimetypes
 import os
 import re
+import sys
 
 from pathlib import Path
 from zipfile import ZipFile
@@ -15,7 +16,13 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-CONFIG_USERHOME_FILE = "~/.askanna.yml"
+CONFIG_FILE_ASKANNA = os.path.expanduser("~/.askanna.yml")
+
+CONFIG_ASKANNA_REMOTE = {
+                          'askanna': {
+                            'remote': 'https://beta-api.askanna.eu/v1/'
+                          }
+                        }
 
 StorageUnit = collections.namedtuple('StorageUnit',
                                      [
@@ -26,7 +33,7 @@ diskunit = StorageUnit(B=1, KiB=1024**1, MiB=1024**2, GiB=1024**3, TiB=1024**4, 
 
 
 def init_checks():
-    create_config(CONFIG_USERHOME_FILE)
+    create_config(CONFIG_FILE_ASKANNA)
 
 
 def create_config(location: str):
@@ -40,12 +47,8 @@ def create_config(location: str):
         Path(expanded_path).touch()
 
         # write initial config since it didn't exist
+        config = store_config(CONFIG_ASKANNA_REMOTE)
         with open(expanded_path, 'w') as f:
-            config = store_config({
-                'askanna': {
-                    'remote': 'https://beta-api.askanna.eu/v1/'
-                }
-            })
             f.write(config)
 
 
@@ -120,18 +123,24 @@ def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
     )
 
 
-def get_config() -> dict:
+def get_config(check_config=True) -> dict:
     init_checks()
-    config = read_config(CONFIG_USERHOME_FILE) or {}
-    project_config = scan_config_in_path()
-    if project_config:
-        config.update(**read_config(project_config))
+    config = read_config(CONFIG_FILE_ASKANNA) or {}
 
     # overwrite the AA remote if AA_REMOTE is set in the environment
     is_remote_set = os.getenv('AA_REMOTE')
     if is_remote_set:
         config['askanna'] = config.get('askanna', {})
         config['askanna']['remote'] = is_remote_set
+
+    # if askanna remote is not set, add a default remote to the config file
+    try:
+        config['askanna']['remote']
+    except KeyError:
+        config = store_config(CONFIG_ASKANNA_REMOTE)
+        with open(CONFIG_FILE_ASKANNA, 'w') as f:
+            f.write(config)
+        config = read_config(CONFIG_FILE_ASKANNA) or {}
 
     # overwrite the user token if AA_TOKEN is set in the environment
     is_token_set = os.getenv('AA_TOKEN')
@@ -145,11 +154,26 @@ def get_config() -> dict:
         config['project'] = config.get('project', {})
         config['project']['uuid'] = is_project_set
 
+    project_config = scan_config_in_path()
+    if project_config:
+        config.update(**read_config(project_config))
+
+    if check_config:
+        validate_config(config)
+
     return config
 
 
+def validate_config(config):
+    try:
+        config['auth']['token']
+    except KeyError:
+        print("You are not logged in. Please login first via `askanna login`.")
+        sys.exit(1)
+
+
 def store_config(new_config):
-    original_config = get_config()
+    original_config = read_config(CONFIG_FILE_ASKANNA) or {}
     original_config.update(**new_config)
     output = dump(original_config, Dumper=Dumper)
     return output
