@@ -137,7 +137,7 @@ image_py39:
       - master
 
 .verify_docker_build_review: &verify_docker_build_review
-  extends: .verify_docker_build  
+  extends: .verify_docker_build
   image: $CI_REGISTRY_IMAGE/review/${CI_COMMIT_REF_SLUG}:${PY_VERSION}
   except:
     refs:
@@ -201,5 +201,22 @@ publish_to_pypi:
     - python3 setup.py sdist bdist_wheel
     - twine upload --verbose --non-interactive --config-file ~/.pypirc -r pypi dist/*
   only:
+    refs:
+      - master
+
+publish_to_testpypi:
+  stage: publish
+  image: python:3-slim
+  tags:
+    - kubernetes
+  before_script:
+    - echo $PYPITESTRC | base64 -d > ~/.pypirc
+    - pip install -U pip wheel twine
+  script:
+    - python3 setup.py sdist bdist_wheel
+    - twine upload --verbose --non-interactive --config-file ~/.pypirc -r testpypi dist/*
+  allow_failure: true
+  when: manual
+  except:
     refs:
       - master

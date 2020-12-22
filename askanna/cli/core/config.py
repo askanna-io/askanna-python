@@ -8,12 +8,12 @@ class Config:
     """
 
     def __init__(self, *args, **kwargs):
-        self.config = get_config()
+        self.config = get_config(check_config=False)
         self.user = self.user_from_config()
 
     @property
     def remote(self):
-        return self.config.get("askanna", {}).get("remote", "https://api.askanna.eu/v1/")
+        return self.config.get("askanna", {}).get("remote", "https://beta-api.askanna.eu/v1/")
 
     @property
     def auth(self):

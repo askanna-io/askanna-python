@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import re
@@ -9,7 +8,6 @@ import uuid
 import click
 import git
 
-from askanna import config_dirs
 from askanna.cli.utils import zipFilesInDir, scan_config_in_path
 from askanna.cli.utils import get_config, getProjectInfo, getProjectPackages
 from askanna.cli.core.upload import PackageUpload
@@ -40,59 +38,6 @@ def package(src: str) -> str:
 
     zipFilesInDir(src, random_name, lambda x: x)
     return random_name
-
-
-def check_existing_package(project, push_target, upload_folder, api_server, token) -> bool:
-
-    # check existence the usercache folder
-    askanna_folder = config_dirs.user_cache_dir
-    if not(os.path.exists(
-        askanna_folder
-    ) and os.path.isdir(askanna_folder)):
-        packages = getProjectPackages(project, api_server, token)
-        return len(packages) > 0
-    # read contents from .askanna folder
-    try:
-        with open(os.path.join(
-            askanna_folder,
-            'PACKAGE-INFO'
-        )) as f:
-            j = json.loads(f.read())
-    except Exception as e:
-        # information is not there
-        # please retrieve this info from askanna
-        logging.debug(e)
-        packages = getProjectPackages(project, api_server, token)
-        return len(packages) > 0
-    else:
-        if push_target in j.keys():
-            return True
-        else:
-            return False
-
-    return True
-
-
-def writePackageInfo(project, push_target, upload_folder):
-    askanna_folder = config_dirs.user_cache_dir
-    os.makedirs(askanna_folder, exist_ok=True)
-
-    # does the file exist? create one if not
-
-    try:
-        with open(os.path.join(askanna_folder, 'PACKAGE-INFO')) as f:
-            j = json.loads(f.read())
-    except Exception:
-        with open(os.path.join(askanna_folder, 'PACKAGE-INFO'), 'w') as f:
-            f.write(json.dumps({
-                push_target: project
-            }, indent=2))
-    else:
-        with open(os.path.join(askanna_folder, 'PACKAGE-INFO'), 'w') as f:
-            j.update(**{
-                push_target: project
-            })
-            f.write(json.dumps(j, indent=2))
 
 
 def extract_push_target(push_target):
@@ -188,14 +133,16 @@ def cli(force, message):
         upload_folder = ask_which_folder(cwd, project_folder)
 
     # check for existing package
-    if check_existing_package(project_info, push_target, upload_folder, api_server, token):
+    packages = getProjectPackages(project_info, api_server, token)
+    if packages['count'] > 0:
         # ask for confirmation if `-f` flag is not set
         overwrite = force
         if not force:
             overwrite = ask_overwrite()
 
         if not overwrite:
-            print("We are not pushing your code to AskAnna. You choose not to replace your existing code.")
+            print("We are not pushing your code to AskAnna. You choose not to replace your "
+                  "existing code.")
             sys.exit(0)
 
     package_archive = package(upload_folder)
@@ -229,16 +176,16 @@ def cli(force, message):
     )
     status, msg = uploader.upload(package_archive, config, fileinfo)
     if status:
-        print(msg)
-
-        # create log that this package was uploaded once
-        writePackageInfo(project_info, push_target, upload_folder)
-        # remove temporary zipfile from the system (including the parent folder, this was the temp folder)
+        # remove temporary zip-file from the system including the parent temporary folder
         try:
             os.remove(package_archive)
             os.rmdir(os.path.dirname(package_archive))
+            print("Successfully pushed the project to AskAnna!")
         except OSError as e:
-            print("Error in removing the tmpfile of askanna-push: {}: {}".format(package_archive, e.strerror))
+            print("Pushing your code was successful, but we could not remove the temporary file "
+                  "used for uploading your code to AskAnna.")
+            print("The error: {}".format(e.strerror))
+            print("You can manually delete the file: {}".format(package_archive))
         sys.exit(0)
     else:
         print(msg)

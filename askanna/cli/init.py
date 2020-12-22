@@ -5,7 +5,7 @@ import yaml
 from askanna.cli.utils import get_config
 
 HELP = """
-This command will allow you to create a project
+This command will allow you to create an AskAnna project
 """
 
 SHORT_HELP = "Create an AskAnna project"
@@ -44,13 +44,13 @@ class CreateProject:
             )
         }
         self.name = click.prompt(
-            "Project name ",
+            "Project name",
             type=str
         )
         workspaces = find_workspace(api_server, headers)
         workspace = click.prompt(
 
-            "Enter which workspace to use "
+            "Enter which workspace to use"
         )
         selected_workspace = workspaces[int(workspace)-1]
 
@@ -72,12 +72,7 @@ class CreateProject:
         askanna_project_file = os.path.join(cwd, "askanna.yml")
         if not os.path.exists(askanna_project_file):
             with open(askanna_project_file, 'w') as pf:
-                pf.write(yaml.dump({
-                    "push_target": self.push_target,
-                    "first job":
-                        {"job": ""
-                         }
-                }, indent=2))
+                pf.write(yaml.dump({"push-target": self.push_target}, indent=2))
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
