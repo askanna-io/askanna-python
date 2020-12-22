@@ -1,5 +1,11 @@
 # History
 
+## 0.4.2 (2020-12-22)
+
+- Fix issue in `askanna init` which now generates a valid `askanna.yml` project config file
+- Improvements regarding feedback and error messages when something goes wrong
+- Fix issues regarding generating AskAnna config file
+
 ## 0.4.1 (2020-12-01)
 
 - Use Python to create a tmp directory so it works on all Python supported platforms
