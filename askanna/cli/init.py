@@ -44,13 +44,13 @@ class CreateProject:
             )
         }
         self.name = click.prompt(
-            "Project name ",
+            "Project name",
             type=str
         )
         workspaces = find_workspace(api_server, headers)
         workspace = click.prompt(
 
-            "Enter which workspace to use "
+            "Enter which workspace to use"
         )
         selected_workspace = workspaces[int(workspace)-1]
 
