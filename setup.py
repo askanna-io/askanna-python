@@ -21,7 +21,8 @@ requirements = [
     'resumable>=0.1.1',
     'gitpython>=3.1.3',
     'appdirs>=1.4.4',
-    'dataclasses; python_version=="3.6.*"'
+    'dataclasses; python_version=="3.6.*"',
+    'python-slugify>=4.0.1',
 ]
 
 setup_requirements = [

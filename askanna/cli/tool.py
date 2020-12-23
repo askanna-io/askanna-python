@@ -36,6 +36,7 @@ def cli():
 commands = [
     "login",
     "logout",
+    "create",
     "init",
     "payload",
     "push",
