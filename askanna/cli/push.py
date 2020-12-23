@@ -51,10 +51,7 @@ def extract_push_target(push_target):
     return matches_dict
 
 
-@click.command(help=HELP, short_help=SHORT_HELP)
-@click.option('--force', '-f', is_flag=True, help='Force push')
-@click.option('--message', '-m', default='', type=str, help='Add description to this code')
-def cli(force, message):
+def push(force, message):
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
@@ -186,7 +183,13 @@ def cli(force, message):
                   "used for uploading your code to AskAnna.")
             print("The error: {}".format(e.strerror))
             print("You can manually delete the file: {}".format(package_archive))
-        sys.exit(0)
     else:
         print(msg)
         sys.exit(1)
+
+
+@click.command(help=HELP, short_help=SHORT_HELP)
+@click.option('--force', '-f', is_flag=True, help='Force push')
+@click.option('--message', '-m', default='', type=str, help='Add description to this code')
+def cli(force, message):
+    push(force, message)
