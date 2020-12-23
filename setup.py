@@ -68,7 +68,7 @@ setup(
     url='https://askanna.io',
     project_urls={
         "Documentation": "https://docs.askanna.io/#/cli",
-        "Source Code": "https://gitlab.askanna.io/askanna/askanna-cli",
+        "Source Code": "https://gitlab.askanna.io/open/askanna-cli",
     },
     zip_safe=False,
 )
