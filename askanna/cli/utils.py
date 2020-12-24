@@ -1,3 +1,4 @@
+
 import collections
 import glob
 import mimetypes
@@ -148,7 +149,7 @@ def get_config(check_config=True) -> dict:
         config['auth']['token'] = is_token_set
 
     # overwrite the project token if set in the env
-    is_project_set = os.getenv('PROJECT_SUUID')
+    is_project_set = os.getenv('PROJECT_UUID')
     if is_project_set:
         config['project'] = config.get('project', {})
         config['project']['uuid'] = is_project_set
