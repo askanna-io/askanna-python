@@ -1,15 +1,18 @@
 import click
+from cookiecutter.main import cookiecutter as cookiecreator
+from cookiecutter.exceptions import OutputDirExistsException
 import os
-import yaml
+from slugify import slugify
 
 from askanna.cli.core import client as askanna_client
 from askanna.cli.utils import get_config
+from askanna.cli.push import push
 
 HELP = """
-This command will allow you to create an AskAnna project in your current directory
+This command will allow you to create an AskAnna project in a new directory
 """
 
-SHORT_HELP = "Create a project in the current directory"
+SHORT_HELP = "Create a project in a new directory"
 
 
 def get_user_info(server):
@@ -31,6 +34,9 @@ class CreateProject:
         self.api_server = self.config['askanna']['remote']
         self.name = name
         self.user = user or get_user_info(server=self.api_server)
+        self.slugified_name = None
+        if self.name:
+            self.slugified_name = slugify(self.name)
 
     def find_workspace(self) -> list:
         """
@@ -86,6 +92,7 @@ class CreateProject:
                 ) +
                 "We start with some information about the project.")
             self.name = click.prompt("Project name", type=str)
+            self.slugified_name = slugify(self.name)
 
             if not description:
                 description = click.prompt("Project description", type=str, default="",
@@ -112,27 +119,46 @@ class CreateProject:
               help="Workspace SUUID where you want to create the project")
 @click.option("--description", "-d",
               help="Description of the project")
-def cli(name, workspace, description):
-    cwd = os.getcwd()
-    askanna_project_file = os.path.join(cwd, "askanna.yml")
-    if os.path.exists(askanna_project_file):
-        click.echo("This directory already has an 'askanna.yml' file. If you continue, we will "
-                   "create a new project in AskAnna.")
-        click.echo("But, we will not update your 'askanna.yml' file with the push-target of the "
-                   "new project. If you continue, you need to add the push-target yourself.\n")
-        click.confirm("Do you want to continue without updating the 'askanna.yml'?", abort=True)
-
+@click.option("--template", "-t", "project_template",
+              help="Location of a Cookiecutter project template")
+@click.option("--push/--no-push", "-p", "is_push", default=False, show_default=False,
+              help="Push an initial version of the code [default: no-push]")
+def cli(name, workspace, description, project_template, is_push):
     project_creator = CreateProject(name=name)
     project_info = project_creator.cli(workspace, description)
+    project_dir = project_creator.slugified_name
+    if not project_template:
+        project_template = project_creator.config['project']['template']
 
-    if not os.path.exists(askanna_project_file):
-        with open(askanna_project_file, 'w') as pf:
-            pf.write(yaml.dump({"push-target": project_info['url']}, indent=2))
+    try:
+        cookiecreator(
+            project_template,
+            no_input=True,
+            overwrite_if_exists=False,
+            extra_context={
+                "project_name": project_info['name'],
+                "project_directory": project_dir,
+                "project_push_target": project_info['url']
+            }
+        )
+    except OutputDirExistsException:
+        click.echo(
+            f"You already have a project directory '{project_dir}'." +
+            " If you open the new project in AskAnna, you find instructions about " +
+            "how you can push your project to AskAnna.")
+    else:
+        click.echo(
+            f"Open your new local project directory: 'cd {project_dir}'"
+        )
+
+        if is_push:
+            click.echo("")  # print an empty line
+
+            # also push the new directory to askanna
+            os.chdir(project_dir)
+            push(force=True, message="Initial push")
 
     # finish
-    click.echo("\nCheck your project in AskAnna at:")
+    click.echo("\nWe have setup the new project. You can check your project in AskAnna at:")
     click.echo("{project_url}".format(project_url=project_info['url']))
-    click.echo("\nAs a first step you can configure your first job for this project in the `askanna.yml` file. "
-               "Ones you are done, you can easily push your code to askanna via:\n"
-               "\n" "  askanna push\n" "\n"
-               "Success with your project!")
+    click.echo("\nSuccess with your project!")

@@ -21,7 +21,8 @@ requirements = [
     'resumable>=0.1.1',
     'gitpython>=3.1.3',
     'appdirs>=1.4.4',
-    'dataclasses; python_version=="3.6.*"'
+    'dataclasses; python_version=="3.6.*"',
+    'python-slugify>=4.0.1',
 ]
 
 setup_requirements = [
@@ -68,7 +69,7 @@ setup(
     url='https://askanna.io',
     project_urls={
         "Documentation": "https://docs.askanna.io/#/cli",
-        "Source Code": "https://gitlab.askanna.io/askanna/askanna-cli",
+        "Source Code": "https://gitlab.askanna.io/open/askanna-cli",
     },
     zip_safe=False,
 )
