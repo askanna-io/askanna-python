@@ -29,10 +29,11 @@ def get_user_info(server):
 
 
 class CreateProject:
-    def __init__(self, name=None, api_server=None, user=None):
-        self.api_server = api_server
+    def __init__(self, name=None, user=None):
+        self.config = get_config()
+        self.api_server = self.config['askanna']['remote']
         self.name = name
-        self.user = user
+        self.user = user or get_user_info(server=self.api_server)
         self.slugified_name = None
         if self.name:
             self.slugified_name = slugify(self.name)
@@ -64,7 +65,7 @@ class CreateProject:
                 workspace_list_str += "%d. %s\n" % (idx, workspace['title'])
 
             workspace = click.prompt(
-                "{name}, you are a member of multiple workspaces. ".format(
+                "\n{name}, you are a member of multiple workspaces. ".format(
                     name=self.user.get("name")
                 ) +
                 "In which workspace do you want to create the new project?\n" +
@@ -86,8 +87,8 @@ class CreateProject:
 
     def cli(self, workspace: str = None, description: str = None):
         if not self.name:
-            click.echo("Hi {name}! It is time to create a new project in AskAnna. ".format(
-                    name=self.user.get("name")
+            click.echo("Hi {name_user}! It is time to create a new project in AskAnna. ".format(
+                    name_user=self.user.get("name")
                 ) +
                 "We start with some information about the project.")
             self.name = click.prompt("Project name", type=str)
@@ -112,28 +113,22 @@ class CreateProject:
             raise Exception("We could not create the project.")
 
 
-# read defaults from the environment
-default_workspace_suuid = os.getenv('WORKSPACE_SUUID')
-
-
 @click.command(help=HELP, short_help=SHORT_HELP)
 @click.argument("name", required=False)
-@click.option("--workspace", "-w", default=default_workspace_suuid, show_default=True,
+@click.option("--workspace", "-w", envvar="WORKSPACE_SUUID", show_default=True,
               help="Workspace SUUID where you want to create the project")
 @click.option("--description", "-d",
               help="Description of the project")
 @click.option("--template", "-t", "project_template",
               help="Location of a Cookiecutter project template")
-def cli(name, workspace, description, project_template):
-    config = get_config()
-    api_server = config['askanna']['remote']
-    user = get_user_info(server=api_server)
-    project_creator = CreateProject(name=name, api_server=api_server, user=user)
+@click.option("--push/--no-push", "-p", "is_push", default=False, show_default=False,
+              help="Push an initial version of the code [default: no-push]")
+def cli(name, workspace, description, project_template, is_push):
+    project_creator = CreateProject(name=name)
     project_info = project_creator.cli(workspace, description)
-    if not project_template:
-        project_template = config['project']['template']
-
     project_dir = project_creator.slugified_name
+    if not project_template:
+        project_template = project_creator.config['project']['template']
 
     try:
         cookiecreator(
@@ -141,9 +136,9 @@ def cli(name, workspace, description, project_template):
             no_input=True,
             overwrite_if_exists=False,
             extra_context={
-                "project_name": project_info.get('name'),
+                "project_name": project_info['name'],
                 "project_directory": project_dir,
-                "project_push_target": project_info.get('url')
+                "project_push_target": project_info['url']
             }
         )
     except OutputDirExistsException:
@@ -153,12 +148,17 @@ def cli(name, workspace, description, project_template):
             "how you can push your project to AskAnna.")
     else:
         click.echo(
-            f"Open your new local project directory: 'cd {project_dir}'\n"
+            f"Open your new local project directory: 'cd {project_dir}'"
         )
-        # also push the new directory to askanna
-        os.chdir(project_dir)
-        push(force=True, message="Initial push")
+
+        if is_push:
+            click.echo("")  # print an empty line
+
+            # also push the new directory to askanna
+            os.chdir(project_dir)
+            push(force=True, message="Initial push")
 
     # finish
     click.echo("\nWe have setup the new project. You can check your project in AskAnna at:")
-    click.echo("{project_url}".format(project_url=project_info.get('url')))
+    click.echo("{project_url}".format(project_url=project_info['url']))
+    click.echo("\nSuccess with your project!")
