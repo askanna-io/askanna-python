@@ -1,5 +1,11 @@
 # History
 
+## 0.4.3 (2020-12-25)
+
+- `askanna create --template` will allow you to use your own template to create a new project
+- Fix `askanna create` so it will actually create a project
+- Update `askanna init` so it uses to same flow as `askanna create`
+
 ## 0.4.2 (2020-12-22)
 
 - Fix issue in `askanna init` which now generates a valid `askanna.yml` project config file
