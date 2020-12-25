@@ -23,6 +23,8 @@ CONFIG_ASKANNA_REMOTE = {
                           }
                         }
 
+DEFAULT_PROJECT_TEMPLATE = "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
+
 StorageUnit = collections.namedtuple('StorageUnit',
                                      [
                                          'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'
@@ -147,10 +149,13 @@ def get_config(check_config=True) -> dict:
         config['auth'] = config.get('auth', {})
         config['auth']['token'] = is_token_set
 
+    # set the project template
+    config['project'] = config.get('project', {})
+    config['project']['template'] = os.getenv('PROJECT_TEMPLATE_URL', DEFAULT_PROJECT_TEMPLATE)
+
     # overwrite the project token if set in the env
     is_project_set = os.getenv('PROJECT_SUUID')
     if is_project_set:
-        config['project'] = config.get('project', {})
         config['project']['uuid'] = is_project_set
 
     project_config = scan_config_in_path()

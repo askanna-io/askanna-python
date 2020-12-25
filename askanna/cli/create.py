@@ -2,7 +2,6 @@ import click
 from cookiecutter.main import cookiecutter as cookiecreator
 from cookiecutter.exceptions import OutputDirExistsException
 import os
-import sys
 from slugify import slugify
 
 from askanna.cli.core import client as askanna_client
@@ -10,11 +9,10 @@ from askanna.cli.utils import get_config
 from askanna.cli.push import push
 
 HELP = """
-This command will allow you to create an AskAnna project
+This command will allow you to create an AskAnna project in a new directory
 """
 
-SHORT_HELP = "Create an AskAnna project"
-DEFAULT_DSS_PROJECT = "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
+SHORT_HELP = "Create a project in a new directory"
 
 
 def get_user_info(server):
@@ -78,44 +76,40 @@ class CreateProject:
         else:
             selected_workspace = workspaces[0]
 
-        confirm_create = click.prompt(
-            "Do you want to create a project '{project}' in '{workspace}'? (y/n)".format(
-                project=self.name,
-                workspace=selected_workspace['title']
-            ),
-            type=str
-        )
-        if confirm_create == 'y':
-            print("Thank you for the information. Anna will continue creating the project.")
-        else:
-            sys.exit()
+        if click.confirm("Do you want to create a project '{project}' in '{workspace}'?".format(
+                         project=self.name,
+                         workspace=selected_workspace['title']
+                         ), abort=True):
+            click.echo("Thank you for the information. Anna will continue creating the project.")
 
         return selected_workspace['suuid']
 
-    def cli(self, workspace: str = None):
+    def cli(self, workspace: str = None, description: str = None):
         if not self.name:
-            self.name = click.prompt(
-                "Hi {name}! It is time to create a new project in AskAnna. ".format(
+            click.echo("Hi {name}! It is time to create a new project in AskAnna. ".format(
                     name=self.user.get("name")
                 ) +
-                "We start with some information about the project.\n" +
-                "Project name",
-                type=str
-            )
+                "We start with some information about the project.")
+            self.name = click.prompt("Project name", type=str)
             self.slugified_name = slugify(self.name)
+
+            if not description:
+                description = click.prompt("Project description", type=str, default="",
+                                           show_default=False)
 
         if not workspace:
             workspace = self.ask_workspace()
 
         r = askanna_client.post(self.api_server+"project/", data={
             "name": self.name,
-            "workspace": workspace
+            "workspace": workspace,
+            "description": description
         })
         if r.status_code == 201:
             click.echo('\nYou have successfully created a new project in AskAnna!')
             return r.json()
         else:
-            raise Exception("could not create project")
+            raise Exception("We could not create the project.")
 
 
 # read defaults from the environment
@@ -124,24 +118,31 @@ default_workspace_suuid = os.getenv('WORKSPACE_SUUID')
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 @click.argument("name", required=False)
-@click.option('--workspace', '-w', default=default_workspace_suuid, show_default=True)
-def cli(name, workspace):
+@click.option("--workspace", "-w", default=default_workspace_suuid, show_default=True,
+              help="Workspace SUUID where you want to create the project")
+@click.option("--description", "-d",
+              help="Description of the project")
+@click.option("--template", "-t", "project_template",
+              help="Location of a Cookiecutter project template")
+def cli(name, workspace, description, project_template):
     config = get_config()
     api_server = config['askanna']['remote']
     user = get_user_info(server=api_server)
     project_creator = CreateProject(name=name, api_server=api_server, user=user)
-    project_info = project_creator.cli(workspace)
+    project_info = project_creator.cli(workspace, description)
+    if not project_template:
+        project_template = config['project']['template']
 
     project_dir = project_creator.slugified_name
 
     try:
         cookiecreator(
-            DEFAULT_DSS_PROJECT,
+            project_template,
             no_input=True,
             overwrite_if_exists=False,
             extra_context={
-                "project_directory": project_dir,
                 "project_name": project_info.get('name'),
+                "project_directory": project_dir,
                 "project_push_target": project_info.get('url')
             }
         )

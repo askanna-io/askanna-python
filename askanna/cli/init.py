@@ -8,7 +8,7 @@ HELP = """
 This command will allow you to create an AskAnna project
 """
 
-SHORT_HELP = "Create an AskAnna project"
+SHORT_HELP = "Create a project in the current directory"
 
 
 def find_workspace(api_server: str, headers: dict) -> list:
