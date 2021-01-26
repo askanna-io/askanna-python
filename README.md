@@ -7,7 +7,7 @@ for supporting every part of a data science project.
 ## Documentation
 
 For the latest version check the
-[AskAnna Documentation](https:/docs.askanna.io).
+[AskAnna Documentation](https://docs.askanna.io/#/cli).
 
 ## Quickstart
 
@@ -36,7 +36,7 @@ export AA_TOKEN={{ API TOKEN }}
 The API token can be found in the created `.askanna.yml` file or in the
 curl information on a job run page in the AskAnna platform.
 
-### How to push your package to AskAnna
+### How to push your code to AskAnna
 
 First add a `askanna.yml` file to the main directory of your project. In
 AskAnna create a project, copy the push-target and add it to the `askanna.yml`
@@ -79,10 +79,7 @@ bumpversion major
 
 ## Credits
 
-Tools used in rendering this package:
+Tools used in the AskAnna package:
 
 * Cookiecutter: https://github.com/audreyr/cookiecutter
 * `cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-
-
-

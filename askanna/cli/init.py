@@ -2,8 +2,8 @@ import click
 import os
 import yaml
 
-from askanna.cli.core import client as askanna_client
-from askanna.cli.utils import get_config
+from askanna.core import client as askanna_client
+from askanna.core.utils import get_config
 
 HELP = """
 This command will allow you to create an AskAnna project in your current directory
@@ -82,8 +82,8 @@ class CreateProject:
     def cli(self, workspace: str = None, description: str = None):
         if not self.name:
             click.echo("Hi {name_user}! It is time to create a new project in AskAnna. ".format(
-                    name_user=self.user.get("name")
-                ) +
+                name_user=self.user.get("name")
+            ) +
                 "We start with some information about the project.")
             self.name = click.prompt("Project name", type=str)
 

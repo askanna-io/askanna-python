@@ -3,8 +3,8 @@ import sys
 
 import click
 
-from askanna.cli.core import client as askanna_client
-from askanna.cli.utils import get_config, store_config, CONFIG_FILE_ASKANNA
+from askanna.core import client as askanna_client
+from askanna.core.utils import get_config, store_config, CONFIG_FILE_ASKANNA
 
 HELP = """
 Add your AskAnna API key to your global configuration file

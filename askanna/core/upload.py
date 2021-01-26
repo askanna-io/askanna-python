@@ -2,8 +2,8 @@ import io
 import os
 import resumable
 
-from askanna.cli.core import client as askanna_client
-from askanna.cli.utils import _file_type, diskunit
+from . import client as askanna_client
+from askanna.core.utils import _file_type, diskunit
 
 
 class Upload:
@@ -132,7 +132,7 @@ class Upload:
             data=data,
             files=files
         )
-        assert specific_chunk_req.status_code == 200, "Code could not be uploaded"
+        assert specific_chunk_req.status_code == 200, "File could not be uploaded"
 
     def chunk_dict_template(self):
         return {

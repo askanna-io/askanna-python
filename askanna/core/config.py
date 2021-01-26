@@ -1,5 +1,5 @@
-from askanna.cli.utils import get_config
-from askanna.cli.core.user import User
+from .utils import get_config
+from .user import User
 
 
 class Config:
@@ -14,6 +14,10 @@ class Config:
     @property
     def remote(self):
         return self.config.get("askanna", {}).get("remote", "https://beta-api.askanna.eu/v1/")
+
+    @property
+    def push_target(self):
+        return self.config.get('push-target')
 
     @property
     def auth(self):

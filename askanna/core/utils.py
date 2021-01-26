@@ -9,20 +9,21 @@ import sys
 from pathlib import Path
 from zipfile import ZipFile
 
-import requests
 from yaml import load, dump
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
 
+from askanna.core import exceptions
+
 CONFIG_FILE_ASKANNA = os.path.expanduser("~/.askanna.yml")
 
 CONFIG_ASKANNA_REMOTE = {
-                          'askanna': {
-                            'remote': 'https://beta-api.askanna.eu/v1/'
-                          }
-                        }
+    'askanna': {
+        'remote': 'https://beta-api.askanna.eu/v1/'
+    }
+}
 
 DEFAULT_PROJECT_TEMPLATE = "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
 
@@ -268,41 +269,53 @@ def string_expand_variables(strings: list) -> list:
     return strings
 
 
-def getProjectInfo(project_suuid, api_server, token):
-    r = requests.get(
+def getProjectInfo(project_suuid):
+    # import the lib functions here, to prevent circular import
+    from askanna.core import client
+    from askanna.core.config import Config
+    from askanna.core.project import Project
+
+    config = Config()
+    r = client.get(
         "{api_server}project/{project_suuid}/".format(
-            api_server=api_server,
+            api_server=config.remote,
             project_suuid=project_suuid
         ),
-        headers={
-            'user-agent': 'askanna-cli/0.2.0',
-            'Authorization': 'Token {token}'.format(
-                token=token
-            )
-        }
     )
-    if not r.status_code == 200:
-        return {}
 
-    return r.json()
+    if r.status_code != 200:
+        raise exceptions.GetError("{} - Something went wrong while retrieving the"
+                                  "project info: {}".format(r.status_code, r.reason))
+
+    return Project(**r.json())
 
 
-def getProjectPackages(project, api_server, token, offset=0, limit=1):
-    r = requests.get(
+def getProjectPackages(project, offset=0, limit=1):
+    from askanna.core import client
+    from askanna.core.config import Config
+    config = Config()
+    r = client.get(
         "{api_server}project/{project_suuid}/packages/?offset={offset}&limit={limit}".format(
-            api_server=api_server,
-            project_suuid=project['short_uuid'],
+            api_server=config.remote,
+            project_suuid=project.short_uuid,
             offset=offset,
             limit=limit
-        ),
-        headers={
-            'user-agent': 'askanna-cli/0.2.0',
-            'Authorization': 'Token {token}'.format(
-                token=token
-            )
-        }
+        )
     )
     if not r.status_code == 200:
         return []
 
     return r.json()
+
+
+def extract_push_target(push_target: str):
+    """
+    Extract push target from the url configured
+    Workspace is optional
+    """
+    if not push_target:
+        raise ValueError("Cannot extract push-target if push-target is not set.")
+    match_pattern = re.compile(r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace_suuid>[\w-]+){0,1}\/{0,1}project\/(?P<project_suuid>[\w-]+)\/{0,1}")  # noqa
+    matches = match_pattern.match(push_target)
+    matches_dict = matches.groupdict()
+    return matches_dict

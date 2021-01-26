@@ -1,5 +1,5 @@
 from .base import BaseCLItest
-from askanna.cli.push import extract_push_target
+from askanna.core.push import extract_push_target
 
 
 class TestCliPush(BaseCLItest):
