@@ -3,15 +3,15 @@ import os
 import sys
 import click
 
-from askanna.cli.utils import scan_config_in_path
-from askanna.cli.utils import get_config
-from askanna.cli.core.upload import ResultUpload
+from askanna.core.utils import scan_config_in_path
+from askanna.core.utils import get_config
+from askanna.core.upload import ResultUpload
 
 HELP = """
-After a jobrun, we can add the jobresult to askanna
+After a run, we can store the result in AskAnna
 """
 
-SHORT_HELP = "Upload the result from a jobrun"
+SHORT_HELP = "Upload the result from a run"
 
 
 def create_jobresult(jobname: str, cwd: str) -> str:

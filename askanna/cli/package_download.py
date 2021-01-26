@@ -3,14 +3,14 @@ import os
 import click
 from zipfile import ZipFile
 
-from askanna.cli.core import client as askanna_client
-from askanna.cli.utils import get_config
+from askanna.core import client as askanna_client
+from askanna.core.utils import get_config
 
 HELP = """
 Package downloader, intended for use with runner and unpacks code to /code
 """
 
-SHORT_HELP = "Download package code for askanna"
+SHORT_HELP = "Download package code for AskAnna"
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)

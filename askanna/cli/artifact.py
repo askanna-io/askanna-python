@@ -6,11 +6,11 @@ import time
 from zipfile import ZipFile
 import click
 
-from askanna.cli.core import client as askanna_client
-from askanna.cli.utils import zipPaths
-from askanna.cli.utils import scan_config_in_path
-from askanna.cli.utils import get_config, string_expand_variables
-from askanna.cli.core.upload import ArtifactUpload
+from askanna.core import client as askanna_client
+from askanna.core.utils import zipPaths
+from askanna.core.utils import scan_config_in_path
+from askanna.core.utils import get_config, string_expand_variables
+from askanna.core.upload import ArtifactUpload
 
 
 @click.group()
@@ -23,11 +23,7 @@ def cli2():
     pass
 
 
-def create_artifact(jobname: str, cwd: str) -> str:
-    config = get_config()
-
-    paths = config[jobname].get('output', {}).get('paths')
-
+def create_artifact(cwd: str, paths: list) -> str:
     # expand and translate paths if they are configured with variables
     paths = string_expand_variables(paths)
 
@@ -38,8 +34,8 @@ def create_artifact(jobname: str, cwd: str) -> str:
     return zipFileName
 
 
-@cli1.command(help="After a run of a job, we can save job run artifacts to an archive",
-              short_help="Save artifact from a job run")
+@cli1.command(help="After a run, save the artifact",
+              short_help="Save artifact from a run")
 def add():
     config = get_config()
     token = config['auth']['token']
@@ -52,19 +48,18 @@ def add():
     jobrun_jobname = os.getenv('JOBRUN_JOBNAME')
 
     if not project_suuid:
-        print("Cannot upload unregistered project to AskAnna")
+        click.echo("Cannot upload from unregistered project to AskAnna")
         sys.exit(1)
 
     # first check whether we need to create artifacts or not
-    # if output is not specifed
-    # or if output.paths is not specified
+    # if output.artifact or output.paths is not specified
     # then we skip this step and report this to the stdout
+    paths_defined = config[jobrun_jobname].get('output', {}).get("paths", [])
+    paths_defined = paths_defined + config[jobrun_jobname].get('output', {}).get("artifact", [])
 
-    output_defined = config[jobrun_jobname].get('output')
-    paths_defined = config[jobrun_jobname].get('output', {}).get('paths')
-
-    if None in [output_defined, paths_defined]:
-        print("Artifact creation aborted, no `output` or `output/paths` defined in `askanna.yml`")
+    if not paths_defined:
+        click.echo("Artifact creation aborted, no `output/artifact` or `output/paths` defined for "
+                   "this job in `askanna.yml`")
         sys.exit(0)
 
     cwd = os.getcwd()
@@ -84,11 +79,10 @@ def add():
             return project_folder
 
     if not cwd == project_folder:
-        print("You are not at the root folder of the project '{}'".format(
-            project_folder))
+        click.echo("You are not at the root folder of the project '{}'.".format(project_folder))
         upload_folder = ask_which_folder(cwd, project_folder)
 
-    artifact_archive = create_artifact(jobname=jobrun_jobname, cwd=upload_folder)
+    artifact_archive = create_artifact(cwd=upload_folder, paths=paths_defined)
 
     click.echo("Uploading artifact to AskAnna...")
 
@@ -199,7 +193,7 @@ class ChunkedDownload:
                 os.remove(chunkfilename)
 
 
-@cli2.command(help="Download an artifact of a job run", short_help="Download a job run artifact")
+@cli2.command(help="Download an artifact of a run", short_help="Download a run artifact")
 @click.option('--id', '-i', required=True, type=str, help='Job run SUUID')
 @click.option('--output', '-o', show_default=True, type=click.Path())
 def get(id, output):
@@ -232,5 +226,5 @@ def get(id, output):
     print("The artifact is saved in: {file}".format(file=output))
 
 
-cli = click.CommandCollection(sources=[cli1, cli2], help="Save and download job run artifacts",
-                              short_help="Save and download job run artifacts")
+cli = click.CommandCollection(sources=[cli1, cli2], help="Save and download run artifacts",
+                              short_help="Save and download run artifacts")

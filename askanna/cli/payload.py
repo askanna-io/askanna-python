@@ -4,13 +4,14 @@ import sys
 
 import click
 
-from askanna.cli.core import client as askanna_client
-from askanna.cli.utils import get_config
+from askanna.core import client as askanna_client
+from askanna.core.utils import get_config
+
+
 # read defaults from the environment
 default_jobrun_suuid = os.getenv('JOBRUN_SUUID')
 default_payload_suuid = os.getenv('PAYLOAD_SUUID')
 default_payload_file = os.getenv('PAYLOAD_PATH')
-
 
 HELP = """
 Download the payload stored in AskAnna

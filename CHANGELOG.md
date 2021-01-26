@@ -1,5 +1,16 @@
 # History
 
+## 0.5.0 (2020-01-26)
+
+- Use `askanna run job_name` to run a job
+- Start of AskAnna Python SDK with support for:
+  - starting a run
+  - getting the status of a run
+  - management of project variables
+  - listing jobs
+- Refactor code base to support SDK and remove some unused functions
+- In `askanna.yml` allow output/artifact to specify which files & directories you want to save
+
 ## 0.4.3 (2020-12-25)
 
 - `askanna create --template` will allow you to use your own template to create a new project

@@ -3,7 +3,7 @@ import os
 import click
 import requests
 
-from askanna.cli.utils import get_config
+from askanna.core.utils import get_config
 
 HELP = """
 JobRun Manifest downloader intended to use in askanna-runner

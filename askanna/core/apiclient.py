@@ -1,6 +1,6 @@
 import askanna
-from askanna.cli.core.config import Config
-from askanna.cli.core.session import Session
+from .config import Config
+from .session import Session
 
 
 class Client:

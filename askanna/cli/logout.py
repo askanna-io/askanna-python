@@ -2,7 +2,7 @@ import os
 
 import click
 
-from askanna.cli.utils import store_config
+from askanna.core.utils import store_config
 
 HELP = """
 Remove the AskAnna API key that is saved in your global configuration file
