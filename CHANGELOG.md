@@ -1,5 +1,9 @@
 # History
 
+## 0.5.1 (2020-01-27)
+
+- Fix that you can run a job with name and additional options
+
 ## 0.5.0 (2020-01-26)
 
 - Use `askanna run job_name` to run a job

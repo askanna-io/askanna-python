@@ -118,15 +118,15 @@ def determine_workspace(workspace_suuid: str = None) -> Workspace:
     return workspace_list[int(selection)-1]
 
 
-@click.group(help=HELP, short_help=SHORT_HELP, invoke_without_command=True)
-@click.pass_context
+@click.command(help=HELP, short_help=SHORT_HELP)
 @click.argument('job_name', required=False)
 @click.option('--id', '-i', 'job_suuid', required=False, help='Job SUUID')
 @click.option('--data', '-d', required=False, default=None, help='JSON data')
-@click.option('--data-file', '-D', 'data_file', required=False, default=None, help='File with JSON data')
+@click.option('--data-file', '-D', 'data_file', required=False, default=None,
+              help='File with JSON data')
 @click.option('--project', '-p', 'project_suuid', required=False, help='Project SUUID')
 @click.option('--workspace', '-w', 'workspace_suuid', required=False, help='Workspace SUUID')
-def cli(ctx, job_name, job_suuid, data, data_file, project_suuid, workspace_suuid):
+def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid):
     # If data and data_file is set, only use input from data
     if data:
         data = json.loads(data)

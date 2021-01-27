@@ -4,7 +4,7 @@
 
 __author__ = """Anthony Leung"""
 __email__ = "anthony@askanna.io"
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 
 try:
