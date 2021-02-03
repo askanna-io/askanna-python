@@ -4,7 +4,7 @@ import sys
 import click
 
 from askanna.core import client as askanna_client
-from askanna.core.utils import get_config, store_config, CONFIG_FILE_ASKANNA
+from askanna.core.auth import AuthGateway
 
 HELP = """
 Add your AskAnna API key to your global configuration file
@@ -15,75 +15,42 @@ your AskAnna account.
 SHORT_HELP = "Login and save your AskAnna API key"
 
 
-def login(server):
-    url = "{server}rest-auth/login/".format(server=server.replace("v1/", ''))
-    print("Please provide your credentials to log into AskAnna")
-    email = input("Email: ")
-    password = getpass.getpass()
-    login_dict = {
-        'username': email.strip(),
-        'password': password.strip()
-    }
-
-    r = askanna_client.post(url, json=login_dict)
-    if r.status_code == 200:
-        token = r.json().get('key')
-        return str(token)
-    elif r.status_code == 400:
-        print("We could not log you in. Please check your credentials.")
-        sys.exit(1)
-    sys.exit(1)
-
-
-def get_user_info(token, server):
-
-    url = "{server}rest-auth/user".format(server=server.replace("v1/", ''))
-    ruser = askanna_client.get(url)
-    if ruser.status_code == 200:
-        result = ruser.json()
-        print("You are logged in as {} with email {}".format(result['name'], result['email']))
-    elif ruser.status_code == 401:
-        print("The provided token is not valid. Via `askanna logout` you can remove the token "
-              "and via `askanna login` you can set a new token.")
-    else:
-        print("Could not connect to AskAnna at this moment")
-
-
-def do_login(server):
-    """
-    Pipeline of actions to do login and store the config into local config
-    """
-    token = login(server=server)
-    new_config = {
-        'auth': {
-            'token': token
-        }
-    }
-    config = store_config(new_config)
-    with open(CONFIG_FILE_ASKANNA, "w") as fd:
-        fd.write(config)
-
-    return token
-
-
 @click.command(help=HELP, short_help=SHORT_HELP)
-def cli():
-    config = get_config(check_config=False)
+@click.option('--email', '-e', required=False, type=str, help="Email which you use to login")
+@click.option('--password', '-p', required=False, type=str, help="Password you use to login")
+@click.option('--remote', '-r', required=False, type=str, help="Remote you want to login to")
+def cli(email: str = None, password: getpass = None, remote: str = None):
+    auth = AuthGateway()
+    token = askanna_client.config.user.token
 
-    ASKANNA_API_SERVER = config.get('askanna', {}).get('remote')
-
-    click.echo("Login into AskAnna")
-
-    if config.get('auth'):
-        if config['auth'].get('token'):
-            # validate_token()
-            token = config['auth']['token']
-            # Showcase with this token, who we are
-            get_user_info(token, server=ASKANNA_API_SERVER)
-            click.echo("If you want to log in with another account, please first log out: "
-                       "`askanna logout`")
-            sys.exit(0)
-
-    token = do_login(server=ASKANNA_API_SERVER)
     if token:
-        get_user_info(token, server=ASKANNA_API_SERVER)
+        # Showcase with this token, who we are and provide info what do to if you want to use another account
+        user = auth.get_user_info()
+        if user.name:
+            click.echo("You are already logged in as '{}' with email '{}'".format(user.name, user.email))
+        else:
+            click.echo("You are already logged in with email '{}'".format(user.email))
+
+        click.echo("If you want to log in with another account, please first log out: "
+                   "`askanna logout`")
+        sys.exit(0)
+
+    if email and password:
+        pass
+    else:
+        click.echo("Let's login into AskAnna")
+        if not email:
+            email = click.prompt("Email", type=str)
+        if not password:
+            password = click.prompt("Password", type=str, hide_input=True)
+
+    # Do the actual login and update the config file with the token
+    token = auth.login(email=email, password=password, remote=remote, update_config_file=True)
+
+    if token:
+        user = auth.get_user_info()
+
+        if user.name:
+            click.echo("You are logged in as '{}' with email '{}'".format(user.name, user.email))
+        else:
+            click.echo("You are logged in with email '{}'".format(user.email))
