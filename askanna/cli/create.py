@@ -118,7 +118,7 @@ class CreateProject:
 @click.option("--workspace", "-w", envvar="WORKSPACE_SUUID", show_default=True,
               help="Workspace SUUID where you want to create the project")
 @click.option("--description", "-d",
-              help="Description of the project")
+              help="Description of the project [optional]")
 @click.option("--template", "-t", "project_template",
               help="Location of a Cookiecutter project template")
 @click.option("--push/--no-push", "-p", "is_push", default=False, show_default=False,

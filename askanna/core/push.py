@@ -30,7 +30,7 @@ def package(src: str) -> str:
     return random_name
 
 
-def push(force, message):
+def push(force: bool, message: str = None):
     config = get_config()
     token = config['auth']['token']
     api_server = config['askanna']['remote']
