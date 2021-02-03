@@ -16,14 +16,14 @@ class VariableGateway:
         self.cache = {}
         self.base_url = self.client.config.remote + "variable/"
 
-    def list(self, project: str = None):
+    def list(self, project_suuid: str = None) -> list:
         url = self.base_url
-        if project:
+        if project_suuid:
             # build url to select for project only
             url = "{}{}/{}/{}".format(
                 self.client.config.remote,
                 "project",
-                project,
+                project_suuid,
                 "variables"
             )
         r = self.client.get(url)
@@ -35,27 +35,27 @@ class VariableGateway:
         self.cache = variables
         return variables
 
-    def detail(self, short_uuid: str) -> Variable:
-        url = "{}{}/".format(self.base_url, short_uuid)
+    def detail(self, suuid: str) -> Variable:
+        url = "{}{}/".format(self.base_url, suuid)
         r = self.client.get(url)
         return Variable(**r.json())
 
-    def create(self, name: str, value: str, is_masked: bool, project: str):
+    def create(self, name: str, value: str, is_masked: bool, project_suuid: str):
         url = self.base_url
         r = self.client.create(url, json={
             "name": name,
             "value": value,
             "is_masked": is_masked,
-            "project": project
+            "project": project_suuid
         })
         if r.status_code == 201:
             return Variable(**r.json()), True
 
         return None, False
 
-    def change(self, short_uuid: str, name: str = None, value: str = None,
+    def change(self, suuid: str, name: str = None, value: str = None,
                is_masked: bool = None) -> Variable:
-        url = "{}{}/".format(self.base_url, short_uuid)
+        url = "{}{}/".format(self.base_url, suuid)
 
         variable = {}
         if name:
@@ -85,7 +85,7 @@ class VariableGateway:
             sys.exit(1)
         return Variable(**r.json())
 
-    def delete(self, short_uuid: str) -> bool:
-        url = "{}{}/".format(self.base_url, short_uuid)
+    def delete(self, suuid: str) -> bool:
+        url = "{}{}/".format(self.base_url, suuid)
         r = self.client.delete(url)
         return r.status_code == 204

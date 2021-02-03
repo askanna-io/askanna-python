@@ -64,3 +64,6 @@ gl-code-quality-report.json
 
 .venv
 .venv*
+
+junit.xml
+coverage.xml

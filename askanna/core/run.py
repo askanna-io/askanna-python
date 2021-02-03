@@ -5,7 +5,6 @@ This is the class which act as gateway to the API of AskAnna
 from askanna import job
 from askanna.core import client, exceptions
 from askanna.core.dataclasses import Run
-from askanna.core.project import Project
 
 
 class RunGateway:
@@ -13,11 +12,11 @@ class RunGateway:
         self.client = client
         self.run_suuid = None
 
-    def start(self, job_suuid=None, data=None, job_name=None, project: Project = None):
+    def start(self, job_suuid: str = None, data: dict = None, job_name: str = None, project_suuid: str = None) -> Run:
         if not job_suuid and not job_name:
             raise exceptions.PostError("To start a run we need at least a job SUUID or job name")
         elif not job_suuid:
-            job_suuid = job.get_job_by_name(job_name=job_name, project=project)
+            job_suuid = job.get_job_by_name(job_name=job_name, project_suuid=project_suuid).short_uuid
 
         url = "{}{}/{}/".format(
             self.client.config.remote,
@@ -34,8 +33,8 @@ class RunGateway:
 
         return run
 
-    def status(self, run_suuid=None):
-        run_suuid = run_suuid or self.run_suuid
+    def status(self, suuid: str = None) -> Run:
+        run_suuid = suuid or self.run_suuid
 
         if not run_suuid:
             raise exceptions.RunError("There is no run UUID provided. Did you start a run?")

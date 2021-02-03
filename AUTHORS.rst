@@ -5,8 +5,10 @@ Credits
 Core team
 ---------
 
-* Antonis Sgouros <antonis@askanna.io>
+
 * Wai Yi Anthony Leung <anthony@askanna.io>
+* Robbert Bos <robbert@askanna.io>
+* Antonis Sgouros <antonis@askanna.io>
 
 Contributors
 ------------

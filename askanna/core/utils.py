@@ -273,7 +273,7 @@ def getProjectInfo(project_suuid):
     # import the lib functions here, to prevent circular import
     from askanna.core import client
     from askanna.core.config import Config
-    from askanna.core.project import Project
+    from askanna.core.dataclasses import Project
 
     config = Config()
     r = client.get(
@@ -284,7 +284,7 @@ def getProjectInfo(project_suuid):
     )
 
     if r.status_code != 200:
-        raise exceptions.GetError("{} - Something went wrong while retrieving the"
+        raise exceptions.GetError("{} - Something went wrong while retrieving the "
                                   "project info: {}".format(r.status_code, r.reason))
 
     return Project(**r.json())
