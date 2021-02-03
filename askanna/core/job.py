@@ -4,20 +4,19 @@ This is the class which act as gateway to the API of AskAnna
 """
 from askanna.core import client, exceptions
 from askanna.core.dataclasses import Job
-from askanna.core.project import Project
 
 
 class JobGateway:
     def __init__(self, *args, **kwargs):
         self.client = client
 
-    def list(self, project: Project = None) -> list:
-        if project:
+    def list(self, project_suuid: str = None) -> list:
+        if project_suuid:
             # build url to select for project only
             url = "{}{}/{}/{}".format(
                 self.client.config.remote,
                 "project",
-                project.short_uuid,
+                project_suuid,
                 "jobs"
             )
         else:
@@ -33,9 +32,9 @@ class JobGateway:
 
         return [Job(**job) for job in r.json()]
 
-    def get_job_by_name(self, job_name: str, project: Project = None) -> Job:
+    def get_job_by_name(self, job_name: str, project_suuid: str = None) -> Job:
         job_name = job_name.strip()
-        job_list = self.list(project=project)
+        job_list = self.list(project_suuid=project_suuid)
         result = None
 
         matching_jobs = list(filter(lambda x: x.name == job_name, job_list))

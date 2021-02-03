@@ -47,32 +47,32 @@ def list(project_suuid):
         print("VARIABLE SUUID         VARIABLE NAME")
         print("-------------------    -------------------------")
     else:
-        print("PROJECT SUUID          PROJECT NAME       VARIABLE SUUID         VARIABLE NAME")
-        print("-------------------    ---------------    -------------------    -------------------------")
+        print("PROJECT SUUID          PROJECT NAME            VARIABLE SUUID         VARIABLE NAME")
+        print("-------------------    --------------------    -------------------    -------------------------")
     for var in sorted(variables, key=lambda x: (x.project['name'], x.name)):
         if project_suuid:
             print("{suuid}    {variable_name}".format(
                 suuid=var.short_uuid,
                 variable_name=var.name))
         else:
-            print("{project_suuid}    {project}    {suuid}    {variable_name}".format(
+            print("{project_suuid}    {project_name}    {variable_suuid}    {variable_name}".format(
                 project_suuid=var.project['short_uuid'],
-                project="{:15}".format(var.project['name']),
-                suuid=var.short_uuid,
-                variable_name=var.name))
+                project_name="{:20}".format(var.project['name'])[:20],
+                variable_suuid=var.short_uuid,
+                variable_name=var.name[:25]))
 
 
 @cli2.command(help="Change a variable in AskAnna", short_help="Change variable")
-@click.option('--id', '-i', 'variable_suuid', required=True, type=str, help='Variable SUUID')
+@click.option('--id', '-i', 'suuid', required=True, type=str, help='Variable SUUID')
 @click.option('--name', '-n', required=False, type=str, help='New name to set')
 @click.option('--value', '-v', required=False, type=str, help='New value to set')
 @click.option('--masked', '-m', required=False, type=bool, help='Set value to masked')
-def change(variable_suuid, name, value, masked):
+def change(suuid, name, value, masked):
     """
     Change a variable name, value and if the value should set to be masked.
     We will only proceed when any of the name or value is set.
     """
-    variable = aa_variable.detail(short_uuid=variable_suuid)
+    variable = aa_variable.detail(suuid=suuid)
 
     if not any([name, value]):
         print("We did not change anything because you did not request to change a name or value.\n"
@@ -84,18 +84,18 @@ def change(variable_suuid, name, value, masked):
         sys.exit(0)
 
     # commit the change of the variable to AskAnna
-    aa_variable.change(short_uuid=variable_suuid, name=name, value=value, is_masked=masked)
+    aa_variable.change(suuid=suuid, name=name, value=value, is_masked=masked)
 
 
 @cli3.command(help="Delete a variable in AskAnna", short_help="Delete variable")
-@click.option('--id', '-i', 'variable_suuid', required=True, type=str, help='Job variable SUUID')
+@click.option('--id', '-i', 'suuid', required=True, type=str, help='Job variable SUUID')
 @click.option('--force', '-f', is_flag=True, help='Force')
-def delete(variable_suuid, force):
+def delete(suuid, force):
     """
     Delete a variable in AskAnna
     """
     try:
-        variable = aa_variable.detail(short_uuid=variable_suuid)
+        variable = aa_variable.detail(suuid=suuid)
     except TypeError:
         print(
             "It seems that a variable {id} doesn't exist.".format(id=id)
@@ -103,8 +103,8 @@ def delete(variable_suuid, force):
         sys.exit(1)
 
     def ask_confirmation() -> bool:
-        confirm = input("Are you sure to delete variable {id} with name \"{name}\"? [y/n]: ".format(
-            id=variable_suuid, name=variable.name
+        confirm = input("Are you sure to delete variable {suuid} with name \"{name}\"? [y/n]: ".format(
+            suuid=suuid, name=variable.name
         ))
         answer = confirm.strip()
         if answer not in ['n', 'y']:
@@ -121,9 +121,9 @@ def delete(variable_suuid, force):
             print("Understood. We are not deleting the variable.")
             sys.exit(0)
 
-    deleted = aa_variable.delete(short_uuid=variable_suuid)
+    deleted = aa_variable.delete(suuid=suuid)
     if deleted:
-        print("You deleted variable {id}".format(id=id))
+        print("You deleted variable {suuid}".format(suuid=suuid))
     else:
         print("Something went wrong, deletion not performed.")
 
@@ -139,8 +139,7 @@ def add(name, value, masked, project_suuid):
     """
     Add a variable to a project
     """
-    variable, created = aa_variable.create(name=name, value=value, is_masked=masked,
-                                           project=project_suuid)
+    variable, created = aa_variable.create(name=name, value=value, is_masked=masked, project_suuid=project_suuid)
     if created:
         print("You created variable \"{name}\" with SUUID {id}.".format(
             name=variable.name, id=variable.short_uuid))

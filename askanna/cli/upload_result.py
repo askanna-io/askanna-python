@@ -46,11 +46,10 @@ def cli():
     # or if output.paths is not specified
     # then we skip this step and report this to the stdout
 
-    output_defined = config[jobrun_jobname].get('output')
     result_defined = config[jobrun_jobname].get('output', {}).get('result')
 
-    if None in [output_defined, result_defined]:
-        print("Result storage aborted, no `output` or `output/result` defined in `askanna.yml`")
+    if not result_defined:
+        print("Result storage aborted, no `output/result` defined for this job in `askanna.yml`")
         sys.exit(0)
 
     cwd = os.getcwd()

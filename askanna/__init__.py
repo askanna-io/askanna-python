@@ -2,9 +2,9 @@
 
 """Top-level package for askanna"""
 
-__author__ = """Anthony Leung"""
-__email__ = "anthony@askanna.io"
-__version__ = "0.5.1"
+__author__ = """AskAnna"""
+__email__ = "devops@askanna.io"
+__version__ = "0.6.0"
 
 
 try:

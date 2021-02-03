@@ -16,7 +16,9 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get update && apt-get install -y \
     curl \
     git \
-    unzip
+    unzip \
+    g++
+
 
 RUN pip install -U pip \
     && pip install -r requirements_dev.txt \

@@ -6,26 +6,28 @@ import click
 from askanna import run as askanna_run
 from askanna import job as askanna_job
 from askanna.core.config import Config
-from askanna.core.project import Project, ProjectGateway
-from askanna.core.job import Job
 from askanna.core.dataclasses import Workspace
-from askanna.core.workspace import WorkspaceGateway
+from askanna.core.job import Job
+from askanna.core.project import Project, ProjectGateway
+from askanna.core.push import push
 from askanna.core.utils import extract_push_target, getProjectInfo
+from askanna.core.workspace import WorkspaceGateway
+
 
 config = Config()
 
 HELP = """
-This command will allow you to manage runs in AskAnna.
+This command will allow you to start a run in AskAnna.
 """
 
-SHORT_HELP = "Manage runs in AskAnna"
+SHORT_HELP = "Start a run in AskAnna"
 
 
 def ask_which_job(project: Project = None) -> Job:
     """
     Determine which job should run
     """
-    job_list = askanna_job.list(project=project)
+    job_list = askanna_job.list(project_suuid=project.short_uuid)
 
     job_list_str = ""
     for idx, job in enumerate(job_list, start=1):
@@ -124,14 +126,20 @@ def determine_workspace(workspace_suuid: str = None) -> Workspace:
 @click.option('--data', '-d', required=False, default=None, help='JSON data')
 @click.option('--data-file', '-D', 'data_file', required=False, default=None,
               help='File with JSON data')
-@click.option('--project', '-p', 'project_suuid', required=False, help='Project SUUID')
-@click.option('--workspace', '-w', 'workspace_suuid', required=False, help='Workspace SUUID')
-def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid):
+@click.option('--push/--no-push', '-p', 'push_code', default=False, show_default=False,
+              help='Push code first, and then run the job [default: no-push]')
+@click.option('--message', '-m', required=False, help='Add description to the code')
+@click.option('--project', 'project_suuid', required=False, help='Project SUUID')
+@click.option('--workspace', 'workspace_suuid', required=False, help='Workspace SUUID')
+def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid, push_code=False, message=None):
+    if push_code:
+        push(force=True, message=message)
+
     # If data and data_file is set, only use input from data
     if data:
         data = json.loads(data)
         if data_file:
-            click.echo("Because `--data` was set, we did not use the data from your data file")
+            click.echo("Because `--data` was set, we will not use the data from your data file")
     elif data_file:
         with open(data_file) as json_file:
             data = json.load(json_file)
@@ -146,7 +154,7 @@ def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid):
         pass
     elif job_name:
         try:
-            job = askanna_job.get_job_by_name(job_name=job_name, project=project)
+            job = askanna_job.get_job_by_name(job_name=job_name, project_suuid=project.short_uuid)
             job_suuid = job.short_uuid
         except Exception as e:
             click.echo(e)
@@ -155,16 +163,16 @@ def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid):
         job = ask_which_job(project=project)
 
         if not click.confirm("\nDo you want to run the job '{}'?".format(job.name), abort=True):
-            click.echo(f"Not running job {job.name}")
+            click.echo(f"Aborted! Not running job {job.name}")
         else:
             click.echo("")
 
         job_suuid = job.short_uuid
 
     try:
-        askanna_run.start(job_suuid=job_suuid, data=data, project=project)
+        run = askanna_run.start(job_suuid=job_suuid, data=data)
     except Exception as e:
         click.echo(e)
         sys.exit(1)
     else:
-        click.echo("Succesfully started a new run in AskAnna.")
+        click.echo("Succesfully started a new run for job '{}' in AskAnna".format(run.job.get("name")))
