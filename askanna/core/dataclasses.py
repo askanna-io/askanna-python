@@ -57,6 +57,16 @@ class Run:
 
 
 @dataclass
+class User:
+    short_uuid: str
+    name: str
+    email: str
+    is_active: bool
+    date_joined: datetime.datetime
+    last_login: datetime.datetime
+
+
+@dataclass
 class Variable:
     name: str
     value: str

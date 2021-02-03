@@ -1,10 +1,10 @@
-from .utils import get_config
-from .user import User
+from askanna.core.utils import get_config
+from askanna.core.user import User
 
 
 class Config:
     """
-    Configuration management for AskAnna CLI
+    Configuration management for AskAnna CLI & SDK
     """
 
     def __init__(self, *args, **kwargs):
