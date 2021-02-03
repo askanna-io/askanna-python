@@ -6,11 +6,13 @@ import click
 from askanna import run as askanna_run
 from askanna import job as askanna_job
 from askanna.core.config import Config
-from askanna.core.project import ProjectGateway
+from askanna.core.dataclasses import Workspace
 from askanna.core.job import Job
-from askanna.core.dataclasses import Project, Workspace
-from askanna.core.workspace import WorkspaceGateway
+from askanna.core.project import Project, ProjectGateway
+from askanna.core.push import push
 from askanna.core.utils import extract_push_target, getProjectInfo
+from askanna.core.workspace import WorkspaceGateway
+
 
 config = Config()
 
@@ -122,15 +124,22 @@ def determine_workspace(workspace_suuid: str = None) -> Workspace:
 @click.argument('job_name', required=False)
 @click.option('--id', '-i', 'job_suuid', required=False, help='Job SUUID')
 @click.option('--data', '-d', required=False, default=None, help='JSON data')
-@click.option('--data-file', '-D', 'data_file', required=False, default=None, help='File with JSON data')
-@click.option('--project', '-p', 'project_suuid', required=False, help='Project SUUID')
-@click.option('--workspace', '-w', 'workspace_suuid', required=False, help='Workspace SUUID')
-def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid):
+@click.option('--data-file', '-D', 'data_file', required=False, default=None,
+              help='File with JSON data')
+@click.option('--push/--no-push', '-p', 'push_code', default=False, show_default=False,
+              help='Push code first, and then run the job [default: no-push]')
+@click.option('--message', '-m', required=False, help='Add description to the code')
+@click.option('--project', 'project_suuid', required=False, help='Project SUUID')
+@click.option('--workspace', 'workspace_suuid', required=False, help='Workspace SUUID')
+def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid, push_code=False, message=None):
+    if push_code:
+        push(force=True, message=message)
+
     # If data and data_file is set, only use input from data
     if data:
         data = json.loads(data)
         if data_file:
-            click.echo("Because `--data` was set, we did not use the data from your data file")
+            click.echo("Because `--data` was set, we will not use the data from your data file")
     elif data_file:
         with open(data_file) as json_file:
             data = json.load(json_file)
