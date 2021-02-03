@@ -2,30 +2,9 @@
 Management of projects in AskAnna
 This is the class which act as gateway to the API of AskAnna
 """
-from dataclasses import dataclass
-import datetime
-import uuid
 
 from askanna.core import client, exceptions
-
-
-@dataclass
-class Project:
-    name: str
-    description: str
-    uuid: uuid.UUID
-    short_uuid: str
-    created_by: dict
-    package: dict
-    status: int
-    template: str
-    created: datetime.datetime
-    modified: datetime.datetime
-    # deleted: datetime.datetime
-    workspace: dict
-
-    def __str__(self):
-        return f'{self.name} {self.short_uuid}'
+from askanna.core.dataclasses import Project
 
 
 class ProjectGateway:
