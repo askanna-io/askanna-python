@@ -1,5 +1,13 @@
 # History
 
+## 0.6.0 (2020-02-03)
+
+- Added push-and-run via `askanna run --push` where you first push your code and then trigger a run
+- Installed gcc in the default image we run on AskAnna
+- Added developer option to specicy on which AskAnna remote you want to login
+- Changes in parameter names for Python SDK (run.status and variable modules). If you used the 0.5.x version of the
+  AskAnna Python SDK this version can break your code.
+
 ## 0.5.1 (2020-01-27)
 
 - Fix that you can run a job with name and additional options
