@@ -70,9 +70,9 @@ setup(
     project_urls={
         "Documentation Python SDK": "https://docs.askanna.io/python-sdk/",
         "Documentation CLI": "https://docs.askanna.io/cli/",
-        "Documentation": "https://docs.askanna.io/",
+        "Documentation AskAnna": "https://docs.askanna.io/",
         "Release notes": "https://gitlab.askanna.io/open/askanna-cli/-/blob/master/CHANGELOG.md",
-        "Source": "https://gitlab.askanna.io/open/askanna-cli",
+        "Source code": "https://gitlab.askanna.io/open/askanna-cli",
     },
     zip_safe=False,
 )
