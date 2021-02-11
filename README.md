@@ -1,13 +1,17 @@
-# AskAnna CLI
+# AskAnna CLI & Python SDK
 
-The AskAnna CLI offers a command-line interface to the AskAnna platform. It
+The AskAnna CLI offers a command-line interface to the AskAnna platform. With the Python SDK
+you can run AskAnna functions directly from your Python script. The CLI & Python SDK
 simplifies the communication with the AskAnna platform and provides facilities
 for supporting every part of a data science project.
 
 ## Documentation
 
 For the latest version check the
-[AskAnna Documentation](https://docs.askanna.io/#/cli).
+[AskAnna Documentation](https://docs.askanna.io/). Or open directly the documentation for:
+
+* [Command-line (CLI)](https://docs.askanna.io/cli/)
+* [Python SDK](https://docs.askanna.io/python-sdk/)
 
 ## Quickstart
 

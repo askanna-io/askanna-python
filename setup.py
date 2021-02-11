@@ -56,7 +56,7 @@ setup(
         ],
     },
     install_requires=requirements,
-    description="AskAnna CLI is part of the AskAnna platform to kickstart your data science projects",
+    description="AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects",
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/markdown',
     include_package_data=True,
@@ -68,8 +68,11 @@ setup(
     tests_require=test_requirements,
     url='https://askanna.io',
     project_urls={
-        "Documentation": "https://docs.askanna.io/#/cli",
-        "Source Code": "https://gitlab.askanna.io/open/askanna-cli",
+        "Documentation Python SDK": "https://docs.askanna.io/python-sdk/",
+        "Documentation CLI": "https://docs.askanna.io/cli/",
+        "Documentation AskAnna": "https://docs.askanna.io/",
+        "Release notes": "https://gitlab.askanna.io/open/askanna-cli/-/blob/master/CHANGELOG.md",
+        "Source code": "https://gitlab.askanna.io/open/askanna-cli",
     },
     zip_safe=False,
 )
