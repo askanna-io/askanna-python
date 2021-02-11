@@ -1,5 +1,9 @@
 # History
 
+## 0.6.1 (2020-02-11)
+
+- Update references to the new documentation of AskAnna
+
 ## 0.6.0 (2020-02-03)
 
 - Added push-and-run via `askanna run --push` where you first push your code and then trigger a run
