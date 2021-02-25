@@ -12,18 +12,8 @@ with open('README.md') as readme_file:
 with open('CHANGELOG.md') as history_file:
     history = history_file.read()
 
-requirements = [
-    'Click>=7.1',
-    'cookiecutter>=1.6.0',
-    'requests>=2.22.0',
-    'PyYAML>=5.3',
-    'python-dotenv>=0.14.0',
-    'resumable>=0.1.1',
-    'gitpython>=3.1.3',
-    'appdirs>=1.4.4',
-    'dataclasses; python_version=="3.6.*"',
-    'python-slugify>=4.0.1',
-]
+with open('requirements.txt') as requirements_file:
+    requirements = requirements_file.read()
 
 setup_requirements = [
     'wheel~=0.34.2'
@@ -71,8 +61,9 @@ setup(
         "Documentation Python SDK": "https://docs.askanna.io/python-sdk/",
         "Documentation CLI": "https://docs.askanna.io/cli/",
         "Documentation AskAnna": "https://docs.askanna.io/",
-        "Release notes": "https://gitlab.askanna.io/open/askanna-cli/-/blob/master/CHANGELOG.md",
-        "Source code": "https://gitlab.askanna.io/open/askanna-cli",
+        "Release notes": "https://gitlab.com/askanna/askanna-python/-/blob/master/CHANGELOG.md",
+        "Issue tracker": "https://gitlab.com/askanna/askanna-python/issues",
+        "Source code": "https://gitlab.com/askanna/askanna-python",
     },
     zip_safe=False,
 )

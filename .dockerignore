@@ -22,3 +22,11 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/requirements_dev.txt
+**/.gitlab-ci.yml
+**/setup.cfg
+**/tox.ini
+**/.editorconfig
+**/tests
+**/Makefile
+**/MANIFEST.in
