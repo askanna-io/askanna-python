@@ -5,6 +5,11 @@ you can run AskAnna functions directly from your Python script. The CLI & Python
 simplifies the communication with the AskAnna platform and provides facilities
 for supporting every part of a data science project.
 
+[![PyPi](https://img.shields.io/pypi/v/askanna.svg)](https://pypi.org/project/askanna/)
+[![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://gitlab.askanna.io/askanna/askanna-cli/-/blob/release/0.6.2/LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-latest-success.svg)](https://docs.askanna.io/)
+[![Downloads](https://pepy.tech/badge/askanna)](https://pepy.tech/project/askanna)
+
 ## Documentation
 
 For the latest version check the
@@ -17,13 +22,19 @@ For the latest version check the
 
 ### Install AskAnna
 
-```
+```bash
 pip install askanna
 ```
 
-### Login to askanna
+## Update AskAnna
 
+```bash
+pip install -U askanna
 ```
+
+### Login to AskAnna
+
+```bash
 askanna login
 ```
 
@@ -54,31 +65,6 @@ environment variables to be set:
 
 ```bash
 export AA_TOKEN={{ API TOKEN }}
-```
-
-## Running Tests
-
-Does the code actually work?
-
-```bash
-source <YOURVIRTUALENV>/bin/activate
-(myenv) $ pip install tox
-(myenv) $ tox
-```
-
-## Make a new release
-
-We use `bumpversion` to bump the version number of a release:
-
-```bash
-# upgrade version by 0.0.x
-bumpversion patch
-
-# upgrade version by 0.x.0
-bumpversion minor
-
-# upgrade version by x.0.0
-bumpversion major
 ```
 
 ## Credits
