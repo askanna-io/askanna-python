@@ -58,20 +58,17 @@ class CreateProject:
             for idx, workspace in enumerate(workspaces, start=1):
                 workspace_list_str += "%d. %s\n" % (idx, workspace['title'])
 
-            workspace = click.prompt(
-                "\n{name}, you are a member of multiple workspaces. ".format(
-                    name=self.user.get("name")
-                ) +
-                "In which workspace do you want to create the new project?\n" +
-                workspace_list_str +
-                "\n" +
-                "Please enter the workspace number"
-            )
+            workspace = click.prompt("\nYou are a member of multiple workspaces. " +
+                                     "In which workspace do you want to create the new project?\n" +
+                                     workspace_list_str +
+                                     "\n" +
+                                     "Please enter the workspace number"
+                                     )
             selected_workspace = workspaces[int(workspace)-1]
         else:
             selected_workspace = workspaces[0]
 
-        if click.confirm("Do you want to create a project '{project}' in '{workspace}'?".format(
+        if click.confirm("\nDo you want to create a project '{project}' in the workspace '{workspace}'?".format(
                          project=self.name,
                          workspace=selected_workspace['title']
                          ), abort=True):
@@ -81,10 +78,13 @@ class CreateProject:
 
     def cli(self, workspace: str = None, description: str = None):
         if not self.name:
-            click.echo("Hi {name_user}! It is time to create a new project in AskAnna. ".format(
-                name_user=self.user.get("name")
-            ) +
-                "We start with some information about the project.")
+            name_user = ""
+            if self.user.get("name"):
+                name_user = " " + self.user.get("name")
+
+            click.echo(f"Hi{name_user}! It is time to create a new project in AskAnna. "
+                       "We start with some information about the project.")
+            click.echo("")
             self.name = click.prompt("Project name", type=str)
 
             if not description:
@@ -121,6 +121,7 @@ def cli(name, workspace, description):
         click.echo("But, we will not update your 'askanna.yml' file with the push-target of the "
                    "new project. If you continue, you need to add the push-target yourself.\n")
         click.confirm("Do you want to continue without updating the 'askanna.yml'?", abort=True)
+        click.echo("")
 
     project_creator = CreateProject(name=name)
     project_info = project_creator.cli(workspace, description)
@@ -128,6 +129,10 @@ def cli(name, workspace, description):
     if not os.path.exists(askanna_project_file):
         with open(askanna_project_file, 'w') as pf:
             pf.write(yaml.dump({"push-target": project_info['url']}, indent=2))
+    else:
+        click.echo("\nTo be able to push your code to AskAnna, you need to update your local `askanna.yml` file. "
+                   "In the `askanna.yml` set or update the push-target with:")
+        click.echo("push-target: {}".format(project_info["url"]))
 
     # finish
     click.echo("\nCheck your project in AskAnna at:")
