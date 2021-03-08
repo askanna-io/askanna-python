@@ -1,5 +1,11 @@
 # History
 
+## 0.6.2 (2020-03-08)
+
+- Make `askanna init` more friendly to use
+- Refer to open source project on GitLab.com
+- Tweak configuration and README
+
 ## 0.6.1 (2020-02-11)
 
 - Update references to the new documentation of AskAnna
