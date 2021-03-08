@@ -1,16 +1,16 @@
 # History
 
-## 0.6.2 (2020-03-08)
+## 0.6.2 (2021-03-08)
 
 - Make `askanna init` more friendly to use
 - Refer to open source project on GitLab.com
 - Tweak configuration and README
 
-## 0.6.1 (2020-02-11)
+## 0.6.1 (2021-02-11)
 
 - Update references to the new documentation of AskAnna
 
-## 0.6.0 (2020-02-03)
+## 0.6.0 (2021-02-03)
 
 - Added push-and-run via `askanna run --push` where you first push your code and then trigger a run
 - Installed gcc in the default image we run on AskAnna
@@ -18,11 +18,11 @@
 - Changes in parameter names for Python SDK (run.status and variable modules). If you used the 0.5.x version of the
   AskAnna Python SDK this version can break your code.
 
-## 0.5.1 (2020-01-27)
+## 0.5.1 (2021-01-27)
 
 - Fix that you can run a job with name and additional options
 
-## 0.5.0 (2020-01-26)
+## 0.5.0 (2021-01-26)
 
 - Use `askanna run job_name` to run a job
 - Start of AskAnna Python SDK with support for:
