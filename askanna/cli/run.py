@@ -34,15 +34,15 @@ def ask_which_job(project: Project = None) -> Job:
         job_list_str += "%d. %s\n" % (idx, job.name)
 
     selected_job = click.prompt(
-        "\nWhich job do you want to run?\n" +
-        job_list_str +
-        "\n" +
-        "Please enter the job number",
-        type=click.Choice([str(i+1) for i in range(len(job_list))]),
-        show_choices=False
+        "\nWhich job do you want to run?\n"
+        + job_list_str
+        + "\n"
+        + "Please enter the job number",
+        type=click.Choice([str(i + 1) for i in range(len(job_list))]),
+        show_choices=False,
     )
 
-    return job_list[int(selected_job)-1]
+    return job_list[int(selected_job) - 1]
 
 
 def ask_which_project(workspace: Workspace = None):
@@ -57,29 +57,31 @@ def ask_which_project(workspace: Workspace = None):
         list_str += "%d. %s\n" % (idx, project.name)
 
     selection = click.prompt(
-        "\nFrom which project do you want to run a job?\n" +
-        list_str +
-        "\n" +
-        "Please enter the project number",
-        type=click.Choice([str(i+1) for i in range(len(project_list))]),
-        show_choices=False
+        "\nFrom which project do you want to run a job?\n"
+        + list_str
+        + "\n"
+        + "Please enter the project number",
+        type=click.Choice([str(i + 1) for i in range(len(project_list))]),
+        show_choices=False,
     )
 
-    return project_list[int(selection)-1]
+    return project_list[int(selection) - 1]
 
 
-def determine_project(project_suuid: str = None, workspace_suuid: str = None) -> Project:
+def determine_project(
+    project_suuid: str = None, workspace_suuid: str = None
+) -> Project:
     project = None
 
     if not project_suuid:
         # Use the project from the push-target if not set
         try:
             push_target = extract_push_target(config.push_target)
-        except ValueError as e:  # noqa
+        except ValueError:
             # the push-target is not set, so don't bother reading it
             pass
         else:
-            project_suuid = push_target.get('project_suuid')
+            project_suuid = push_target.get("project_suuid")
 
     # Still if there is no project_suuid found, there we use the optional workspace
     # to preselect which workspace to select from
@@ -109,29 +111,50 @@ def determine_workspace(workspace_suuid: str = None) -> Workspace:
         list_str += "%d. %s\n" % (idx, workspace.name)
 
     selection = click.prompt(
-        "From which workspace do you want to run a job?\n" +
-        list_str +
-        "\n" +
-        "Please enter the workspace number",
-        type=click.Choice([str(i+1) for i in range(len(workspace_list))]),
-        show_choices=False
+        "From which workspace do you want to run a job?\n"
+        + list_str
+        + "\n"
+        + "Please enter the workspace number",
+        type=click.Choice([str(i + 1) for i in range(len(workspace_list))]),
+        show_choices=False,
     )
 
-    return workspace_list[int(selection)-1]
+    return workspace_list[int(selection) - 1]
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
-@click.argument('job_name', required=False)
-@click.option('--id', '-i', 'job_suuid', required=False, help='Job SUUID')
-@click.option('--data', '-d', required=False, default=None, help='JSON data')
-@click.option('--data-file', '-D', 'data_file', required=False, default=None,
-              help='File with JSON data')
-@click.option('--push/--no-push', '-p', 'push_code', default=False, show_default=False,
-              help='Push code first, and then run the job [default: no-push]')
-@click.option('--message', '-m', required=False, help='Add description to the code')
-@click.option('--project', 'project_suuid', required=False, help='Project SUUID')
-@click.option('--workspace', 'workspace_suuid', required=False, help='Workspace SUUID')
-def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid, push_code=False, message=None):
+@click.argument("job_name", required=False)
+@click.option("--id", "-i", "job_suuid", required=False, help="Job SUUID")
+@click.option("--data", "-d", required=False, default=None, help="JSON data")
+@click.option(
+    "--data-file",
+    "-D",
+    "data_file",
+    required=False,
+    default=None,
+    help="File with JSON data",
+)
+@click.option(
+    "--push/--no-push",
+    "-p",
+    "push_code",
+    default=False,
+    show_default=False,
+    help="Push code first, and then run the job [default: no-push]",
+)
+@click.option("--message", "-m", required=False, help="Add description to the code")
+@click.option("--project", "project_suuid", required=False, help="Project SUUID")
+@click.option("--workspace", "workspace_suuid", required=False, help="Workspace SUUID")
+def cli(
+    job_name,
+    job_suuid,
+    data,
+    data_file,
+    project_suuid,
+    workspace_suuid,
+    push_code=False,
+    message=None,
+):
     if push_code:
         push(force=True, message=message)
 
@@ -139,7 +162,9 @@ def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid, pu
     if data:
         data = json.loads(data)
         if data_file:
-            click.echo("Because `--data` was set, we will not use the data from your data file")
+            click.echo(
+                "Because `--data` was set, we will not use the data from your data file"
+            )
     elif data_file:
         with open(data_file) as json_file:
             data = json.load(json_file)
@@ -154,7 +179,9 @@ def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid, pu
         pass
     elif job_name:
         try:
-            job = askanna_job.get_job_by_name(job_name=job_name, project_suuid=project.short_uuid)
+            job = askanna_job.get_job_by_name(
+                job_name=job_name, project_suuid=project.short_uuid
+            )
             job_suuid = job.short_uuid
         except Exception as e:
             click.echo(e)
@@ -162,7 +189,9 @@ def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid, pu
     else:
         job = ask_which_job(project=project)
 
-        if not click.confirm("\nDo you want to run the job '{}'?".format(job.name), abort=True):
+        if not click.confirm(
+            "\nDo you want to run the job '{}'?".format(job.name), abort=True
+        ):
             click.echo(f"Aborted! Not running job {job.name}")
         else:
             click.echo("")
@@ -175,4 +204,8 @@ def cli(job_name, job_suuid, data, data_file, project_suuid, workspace_suuid, pu
         click.echo(e)
         sys.exit(1)
     else:
-        click.echo("Succesfully started a new run for job '{}' in AskAnna".format(run.job.get("name")))
+        click.echo(
+            "Succesfully started a new run for job '{}' in AskAnna".format(
+                run.job.get("name")
+            )
+        )

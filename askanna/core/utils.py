@@ -1,15 +1,17 @@
-
 import collections
+import datetime
 import glob
 import mimetypes
 import os
 import re
 import sys
+import uuid
 
 from pathlib import Path
 from zipfile import ZipFile
 
 from yaml import load, dump
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -19,20 +21,19 @@ from askanna.core import exceptions
 
 CONFIG_FILE_ASKANNA = os.path.expanduser("~/.askanna.yml")
 
-CONFIG_ASKANNA_REMOTE = {
-    'askanna': {
-        'remote': 'https://beta-api.askanna.eu/v1/'
-    }
-}
+CONFIG_ASKANNA_REMOTE = {"askanna": {"remote": "https://beta-api.askanna.eu/v1/"}}
 
-DEFAULT_PROJECT_TEMPLATE = "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
+DEFAULT_PROJECT_TEMPLATE = (
+    "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
+)
 
-StorageUnit = collections.namedtuple('StorageUnit',
-                                     [
-                                         'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'
-                                     ])
+StorageUnit = collections.namedtuple(
+    "StorageUnit", ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
+)
 
-diskunit = StorageUnit(B=1, KiB=1024**1, MiB=1024**2, GiB=1024**3, TiB=1024**4, PiB=1024**5)
+diskunit = StorageUnit(
+    B=1, KiB=1024 ** 1, MiB=1024 ** 2, GiB=1024 ** 3, TiB=1024 ** 4, PiB=1024 ** 5
+)
 
 
 def init_checks():
@@ -51,7 +52,7 @@ def create_config(location: str):
 
         # write initial config since it didn't exist
         config = store_config(CONFIG_ASKANNA_REMOTE)
-        with open(expanded_path, 'w') as f:
+        with open(expanded_path, "w") as f:
             f.write(config)
 
 
@@ -79,10 +80,10 @@ def check_for_project():
     we wish to perform a deploy action, we want to be on the same
     level with the ``askanna.yml`` to be able to package the file.
     """
-    pyfiles = glob.glob('*.yml')
+    pyfiles = glob.glob("*.yml")
 
     # look for the setup.py file
-    if 'askanna.yml' in pyfiles:
+    if "askanna.yml" in pyfiles:
         return True
     else:
         return False
@@ -104,10 +105,7 @@ def scan_config_in_path(cwd=None):
         # in any other cases, look in parent directories
         while split_path[1] != "":
             if contains_configfile(split_path[0]):
-                project_configfile = os.path.join(
-                    split_path[0],
-                    "askanna.yml"
-                )
+                project_configfile = os.path.join(split_path[0], "askanna.yml")
                 break
             split_path = os.path.split(split_path[0])
     return project_configfile
@@ -117,13 +115,11 @@ def read_config(path: str) -> dict:
     """
     Reading existing config or return default dict
     """
-    return load(open(os.path.expanduser(path), 'r'), Loader=Loader) or {}
+    return load(open(os.path.expanduser(path), "r"), Loader=Loader) or {}
 
 
 def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
-    return os.path.isfile(
-        os.path.join(path, filename)
-    )
+    return os.path.isfile(os.path.join(path, filename))
 
 
 def get_config(check_config=True) -> dict:
@@ -131,34 +127,36 @@ def get_config(check_config=True) -> dict:
     config = read_config(CONFIG_FILE_ASKANNA) or {}
 
     # overwrite the AA remote if AA_REMOTE is set in the environment
-    is_remote_set = os.getenv('AA_REMOTE')
+    is_remote_set = os.getenv("AA_REMOTE")
     if is_remote_set:
-        config['askanna'] = config.get('askanna', {})
-        config['askanna']['remote'] = is_remote_set
+        config["askanna"] = config.get("askanna", {})
+        config["askanna"]["remote"] = is_remote_set
 
     # if askanna remote is not set, add a default remote to the config file
     try:
-        config['askanna']['remote']
+        config["askanna"]["remote"]
     except KeyError:
         config = store_config(CONFIG_ASKANNA_REMOTE)
-        with open(CONFIG_FILE_ASKANNA, 'w') as f:
+        with open(CONFIG_FILE_ASKANNA, "w") as f:
             f.write(config)
         config = read_config(CONFIG_FILE_ASKANNA) or {}
 
     # overwrite the user token if AA_TOKEN is set in the environment
-    is_token_set = os.getenv('AA_TOKEN')
+    is_token_set = os.getenv("AA_TOKEN")
     if is_token_set:
-        config['auth'] = config.get('auth', {})
-        config['auth']['token'] = is_token_set
+        config["auth"] = config.get("auth", {})
+        config["auth"]["token"] = is_token_set
 
     # set the project template
-    config['project'] = config.get('project', {})
-    config['project']['template'] = os.getenv('PROJECT_TEMPLATE_URL', DEFAULT_PROJECT_TEMPLATE)
+    config["project"] = config.get("project", {})
+    config["project"]["template"] = os.getenv(
+        "PROJECT_TEMPLATE_URL", DEFAULT_PROJECT_TEMPLATE
+    )
 
     # overwrite the project token if set in the env
-    is_project_set = os.getenv('PROJECT_UUID')
+    is_project_set = os.getenv("PROJECT_UUID")
     if is_project_set:
-        config['project']['uuid'] = is_project_set
+        config["project"]["uuid"] = is_project_set
 
     project_config = scan_config_in_path()
     if project_config:
@@ -172,7 +170,7 @@ def get_config(check_config=True) -> dict:
 
 def validate_config(config):
     try:
-        config['auth']['token']
+        config["auth"]["token"]
     except KeyError:
         print("You are not logged in. Please login first via `askanna login`.")
         sys.exit(1)
@@ -189,9 +187,9 @@ def store_config(new_config):
 def zipFilesInDir(dirName, zipFileName, filter):
     os.chdir(dirName)
     # create a ZipFile object
-    with ZipFile(zipFileName, mode='w') as zipObj:
+    with ZipFile(zipFileName, mode="w") as zipObj:
         # Iterate over all the files in directory
-        for folderName, subfolders, filenames in os.walk('.'):
+        for folderName, subfolders, filenames in os.walk("."):
             for filename in filenames:
                 if filter(filename):
                     # create complete filepath of file in directory
@@ -210,7 +208,7 @@ def zipAFile(zipObj: ZipFile, dirpath: str, filepath: str, prefixdir: str) -> No
 def zipFolder(zipObj: ZipFile, dirpath: str, prefixdir: str):
     os.chdir(dirpath)
     # Iterate over all the files in directory
-    for folderName, subfolders, filenames in os.walk('.'):
+    for folderName, subfolders, filenames in os.walk("."):
         for filename in filenames:
             # create complete filepath of file in directory
             filePath = os.path.join(folderName, filename)
@@ -220,7 +218,7 @@ def zipFolder(zipObj: ZipFile, dirpath: str, prefixdir: str):
 
 def zipPaths(zipObj: ZipFile, paths: list, cwd: str):
     for targetloc in paths:
-        if targetloc.startswith('/'):
+        if targetloc.startswith("/"):
             prefixdir = targetloc
         else:
             prefixdir = targetloc
@@ -236,8 +234,12 @@ def zipPaths(zipObj: ZipFile, paths: list, cwd: str):
             zipFolder(zipObj, targetloc, prefixdir=prefixdir)
         else:
             # we got a file?
-            zipAFile(zipObj, dirpath=os.path.dirname(targetloc),
-                     filepath=os.path.basename(targetloc), prefixdir=prefixdir)
+            zipAFile(
+                zipObj,
+                dirpath=os.path.dirname(targetloc),
+                filepath=os.path.basename(targetloc),
+                prefixdir=prefixdir,
+            )
 
 
 def _file_type(path):
@@ -256,7 +258,7 @@ def _file_type(path):
     """
     type_, _ = mimetypes.guess_type(path)
     # When no type can be inferred, File.type returns an empty string
-    return '' if type_ is None else type_
+    return "" if type_ is None else type_
 
 
 def string_expand_variables(strings: list) -> list:
@@ -264,7 +266,7 @@ def string_expand_variables(strings: list) -> list:
     for idx, line in enumerate(strings):
         matches = var_matcher.findall(line)
         for m in matches:
-            line = line.replace("${"+m+"}", os.getenv(m.strip()))
+            line = line.replace("${" + m + "}", os.getenv(m.strip()))
         strings[idx] = line
     return strings
 
@@ -278,14 +280,15 @@ def getProjectInfo(project_suuid):
     config = Config()
     r = client.get(
         "{api_server}project/{project_suuid}/".format(
-            api_server=config.remote,
-            project_suuid=project_suuid
+            api_server=config.remote, project_suuid=project_suuid
         ),
     )
 
     if r.status_code != 200:
-        raise exceptions.GetError("{} - Something went wrong while retrieving the "
-                                  "project info: {}".format(r.status_code, r.reason))
+        raise exceptions.GetError(
+            "{} - Something went wrong while retrieving the "
+            "project info: {}".format(r.status_code, r.reason)
+        )
 
     return Project(**r.json())
 
@@ -293,13 +296,14 @@ def getProjectInfo(project_suuid):
 def getProjectPackages(project, offset=0, limit=1):
     from askanna.core import client
     from askanna.core.config import Config
+
     config = Config()
     r = client.get(
         "{api_server}project/{project_suuid}/packages/?offset={offset}&limit={limit}".format(
             api_server=config.remote,
             project_suuid=project.short_uuid,
             offset=offset,
-            limit=limit
+            limit=limit,
         )
     )
     if not r.status_code == 200:
@@ -315,7 +319,74 @@ def extract_push_target(push_target: str):
     """
     if not push_target:
         raise ValueError("Cannot extract push-target if push-target is not set.")
-    match_pattern = re.compile(r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace_suuid>[\w-]+){0,1}\/{0,1}project\/(?P<project_suuid>[\w-]+)\/{0,1}")  # noqa
+    match_pattern = re.compile(
+        r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace_suuid>[\w-]+){0,1}\/{0,1}project\/(?P<project_suuid>[\w-]+)\/{0,1}"  # noqa
+    )
     matches = match_pattern.match(push_target)
     matches_dict = matches.groupdict()
     return matches_dict
+
+
+# generation of suuid
+
+
+def bx_encode(n, alphabet):
+    """
+    Encodes an integer :attr:`n` in base ``len(alphabet)`` with
+    digits in :attr:`alphabet`.
+
+    ::
+        # 'ba'
+        bx_encode(3, 'abc')
+    :param n:            a positive integer.
+    :param alphabet:     a 0-based iterable.
+    """
+
+    if not isinstance(n, int):
+        raise TypeError("an integer is required")
+
+    base = len(alphabet)
+
+    if n == 0:
+        return alphabet[0]
+
+    digits = []
+
+    while n > 0:
+        digits.append(alphabet[n % base])
+        n = n // base
+
+    digits.reverse()
+    return "".join(digits)
+
+
+def str_to_suuid(string, n) -> str:
+    return [string[i : i + n] for i in range(0, len(string), n)]
+
+
+def create_suuid(uuid_obj) -> str:
+    """
+    Given an uuid4, return the suuid form of it
+    """
+    alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+    token_length = 16
+    group_size = 4
+    groups = int(token_length / group_size)
+
+    # Generate a random UUID if not given
+    if not uuid_obj:
+        uuid_obj = uuid.uuid4()
+
+    # Convert it to a number with the given alphabet,
+    # padding with the 0-symbol as needed)
+    token = bx_encode(int(uuid_obj.hex, 16), alphabet)
+    token = token.rjust(token_length, alphabet[0])
+
+    return "-".join(str_to_suuid(token, group_size)[:groups])
+
+
+def json_serializer(obj):
+    if isinstance(obj, (datetime.time, datetime.date, datetime.datetime)):
+        return obj.isoformat()
+    return obj

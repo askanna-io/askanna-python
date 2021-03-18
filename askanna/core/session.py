@@ -17,6 +17,9 @@ class Session:
     def patch(self, url, **kwargs):
         return self.session.patch(url, **kwargs)
 
+    def put(self, url, **kwargs):
+        return self.session.put(url, **kwargs)
+
     def post(self, url, **kwargs):
         return self.session.post(url, **kwargs)
 

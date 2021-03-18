@@ -1,11 +1,10 @@
 import os
-import warnings
 import click
 
 from askanna.core import client
 
 HELP = """
-Run Manifest downloader intended to use in askanna-worker
+Download manifest containing the commands for a run
 """
 
 SHORT_HELP = "Download manifest for run"
@@ -16,7 +15,6 @@ SHORT_HELP = "Download manifest for run"
 )
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli(output):
-    warnings.warn("askanna jobrun-manifest is deprecated", DeprecationWarning)
     api_server = client.config.remote
     run_suuid = os.getenv("JOBRUN_SUUID")
 

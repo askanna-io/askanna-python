@@ -12,10 +12,10 @@ load_dotenv(find_dotenv())
 
 
 HELP = """
-The AskAnna CLI helps you running data science projects on AskAnna.
+The run util is used to support AskAnna runs
 """
 
-SHORT_HELP = "AskAnna CLI client"
+SHORT_HELP = "AskAnna run-util"
 
 EPILOG = """
 For usage and help on a specific command, run it with a --help flag, e.g.:
@@ -52,18 +52,15 @@ def cli_commands():
 
 
 commands = [
-    "login",
-    "logout",
-    "create",
-    "init",
-    "push",
-    "artifact",
-    "variable",
-    "run",
+    "push_metrics",
+    "push_result",
+    "get_package",
+    "get_payload",
+    "get_run_manifest",
 ]
 
 for command in commands:
-    module_path = "askanna.cli." + command
+    module_path = "askanna.cli.run_utils." + command
     command_module = importlib.import_module(module_path)
     command_name = command.replace("_", "-")
     cli_commands.add_command(command_module.cli, command_name)

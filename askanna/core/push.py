@@ -21,10 +21,11 @@ def package(src: str) -> str:
     tmpdir = tempfile.mkdtemp(prefix="askanna-package")
 
     random_name = os.path.join(
-        tmpdir, "{pwd_dir_name}_{random_suffix}.zip".format(
-            pwd_dir_name=pwd_dir_name,
-            random_suffix=random_suffix
-        ))
+        tmpdir,
+        "{pwd_dir_name}_{random_suffix}.zip".format(
+            pwd_dir_name=pwd_dir_name, random_suffix=random_suffix
+        ),
+    )
 
     zipFilesInDir(src, random_name, lambda x: x)
     return random_name
@@ -32,16 +33,18 @@ def package(src: str) -> str:
 
 def push(force: bool, message: str = None):
     config = get_config()
-    token = config['auth']['token']
-    api_server = config['askanna']['remote']
-    project = config.get('project', {})
-    project_uuid = project.get('uuid')
+    token = config["auth"]["token"]
+    api_server = config["askanna"]["remote"]
+    project = config.get("project", {})
+    project_uuid = project.get("uuid")
 
     # read and parse the push-target from askanna
-    push_target = config.get('push-target')
+    push_target = config.get("push-target")
 
     if not push_target:
-        print("`push-target` is not set, please set the `push-target` in order to push to AskAnna")
+        print(
+            "`push-target` is not set, please set the `push-target` in order to push to AskAnna"
+        )
         sys.exit(1)
 
     matches_dict = extract_push_target(push_target)
@@ -49,16 +52,16 @@ def push(force: bool, message: str = None):
     http_scheme = matches_dict.get("http_scheme")
     if api_host:
         # first also modify the first part
-        if api_host.startswith('localhost'):
+        if api_host.startswith("localhost"):
             api_host = api_host
-        elif api_host not in ['askanna.eu']:
-            first_part = api_host.split('.')[0]
-            last_part = api_host.split('.')[1:]
-            api_host = ".".join(
-                [first_part+"-api"]+last_part
-            )
+        elif api_host not in ["askanna.eu"]:
+            # only append the -api suffix if the subdomain is not having this
+            first_part = api_host.split(".")[0]
+            last_part = api_host.split(".")[1:]
+            if "-api" not in first_part:
+                api_host = ".".join([first_part + "-api"] + last_part)
         else:
-            api_host = 'api.' + api_host
+            api_host = "api." + api_host
         api_server = "{}://{}/v1/".format(http_scheme, api_host)
     project_suuid = matches_dict.get("project_suuid")
 
@@ -78,10 +81,10 @@ def push(force: bool, message: str = None):
     def ask_overwrite() -> bool:
         confirm = input("Do you want to replace the current code on AskAnna? [y/n]: ")
         answer = confirm.strip()
-        if answer not in ['n', 'y']:
+        if answer not in ["n", "y"]:
             print("Invalid option selected, choose from: y or n")
             return ask_overwrite()
-        if confirm == 'y':
+        if confirm == "y":
             return True
         else:
             return False
@@ -95,29 +98,33 @@ def push(force: bool, message: str = None):
     def ask_which_folder(cwd, project_folder) -> str:
         confirm = input("Proceed upload [c]urrent or [p]roject folder? : ")
         answer = confirm.strip()
-        if answer not in ['c', 'p']:
+        if answer not in ["c", "p"]:
             print("Invalid option selected, choose from: c or p")
             return ask_which_folder(cwd, project_folder)
-        if confirm == 'c':
+        if confirm == "c":
             return cwd
-        if confirm == 'p':
+        if confirm == "p":
             return project_folder
 
     if not cwd == project_folder:
-        print("You are not at the root folder of the project '{}'".format(project_folder))
+        print(
+            "You are not at the root folder of the project '{}'".format(project_folder)
+        )
         upload_folder = ask_which_folder(cwd, project_folder)
 
     # check for existing package
     packages = getProjectPackages(project_info)
-    if packages['count'] > 0:
+    if packages["count"] > 0:
         # ask for confirmation if `-f` flag is not set
         overwrite = force
         if not force:
             overwrite = ask_overwrite()
 
         if not overwrite:
-            print("We are not pushing your code to AskAnna. You choose not to replace your "
-                  "existing code.")
+            print(
+                "We are not pushing your code to AskAnna. You choose not to replace your "
+                "existing code."
+            )
             sys.exit(0)
 
     package_archive = package(upload_folder)
@@ -147,7 +154,7 @@ def push(force: bool, message: str = None):
         token=token,
         api_server=api_server,
         project_uuid=project_uuid,
-        description=message
+        description=message,
     )
     status, msg = uploader.upload(package_archive, config, fileinfo)
     if status:
@@ -157,8 +164,10 @@ def push(force: bool, message: str = None):
             os.rmdir(os.path.dirname(package_archive))
             print("Successfully pushed the project to AskAnna!")
         except OSError as e:
-            print("Pushing your code was successful, but we could not remove the temporary file "
-                  "used for uploading your code to AskAnna.")
+            print(
+                "Pushing your code was successful, but we could not remove the temporary file "
+                "used for uploading your code to AskAnna."
+            )
             print("The error: {}".format(e.strerror))
             print("You can manually delete the file: {}".format(package_archive))
     else:

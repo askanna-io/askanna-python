@@ -1,6 +1,8 @@
+import json
 import askanna
 from .config import Config
 from .session import Session
+from .utils import json_serializer
 
 
 class Client:
@@ -34,13 +36,26 @@ class Client:
         return self.session.head(url, **kwargs)
 
     def patch(self, url, **kwargs):
+        if kwargs.get("json"):
+            kwargs['json'] = json.loads(json.dumps(kwargs.get('json'), default=json_serializer))
         return self.session.patch(url, **kwargs)
 
+    def put(self, url, **kwargs):
+        if kwargs.get("json"):
+            kwargs['json'] = json.loads(json.dumps(kwargs.get('json'), default=json_serializer))
+        return self.session.put(url, **kwargs)
+
     def post(self, url, **kwargs):
+        if kwargs.get("json"):
+            kwargs['json'] = json.loads(json.dumps(kwargs.get('json'), default=json_serializer))
         return self.session.post(url, **kwargs)
 
     def create(self, url, **kwargs):
+        if kwargs.get("json"):
+            kwargs['json'] = json.loads(json.dumps(kwargs.get('json'), default=json_serializer))
         return self.session.create(url, **kwargs)
 
     def delete(self, url, **kwargs):
+        if kwargs.get("json"):
+            kwargs['json'] = json.loads(json.dumps(kwargs.get('json'), default=json_serializer))
         return self.session.delete(url, **kwargs)
