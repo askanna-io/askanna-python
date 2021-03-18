@@ -4,16 +4,13 @@
 
 __author__ = """AskAnna"""
 __email__ = "devops@askanna.io"
-__version__ = "0.6.2"
+__version__ = "0.7.0"
 
 
 try:
-    from appdirs import AppDirs
-
+    from appdirs import AppDirs  # noqa
 except Exception as e:
     # we are propably within an installation
     print(e)
 else:
-    appname = "askanna"
-    appauthor = "askanna"
-    config_dirs = AppDirs(appname, appauthor)
+    from .init import *  # noqa

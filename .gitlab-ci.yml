@@ -20,7 +20,7 @@ python3:
     - pytest --cov=askanna --junitxml=junit.xml
     - coverage html
     - coverage xml
-  coverage: '/^TOTAL.+?(\d+\%)$/'
+  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+([\d\.]+)\%/'
   artifacts:
     expire_in: 2 weeks
     name: "${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}"
@@ -30,11 +30,12 @@ python3:
       cobertura: coverage.xml
       junit: junit.xml
 
-
 python flake8:
   stage: test
   image: python:3-slim
   script:
+    - pip install -U pip
+    - pip install -U -r requirements_dev.txt
     - pip install tox
     - tox -e flake8
   artifacts:
