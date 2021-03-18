@@ -1,5 +1,12 @@
 # History
 
+## 0.7.0 (2021-03-18)
+
+- Adding track_metric and track_metrics, from now on you can track metrics for your runs, both ran on AskAnna servers and local runs.
+- Regrouped commands used for the askanna-runner under it's own command instead of `askanna`
+- Improvements in the client on how the askanna sdk communicates with the AskAnna API
+- Update PyYAML library from 5.3 to 5.4.1
+
 ## 0.6.2 (2021-03-08)
 
 - Make `askanna init` more friendly to use
