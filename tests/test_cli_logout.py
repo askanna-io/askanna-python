@@ -9,7 +9,7 @@ class TestCliLogout(BaseCLItest):
     """
     verb = "logout"
 
-    def testCommandLoginBase(self):
+    def testCommandLogoutBase(self):
         assert "logout" in self.result.output
         self.assertIn("logout", self.result.output)
         self.assertNotIn("noop", self.result.output)

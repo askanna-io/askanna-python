@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 import sys
 
@@ -5,13 +6,11 @@ import click
 
 from askanna import run as askanna_run
 from askanna import job as askanna_job
+from askanna.core.dataclasses import Project
+from askanna.cli.utils import ask_which_job, ask_which_project, ask_which_workspace
 from askanna.core.config import Config
-from askanna.core.dataclasses import Workspace
-from askanna.core.job import Job
-from askanna.core.project import Project, ProjectGateway
 from askanna.core.push import push
 from askanna.core.utils import extract_push_target, getProjectInfo
-from askanna.core.workspace import WorkspaceGateway
 
 
 config = Config()
@@ -23,56 +22,7 @@ This command will allow you to start a run in AskAnna.
 SHORT_HELP = "Start a run in AskAnna"
 
 
-def ask_which_job(project: Project = None) -> Job:
-    """
-    Determine which job should run
-    """
-    job_list = askanna_job.list(project_suuid=project.short_uuid)
-
-    job_list_str = ""
-    for idx, job in enumerate(job_list, start=1):
-        job_list_str += "%d. %s\n" % (idx, job.name)
-
-    selected_job = click.prompt(
-        "\nWhich job do you want to run?\n"
-        + job_list_str
-        + "\n"
-        + "Please enter the job number",
-        type=click.Choice([str(i + 1) for i in range(len(job_list))]),
-        show_choices=False,
-    )
-
-    return job_list[int(selected_job) - 1]
-
-
-def ask_which_project(workspace: Workspace = None):
-    """
-    Determine which project to query jobs from
-    """
-    project_gw = ProjectGateway()
-    project_list = project_gw.list(workspace=workspace)
-
-    list_str = ""
-    for idx, project in enumerate(project_list, start=1):
-        list_str += "%d. %s\n" % (idx, project.name)
-
-    selection = click.prompt(
-        "\nFrom which project do you want to run a job?\n"
-        + list_str
-        + "\n"
-        + "Please enter the project number",
-        type=click.Choice([str(i + 1) for i in range(len(project_list))]),
-        show_choices=False,
-    )
-
-    return project_list[int(selection) - 1]
-
-
-def determine_project(
-    project_suuid: str = None, workspace_suuid: str = None
-) -> Project:
-    project = None
-
+def determine_project(project_suuid: str = None, workspace_suuid: str = None) -> Project:
     if not project_suuid:
         # Use the project from the push-target if not set
         try:
@@ -83,43 +33,19 @@ def determine_project(
         else:
             project_suuid = push_target.get("project_suuid")
 
-    # Still if there is no project_suuid found, there we use the optional workspace
-    # to preselect which workspace to select from
-    if not project_suuid:
-        workspace = determine_workspace(workspace_suuid)
-        click.echo(f"Selected workspace: {workspace.name}")
+    # Still if there is no project_suuid found, we will ask which project to use
+    if project_suuid:
+        project = getProjectInfo(project_suuid=project_suuid)
+        click.echo(f"Selected project: {project.name}")
 
-        project = ask_which_project(workspace)
+        return project
+    else:
+        if not workspace_suuid:
+            workspace = ask_which_workspace(question="From which workspace do you want to run a job?")
+            workspace_suuid = workspace.short_uuid
 
-    # Set the project object
-    project = project or getProjectInfo(project_suuid=project_suuid)
-
-    return project
-
-
-def determine_workspace(workspace_suuid: str = None) -> Workspace:
-    workspace_gw = WorkspaceGateway()
-    workspace_list = workspace_gw.list()
-
-    if len(workspace_list) == 1 and not workspace_suuid:
-        return workspace_list[0]
-
-    list_str = ""
-    for idx, workspace in enumerate(workspace_list, start=1):
-        if workspace.short_uuid == workspace_suuid:
-            return workspace
-        list_str += "%d. %s\n" % (idx, workspace.name)
-
-    selection = click.prompt(
-        "From which workspace do you want to run a job?\n"
-        + list_str
-        + "\n"
-        + "Please enter the workspace number",
-        type=click.Choice([str(i + 1) for i in range(len(workspace_list))]),
-        show_choices=False,
-    )
-
-    return workspace_list[int(selection) - 1]
+        return ask_which_project(question="From which project do you want to run a job?",
+                                 workspace_suuid=workspace_suuid)
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
@@ -173,7 +99,6 @@ def cli(
     project = None
     if not job_suuid:
         project = determine_project(project_suuid, workspace_suuid)
-        click.echo(f"Selected project: {project.name}")
 
     if job_suuid:
         pass
@@ -187,7 +112,7 @@ def cli(
             click.echo(e)
             sys.exit(1)
     else:
-        job = ask_which_job(project=project)
+        job = ask_which_job(question="Which job do you want to run?", project_suuid=project.short_uuid)
 
         if not click.confirm(
             "\nDo you want to run the job '{}'?".format(job.name), abort=True

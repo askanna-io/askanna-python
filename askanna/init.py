@@ -5,16 +5,23 @@
 
 from appdirs import AppDirs
 
+from askanna.core.job import JobGateway
 from askanna.core.metrics import track_metric, track_metrics  # noqa
 from askanna.core.metrics import MetricGateway
+from askanna.core.project import ProjectGateway
 from askanna.core.run import RunMultipleQueryGateway, RunActionGateway
+from askanna.core.workspace import WorkspaceGateway
+
 
 appname = "askanna"
 appauthor = "askanna"
 config_dirs = AppDirs(appname, appauthor)
 
-# instantiated objects for query, these do not contain any data on load and will
-# be filled with data on using detail/get/list actions from it.
+# instantiated objects for query or actions, these do not contain any data on load and will be filled with data on
+# using detail/get/list actions from it.
+job = JobGateway()
 metrics = MetricGateway()
+project = ProjectGateway()
 run = RunActionGateway()
 runs = RunMultipleQueryGateway()
+workspace = WorkspaceGateway()

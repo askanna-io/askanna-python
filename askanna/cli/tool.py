@@ -56,6 +56,7 @@ commands = [
     "logout",
     "create",
     "init",
+    "job",
     "push",
     "artifact",
     "variable",
