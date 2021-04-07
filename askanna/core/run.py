@@ -2,11 +2,11 @@
 Core functions for management of runs in AskAnna
 This is the class which act as gateway to the API of AskAnna
 """
-from typing import List
-
 import click
 
-from askanna import job
+from typing import List
+
+from askanna.core import job
 from askanna.core import client, exceptions
 from askanna.core.dataclasses import RunInfo, Run
 from askanna.core.metrics import MetricGateway

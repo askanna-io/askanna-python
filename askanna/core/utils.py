@@ -328,8 +328,6 @@ def extract_push_target(push_target: str):
 
 
 # generation of suuid
-
-
 def bx_encode(n, alphabet):
     """
     Encodes an integer :attr:`n` in base ``len(alphabet)`` with

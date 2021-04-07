@@ -35,7 +35,6 @@ class CreateProject:
         self.config = get_config()
         self.api_server = self.config["askanna"]["remote"]
         self.name = name
-        self.user = user or get_user_info(server=self.api_server)
         self.slugified_name = None
         if self.name:
             self.slugified_name = slugify(self.name)
@@ -66,9 +65,7 @@ class CreateProject:
                 workspace_list_str += "%d. %s\n" % (idx, workspace["title"])
 
             workspace = click.prompt(
-                "\n{name}, you are a member of multiple workspaces. ".format(
-                    name=self.user.get("name")
-                )
+                "\nYou are a member of multiple workspaces. "
                 + "In which workspace do you want to create the new project?\n"
                 + workspace_list_str
                 + "\n"
@@ -93,9 +90,7 @@ class CreateProject:
     def cli(self, workspace: str = None, description: str = None):
         if not self.name:
             click.echo(
-                "Hi {name_user}! It is time to create a new project in AskAnna. ".format(
-                    name_user=self.user.get("name")
-                )
+                "Hi! It is time to create a new project in AskAnna. "
                 + "We start with some information about the project."
             )
             self.name = click.prompt("Project name", type=str)

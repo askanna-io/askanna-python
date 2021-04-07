@@ -74,3 +74,8 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	pip install .
+
+uninstall: clean ## uninstall the AskAnna package
+	pip uninstall askanna -y
+
+reinstall: uninstall install ## uninstall and install the AskAnna package

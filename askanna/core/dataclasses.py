@@ -10,7 +10,7 @@ class Job:
     description: str
     uuid: uuid.UUID
     short_uuid: str
-    project: uuid.UUID
+    project: dict
     created: datetime.datetime
     modified: datetime.datetime
     environment: str
