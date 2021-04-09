@@ -6,9 +6,10 @@
 from appdirs import AppDirs
 
 from askanna.core.job import JobGateway
-from askanna.core.metrics import track_metric, track_metrics  # noqa
-from askanna.core.metrics import MetricGateway
+from askanna.core.metrics import track_metric, track_metrics, MetricGateway  # noqa
+from askanna.core.variables_tracked import track_variable, track_variables  # noqa
 from askanna.core.project import ProjectGateway
+
 from askanna.core.run import RunMultipleQueryGateway, RunActionGateway
 from askanna.core.workspace import WorkspaceGateway
 

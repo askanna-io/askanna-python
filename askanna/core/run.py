@@ -6,16 +6,21 @@ import click
 
 from typing import List
 
-from askanna.core import job
 from askanna.core import client, exceptions
 from askanna.core.dataclasses import RunInfo, Run
+from askanna.core.job import JobGateway
 from askanna.core.metrics import MetricGateway
+from askanna.core.variables_tracked import VariableTrackedGateway
 
 
 class RunGateway:
     def __init__(self, *args, **kwargs):
         self.client = client
         self.run_suuid = None
+
+        # instantiated gateways for query metrics and variables
+        self.metrics = MetricGateway()
+        self.variables = VariableTrackedGateway()
 
     def start(self, job_suuid: str = None, data: dict = None) -> Run:
 
@@ -32,7 +37,7 @@ class RunGateway:
 
         return run
 
-    def list(self, query_params: dict = None) -> List[Run]:
+    def list(self, query_params: dict = None) -> List[RunInfo]:
         url = "{}{}/".format(
             self.client.config.remote,
             "runinfo",
@@ -110,7 +115,8 @@ class RunActionGateway:
                 "To start a run we need at least a job SUUID or job name"
             )
         elif not job_suuid:
-            job_suuid = job.get_job_by_name(
+            job_gateway = JobGateway()
+            job_suuid = job_gateway.get_job_by_name(
                 job_name=job_name, project_suuid=project_suuid
             ).short_uuid
 
@@ -122,7 +128,12 @@ class RunActionGateway:
         suuid = suuid or self.run_suuid
         return self.gateway.status(suuid=suuid)
 
-    def get(self, run, include_metrics=False) -> Run:
+    def get(
+        self,
+        run,
+        include_metrics: bool = False,
+        include_variables: bool = False,
+    ) -> RunInfo:
         if not run:
             click.echo("Please specify the run SUUID to 'get' a run", err=True)
             return
@@ -132,14 +143,25 @@ class RunActionGateway:
             # also fetch the metrics for the runs
             run_suuids = [runinfo.short_uuid]
             query = {"runs": run_suuids}
-            mgw = MetricGateway()
-            metrics = mgw.list(query_params=query)
+            metrics = self.gateway.metrics.list(query_params=query)
 
             # add the metrics to the runobjects
             # run.metrics
             for metric in metrics:
                 if metric.get("run_suuid") == runinfo.short_uuid:
                     runinfo.metrics.append(metric)
+
+        if include_variables:
+            # also fetch the variables for the runs
+            run_suuids = [runinfo.short_uuid]
+            query = {"runs": run_suuids}
+            variables = self.gateway.variables.list(query_params=query)
+
+            # add the metrics to the runobjects
+            # run.variables
+            for variable in variables:
+                if variable.get("run_suuid") == runinfo.short_uuid:
+                    runinfo.variables.append(variable)
         return runinfo
 
 
@@ -172,7 +194,8 @@ class RunMultipleQueryGateway(RunActionGateway):
         limit: int = 100,
         offset: int = 0,
         include_metrics: bool = False,
-    ) -> List[Run]:
+        include_variables: bool = False,
+    ) -> List[RunInfo]:
         query = self.get_query(project, job, runs)
         query.update(
             {
@@ -184,11 +207,16 @@ class RunMultipleQueryGateway(RunActionGateway):
         runs = rgw.list(query_params=query)
         if include_metrics:
             # also fetch the metrics for the runs
-            # add the metrics to the runobjects
-            mgw = MetricGateway()
             for run in runs:
-                metrics = mgw.get(run=run.short_uuid)
+                metrics = self.gateway.metrics.get(run=run.short_uuid)
                 # run.metrics
                 run.metrics = metrics
+
+        if include_variables:
+            # also fetch the variables for the runs
+            for run in runs:
+                variables = self.gateway.variables.get(run=run.short_uuid)
+                # run.metrics
+                run.variables = variables
 
         return runs

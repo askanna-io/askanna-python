@@ -54,6 +54,7 @@ def cli_commands():
 commands = [
     "push_metrics",
     "push_result",
+    "push_variables",
     "get_package",
     "get_payload",
     "get_run_manifest",

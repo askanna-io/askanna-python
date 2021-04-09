@@ -6,4 +6,7 @@ flake8~=3.8.3
 pytest~=5.4.3
 pytest-cov~=2.11.1
 
+# numpy is only required during development for testing numpy support
+numpy~=1.19.5
+
 -r requirements.txt
