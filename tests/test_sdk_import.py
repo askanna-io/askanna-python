@@ -2,7 +2,6 @@ import unittest
 
 
 class SDKImportTest(unittest.TestCase):
-
     def setUp(self):
         pass
 
