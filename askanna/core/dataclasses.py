@@ -52,7 +52,7 @@ class Run:
 
 @dataclass
 class RunInfo:
-    title: str
+    name: str
     description: str
     status: str
     uuid: uuid.UUID
@@ -100,7 +100,7 @@ class Variable:
 
 @dataclass
 class Workspace:
-    title: str
+    name: str
     description: str
     uuid: uuid.UUID
     short_uuid: str
@@ -112,11 +112,7 @@ class Workspace:
     deleted: datetime = None
 
     def __str__(self):
-        return f"{self.title} {self.short_uuid}"
-
-    @property
-    def name(self):
-        return self.title
+        return f"{self.name} {self.short_uuid}"
 
 
 @dataclass
