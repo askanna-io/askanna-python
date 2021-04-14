@@ -17,7 +17,7 @@ class Upload:
     tpl_upload_pass = "uploaded"
     tpl_upload_fail = "failed"
 
-    def __init__(self, token: str, api_server: str, project_uuid: str, *args, **kwargs):
+    def __init__(self, api_server: str, project_uuid: str, *args, **kwargs):
         self.ASKANNA_API_SERVER = api_server
         self.suuid = None
         self.project_uuid = project_uuid

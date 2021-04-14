@@ -3,20 +3,23 @@ import datetime
 import glob
 import mimetypes
 import os
+from pathlib import Path
 import re
 import sys
 from typing import Any, List
 import uuid
-
-from pathlib import Path
 from zipfile import ZipFile
 
+import click
+import croniter
+import pytz
 from yaml import load, dump
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
     from yaml import Loader, Dumper
+
 
 from askanna.core import exceptions
 
@@ -229,7 +232,9 @@ def validate_config(config):
     try:
         config["auth"]["token"]
     except KeyError:
-        print("You are not logged in. Please login first via `askanna login`.")
+        click.echo(
+            "You are not logged in. Please login first via `askanna login`.", err=True
+        )
         sys.exit(1)
 
 
@@ -284,7 +289,7 @@ def zipPaths(zipObj: ZipFile, paths: list, cwd: str):
         # check for existence
 
         if not os.path.exists(targetloc):
-            print(targetloc, "does not exists ... skipping")
+            click.echo(f"{targetloc} does not exists ... skipping")
             continue
 
         if os.path.isdir(targetloc):
@@ -377,11 +382,130 @@ def extract_push_target(push_target: str):
     if not push_target:
         raise ValueError("Cannot extract push-target if push-target is not set.")
     match_pattern = re.compile(
-        r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace_suuid>[\w-]+){0,1}\/{0,1}project\/(?P<project_suuid>[\w-]+)\/{0,1}"  # noqa
+        r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace_suuid>[\w-]+){0,1}\/{0,1}project\/(?P<project_suuid>[\w-]+)\/{0,1}"  # noqa: E501
     )
     matches = match_pattern.match(push_target)
     matches_dict = matches.groupdict()
     return matches_dict
+
+
+def validate_cron_line(cron_line: str) -> bool:
+    """
+    We validate the cron expression with croniter
+    """
+    try:
+        return croniter.croniter.is_valid(cron_line)
+    except AttributeError:
+        return False
+
+
+def parse_cron_line(cron_line: str) -> str:
+    """
+    parse incoming cron definition
+    if it is valid, then return the cron_line, otherwise a None
+    """
+
+    if isinstance(cron_line, str):
+        # we deal with cron strings
+        # first check whether we need to make a "translation" for @strings
+
+        alias_mapping = {
+            "@midnight": "0 0 * * *",
+            "@yearly": "0 0 1 1 *",
+            "@annually": "0 0 1 1 *",
+            "@monthly": "0 0 1 * *",
+            "@weekly": "0 0 * * 0",
+            "@daily": "0 0 * * *",
+            "@hourly": "0 * * * *",
+        }
+        cron_line = alias_mapping.get(cron_line.strip(), cron_line.strip())
+
+    elif isinstance(cron_line, dict):
+        # we deal with dictionary
+        # first check whether we have valid keys, if one invalid key is found, return None
+        valid_keys = set(["minute", "hour", "day", "month", "weekday"])
+        invalid_keys = set(cron_line.keys()) - valid_keys
+        if len(invalid_keys):
+            return None
+        cron_line = "{minute} {hour} {day} {month} {weekday}".format(
+            minute=cron_line.get("minute", "*"),
+            hour=cron_line.get("hour", "*"),
+            day=cron_line.get("day", "*"),
+            month=cron_line.get("month", "*"),
+            weekday=cron_line.get("weekday", "*"),
+        )
+
+    if not validate_cron_line(cron_line):
+        return None
+
+    return cron_line
+
+
+def parse_cron_schedule(schedule: list):
+    """
+    Determine and validate which format the cron defition it has, it can be one of the following:
+    - * * * * *  (m, h, d, m, weekday)
+    - @annotation (@yearly, @annually, @monthly, @weekly, @daily, @hourly)
+    - dict (k,v with: minute,hour,day,month,weekday)
+    """
+
+    for cron_line in schedule:
+        yield cron_line, parse_cron_line(cron_line)
+
+
+def validate_yml_job_names(config):
+    # Within AskAnna, we have several variables reserved and cannot be used for jobnames
+    reserved_keys = (
+        "cluster",
+        "environment",
+        "push-target",
+        "variables",
+        "worker",
+        "image",
+    )
+
+    overlapping_with_reserved_keys = list(
+        set(config.keys()).intersection(set(reserved_keys))
+    )
+    for overlap_key in overlapping_with_reserved_keys:
+        is_dict = isinstance(config.get(overlap_key), dict)
+        is_job = is_dict and config.get(overlap_key).get("job")
+        if is_dict and is_job:
+            # we do find a job definition under the name, so probably a jobdef
+            click.echo(
+                f"The name `{overlap_key}` cannot be used for a job.\n"
+                "This name is used to configure something else in AskAnna.\n"
+                f"Invalid job name: {overlap_key}",
+                err=True,
+            )
+            return False
+    return True
+
+
+def validate_yml_schedule(config):
+    jobs = config.items()
+    for _, job in jobs:
+        if isinstance(job, dict):
+            schedule = job.get("schedule")
+            timezone = job.get("timezone")
+            if not schedule:
+                continue
+            # validate the schedule
+            for cron_line, parsed in parse_cron_schedule(schedule):
+                if not parsed:
+                    click.echo(
+                        f"Invalid schedule definition found in job `{job}`: {cron_line}",
+                        err=True,
+                    )
+                    return False
+            # validate the timezone if set
+            if timezone and timezone not in pytz.all_timezones:
+                click.echo(
+                    f"Invalid timezone found in job: `{job}`: `{timezone}`",
+                    err=True,
+                )
+                return False
+    return True
 
 
 # generation of suuid
