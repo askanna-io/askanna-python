@@ -11,6 +11,7 @@ class Job:
     uuid: uuid.UUID
     short_uuid: str
     project: dict
+    schedules: list
     created: datetime.datetime
     modified: datetime.datetime
     environment: str
