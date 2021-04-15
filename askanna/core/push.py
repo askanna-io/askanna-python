@@ -6,10 +6,11 @@ import uuid
 import click
 import git
 
+from askanna.core.utils import validate_yml_job_names, validate_yml_schedule
 from askanna.core.utils import zipFilesInDir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
 from askanna.core.utils import extract_push_target
-from .upload import PackageUpload
+from askanna.core.upload import PackageUpload
 
 
 def package(src: str) -> str:
@@ -33,7 +34,6 @@ def package(src: str) -> str:
 
 def push(force: bool, message: str = None):
     config = get_config()
-    token = config["auth"]["token"]
     api_server = config["askanna"]["remote"]
     project = config.get("project", {})
     project_uuid = project.get("uuid")
@@ -46,6 +46,12 @@ def push(force: bool, message: str = None):
             "`push-target` is not set, please set the `push-target` in order to push to AskAnna"
         )
         sys.exit(1)
+
+    # read the config and parse jobs, validate the job definitions
+    # first validate jobs names
+    validate_yml_job_names(config)
+    # then validate whether we have a schedule defined and validate schedule if needed
+    validate_yml_schedule(config)
 
     matches_dict = extract_push_target(push_target)
     api_host = matches_dict.get("askanna_host")
@@ -151,7 +157,6 @@ def push(force: bool, message: str = None):
         "size": os.stat(package_archive).st_size,
     }
     uploader = PackageUpload(
-        token=token,
         api_server=api_server,
         project_uuid=project_uuid,
         description=message,

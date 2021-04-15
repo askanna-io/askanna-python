@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import datetime
 import json
 import os
 import sys
@@ -8,10 +7,17 @@ from typing import List
 import uuid
 
 import click
+from dateutil import parser as dateutil_parser
 
 from askanna.core import client, exceptions
 from askanna.core.dataclasses import Metric, MetricDataPair, MetricLabel
-from askanna.core.utils import create_suuid, json_serializer
+from askanna.core.utils import (
+    create_suuid,
+    json_serializer,
+    translate_dtype,
+    validate_value,
+    labels_to_type,
+)
 
 __all__ = ["track_metric", "track_metrics", "MetricCollector", "MetricGateway"]
 
@@ -135,7 +141,7 @@ class MetricCollector:
                             metric=self.metric_to_type(stored_metric.get("metric")),
                             label=self.label_to_type(stored_metric.get("label")),
                             run_suuid=stored_metric.get("run_suuid"),
-                            created=datetime.datetime.fromisoformat(
+                            created=dateutil_parser.isoparse(
                                 stored_metric.get("created")
                             ),
                         )
@@ -200,58 +206,6 @@ class MetricCollector:
 mc = MetricCollector(run_suuid=os.getenv("JOBRUN_SUUID"))
 
 
-def translate_dtype(typename) -> str:
-    """
-    Return the full name of the type, if not listed, return the typename from the input
-    """
-    return {
-        "bool": "boolean",
-        "str": "string",
-        "int": "integer",
-        "float": "float",
-        "dict": "dictionary",
-    }.get(typename, typename)
-
-
-def validate_value(value) -> bool:
-    """
-    Validate whether the value set is supported
-    """
-    return type(value).__name__ in [
-        "bool",
-        "str",
-        "int",
-        "float",
-        "time",
-        "date",
-        "datetime",
-        "tag",  # single string marked as tag
-        "dict",
-    ]
-
-
-def _labels_to_type(label: dict = None) -> List:
-    # process labels
-    labels = []
-
-    # test label type, if it is a string, then convert it to tag
-    if isinstance(label, str):
-        labels.append(MetricLabel(name=label, value=None, dtype="tag"))
-        label = None
-
-    if label:
-        for k, v in label.items():
-            if v is None:
-                labels.append(MetricLabel(name=k, value=None, dtype="tag"))
-            else:
-                labels.append(
-                    MetricLabel(
-                        name=k, value=v, dtype=translate_dtype(type(v).__name__)
-                    )
-                )
-    return labels
-
-
 def track_metric(name: str, value, label: dict = None) -> None:
     # store the metric
     if not validate_value(value):
@@ -260,10 +214,8 @@ def track_metric(name: str, value, label: dict = None) -> None:
         )
         return
     # add value to track queue
-    datapair = MetricDataPair(
-        name=name, value=value, dtype=translate_dtype(type(value).__name__)
-    )
-    labels = _labels_to_type(label)
+    datapair = MetricDataPair(name=name, value=value, dtype=translate_dtype(value))
+    labels = labels_to_type(label, labelclass=MetricLabel)
 
     metric = Metric(metric=datapair, label=labels)
     mc.add(metric)

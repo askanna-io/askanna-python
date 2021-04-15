@@ -49,11 +49,12 @@ def list(project_suuid):
     else:
         print("PROJECT SUUID          PROJECT NAME            VARIABLE SUUID         VARIABLE NAME")
         print("-------------------    --------------------    -------------------    -------------------------")
+
     for var in sorted(variables, key=lambda x: (x.project['name'], x.name)):
         if project_suuid:
             print("{suuid}    {variable_name}".format(
                 suuid=var.short_uuid,
-                variable_name=var.name))
+                variable_name=var.name[:25]))
         else:
             print("{project_suuid}    {project_name}    {variable_suuid}    {variable_name}".format(
                 project_suuid=var.project['short_uuid'],
