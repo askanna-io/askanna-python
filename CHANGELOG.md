@@ -4,7 +4,7 @@
 
 - Added track_variable and track_variables: from now on you can track variables for your runs. Also run environment
 variables are tracked.
-- Added validate `askanna.yml` for job names and schedule definitions
+- Added validation `askanna.yml` for job names and schedule definitions
 - Change name and description of a job via the CLI (`askanna job change`) or Python SDK (`askanna.job.change`)
 
 ## 0.7.0 (2021-03-18)
