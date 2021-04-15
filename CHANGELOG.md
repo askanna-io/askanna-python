@@ -1,8 +1,16 @@
 # History
 
+## 0.8.0 (2021-04-15)
+
+- Added track_variable and track_variables: from now on you can track variables for your runs. Also run environment
+variables are tracked.
+- Added validation `askanna.yml` for job names and schedule definitions
+- Change name and description of a job via the CLI (`askanna job change`) or Python SDK (`askanna.job.change`)
+
 ## 0.7.0 (2021-03-18)
 
-- Adding track_metric and track_metrics: from now on you can track metrics for your runs, both ran on AskAnna servers and local runs.
+- Adding track_metric and track_metrics: from now on you can track metrics for your runs, both ran on AskAnna servers
+and local runs.
 - Regrouped commands used for the askanna-runner under it's own command `askanna-run-utils` instead of `askanna`
 - Improvements in the client on how the AskAnna SDK communicates with the AskAnna API
 - Update PyYAML library from 5.3 to 5.4.1
