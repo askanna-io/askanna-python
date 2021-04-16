@@ -393,10 +393,7 @@ def validate_cron_line(cron_line: str) -> bool:
     """
     We validate the cron expression with croniter
     """
-    try:
-        return croniter.croniter.is_valid(cron_line)
-    except AttributeError:
-        return False
+    return croniter.croniter.is_valid(cron_line)
 
 
 def parse_cron_line(cron_line: str) -> str:
