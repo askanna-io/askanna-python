@@ -173,7 +173,7 @@ def cli(name, workspace, description, project_template, is_push):
         if is_push:
             click.echo("")  # print an empty line
 
-            # also push the new directory to askanna
+            # also push the new directory to AskAnna
             os.chdir(project_dir)
             push(force=True, message="Initial push")
 

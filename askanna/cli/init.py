@@ -163,7 +163,7 @@ def cli(name, workspace, description):
     click.echo("{project_url}".format(project_url=project_info["url"]))
     click.echo(
         "\nAs a first step you can configure your first job for this project in the `askanna.yml` file. "
-        "Ones you are done, you can easily push your code to askanna via:\n"
+        "Ones you are done, you can easily push your code to AskAnna via:\n"
         "\n"
         "  askanna push\n"
         "\n"

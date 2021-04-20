@@ -179,7 +179,7 @@ class MetricCollector:
 
     def save(self, run_suuid: str = None, force: bool = False) -> None:
         """
-        Connect to askanna backend to save the metrics
+        Connect to AskAnna backend to save the metrics
         We will only attempt to submit if there is data recorded
         """
         if not self.changed and not force:
