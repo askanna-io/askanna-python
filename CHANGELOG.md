@@ -98,5 +98,5 @@ and local runs.
 ## 0.1.0 (2019-12-05)
 
 - First commit to repo
-- Basic function to do askanna login
-- First version of askanna package
+- Basic function to do `askanna login`
+- First version of AskAnna code package

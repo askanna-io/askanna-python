@@ -72,7 +72,7 @@ def push(force: bool, message: str = None):
     project_suuid = matches_dict.get("project_suuid")
 
     if project_suuid:
-        # make an extra call to askanna to query for the full uuid for this project
+        # make an extra call to AskAnna to query for the full uuid for this project
         project_info = getProjectInfo(project_suuid)
         if project_info.uuid is None:
             print("Couldn't find specified project {}".format(push_target))

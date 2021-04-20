@@ -118,8 +118,8 @@ def create_config(location: str):
 
 def update_available(silent_fail=True):
     """
-    Check whether most recent Gitlab release of askanna is newer than the
-    askanna version in use. If a newer version is available, return a
+    Check whether most recent Gitlab release of AskAnna is newer than the
+    AskAnna version in use. If a newer version is available, return a
     link to the release on Gitlab, otherwise return ``None``.
     """
     try:
@@ -130,7 +130,7 @@ def update_available(silent_fail=True):
         if not silent_fail:
             raise
 
-        # Don't let this interfere with askanna usage
+        # Don't let this interfere with AskAnna usage
         return None
 
 
@@ -138,7 +138,7 @@ def check_for_project():
     """
     Performs a check if we are operating within a project folder. When
     we wish to perform a deploy action, we want to be on the same
-    level with the ``askanna.yml`` to be able to package the file.
+    level with the `askanna.yml` to be able to package the file.
     """
     pyfiles = glob.glob("*.yml")
 
@@ -393,10 +393,7 @@ def validate_cron_line(cron_line: str) -> bool:
     """
     We validate the cron expression with croniter
     """
-    try:
-        return croniter.croniter.is_valid(cron_line)
-    except AttributeError:
-        return False
+    return croniter.croniter.is_valid(cron_line)
 
 
 def parse_cron_line(cron_line: str) -> str:
