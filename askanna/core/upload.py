@@ -167,7 +167,6 @@ class PackageUpload(Upload):
 
     def create_entry_extrafields(self):
         return {
-            "name": self.kwargs.get("description", "")[:50],
             "description": self.kwargs.get("description"),
         }
 
