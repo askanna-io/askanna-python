@@ -1,6 +1,7 @@
 import collections
 import datetime
 import glob
+import ipaddress
 import mimetypes
 import os
 from pathlib import Path
@@ -655,3 +656,11 @@ def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> Lis
             else:
                 labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
     return labels
+
+
+def isIPAddress(ip):
+    try:
+        ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    return True
