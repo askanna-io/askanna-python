@@ -9,7 +9,7 @@ import git
 from askanna.core.utils import validate_yml_job_names, validate_yml_schedule
 from askanna.core.utils import zipFilesInDir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
-from askanna.core.utils import extract_push_target
+from askanna.core.utils import extract_push_target, isIPAddress
 from askanna.core.upload import PackageUpload
 
 
@@ -58,7 +58,7 @@ def push(force: bool, message: str = None):
     http_scheme = matches_dict.get("http_scheme")
     if api_host:
         # first also modify the first part
-        if api_host.startswith("localhost"):
+        if api_host.startswith("localhost") or isIPAddress(api_host.split(":")[0]):
             api_host = api_host
         elif api_host not in ["askanna.eu"]:
             # only append the -api suffix if the subdomain is not having this
