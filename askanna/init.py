@@ -1,7 +1,7 @@
 # this file contains anything that needs to be loaded for: `import askanna`
 # we separated this file to avoid conflicts while in installation mode
 
-# please note: never do `import asknna` here, this will cause an recursive import loop
+# please note: never do `import askanna` here, this will cause an recursive import loop
 
 from appdirs import AppDirs
 

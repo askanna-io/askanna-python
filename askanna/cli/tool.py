@@ -3,8 +3,7 @@ import importlib
 import sys
 
 import askanna
-from askanna.core.utils import init_checks
-from askanna.core.utils import update_available
+from askanna.core.utils import init_checks, update_available
 import click
 from dotenv import find_dotenv, load_dotenv
 
@@ -33,7 +32,7 @@ def cli():
     try:
         cli_commands()
     except Exception as e:
-        click.echo(e)
+        click.echo(e, err=True)
         sys.exit(1)
 
 
