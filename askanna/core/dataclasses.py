@@ -25,11 +25,11 @@ class Project:
     short_uuid: str
     created_by: dict
     package: dict
-    status: int
     template: str
     created: datetime.datetime
     modified: datetime.datetime
     workspace: dict
+    url: str = None
 
     def __str__(self):
         return f"{self.name} {self.short_uuid}"
@@ -37,10 +37,16 @@ class Project:
 
 @dataclass
 class Run:
+    """
+    This dataclass holds information about the run which just started
+    Also the datamodel to host the status of a run.
+    """
+
     message_type: str
     status: str
     uuid: uuid.UUID
     short_uuid: str
+    name: str
     next_url: str
     job: dict
     workspace: dict
@@ -57,6 +63,8 @@ class RunInfo:
     status: str
     uuid: uuid.UUID
     short_uuid: str
+    name: str
+    description: str
     project: dict
     artifact: dict
     package: dict
@@ -104,12 +112,8 @@ class Workspace:
     description: str
     uuid: uuid.UUID
     short_uuid: str
-    status: int
-    activate_date: datetime.datetime
-    deactivate_date: datetime.datetime
     created: datetime.datetime
     modified: datetime.datetime
-    deleted: datetime = None
 
     def __str__(self):
         return f"{self.name} {self.short_uuid}"

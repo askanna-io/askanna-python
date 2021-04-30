@@ -72,7 +72,8 @@ class VariableGateway:
                 json=variable
             )
         else:
-            click.echo("You did not provide a name, value or is_masked to change for this variable")
+            click.echo("Nothing to change for this variable. You did not provide a name, value or is_masked to change "
+                       "for this variable", err=True)
             sys.exit(1)
 
         # show success or failure

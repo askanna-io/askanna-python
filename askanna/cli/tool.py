@@ -51,15 +51,17 @@ def cli_commands():
 
 
 commands = [
-    "login",
-    "logout",
+    "artifact",
     "create",
     "init",
     "job",
+    "login",
+    "logout",
+    "project",
     "push",
-    "artifact",
-    "variable",
     "run",
+    "variable",
+    "workspace",
 ]
 
 for command in commands:
