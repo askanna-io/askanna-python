@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     unzip \
-    g++
+    g++ \
+    tzdata
 
 RUN pip install -U pip \
     && rm -rf /root/.cache
