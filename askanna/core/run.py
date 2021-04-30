@@ -22,11 +22,24 @@ class RunGateway:
         self.metrics = MetricGateway()
         self.variables = VariableTrackedGateway()
 
-    def start(self, job_suuid: str = None, data: dict = None) -> Run:
+    def start(
+        self,
+        job_suuid: str = None,
+        data: dict = None,
+        name: str = None,
+        description: str = None,
+    ) -> Run:
 
         url = "{}{}/{}/".format(self.client.config.remote, "run", job_suuid)
 
-        r = self.client.post(url, json=data)
+        r = self.client.post(
+            url,
+            json=data,
+            params={
+                "name": name,
+                "description": description,
+            },
+        )
         if r.status_code != 200:
             raise exceptions.PostError(
                 "{} - Something went wrong while starting a "
@@ -109,6 +122,8 @@ class RunActionGateway:
         data: dict = None,
         job_name: str = None,
         project_suuid: str = None,
+        name: str = None,
+        description: str = None,
     ) -> Run:
         if not job_suuid and not job_name:
             raise exceptions.PostError(
@@ -120,7 +135,12 @@ class RunActionGateway:
                 job_name=job_name, project_suuid=project_suuid
             ).short_uuid
 
-        run = self.gateway.start(job_suuid=job_suuid, data=data)
+        run = self.gateway.start(
+            job_suuid=job_suuid,
+            data=data,
+            name=name,
+            description=description,
+        )
         self.run_suuid = run.short_uuid
         return run
 

@@ -175,11 +175,11 @@ def cli(name, workspace, description, project_template, is_push):
 
             # also push the new directory to AskAnna
             os.chdir(project_dir)
-            push(force=True, message="Initial push")
+            push(force=True, description="Initial push")
 
     # finish
     click.echo(
         "\nWe have setup the new project. You can check your project in AskAnna at:"
     )
-    click.echo("{project_url}".format(project_url=project_info["url"]))
+    click.echo(project_info["url"])
     click.echo("\nSuccess with your project!")

@@ -9,11 +9,13 @@ from askanna.core.dataclasses import Job, Project, Workspace
 
 
 def ask_which_workspace(question: str = None) -> Workspace:
-
+    """
+    Determine which workspace should be used to perform an action
+    """
     workspace_list = aa_workspace.list()
     # if logged in user is only member of one workspace, we don't have to as which workspace
     if len(workspace_list) == 0:
-        click.echo("It seems that you are not a member of a workspace. Please check your account.")
+        click.echo("It seems that you are not a member of a workspace. Please check your account.", err=True)
         sys.exit(0)
     elif len(workspace_list) == 1:
         workspace = workspace_list[0]
@@ -33,8 +35,8 @@ def ask_which_workspace(question: str = None) -> Workspace:
         )
 
         workspace = workspace_list[int(selection) - 1]
-        click.echo(f"Selected workspace: {workspace.name}")
 
+    click.echo(f"Selected workspace: {workspace.name}")
     return workspace
 
 
@@ -46,7 +48,7 @@ def ask_which_project(question: str = None, workspace_suuid: str = None) -> Proj
 
     if len(project_list) == 0:
         click.echo("In this workspace you don't have access to any project. Please check your account or the selected "
-                   "workspace.")
+                   "workspace.", err=True)
         sys.exit(0)
 
     list_str = ""

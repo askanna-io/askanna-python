@@ -10,6 +10,7 @@ stages:
     - apt-get update && apt-get install -y git
     - pip install -U pip
     - pip install -U -r requirements_dev.txt
+    - touch ~/.askanna.yml
   tags:
     - kubernetes
 
