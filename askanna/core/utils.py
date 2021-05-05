@@ -14,6 +14,7 @@ from zipfile import ZipFile
 import click
 import croniter
 import pytz
+import yaml
 from yaml import load, dump
 
 try:
@@ -176,7 +177,16 @@ def read_config(path: str) -> dict:
     """
     Reading existing config or return default dict
     """
-    return load(open(os.path.expanduser(path), "r"), Loader=Loader) or {}
+    try:
+        return load(open(os.path.expanduser(path), "r"), Loader=Loader) or {}
+    except TypeError as e:
+        click.echo(e, err=True)
+        sys.exit(1)
+    except yaml.scanner.ScannerError as e:
+        click.echo("Error reading askanna.yml due to:", err=True)
+        click.echo(e.problem, err=True)
+        click.echo(e.problem_mark, err=True)
+        sys.exit(1)
 
 
 def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
