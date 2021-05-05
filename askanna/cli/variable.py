@@ -2,6 +2,12 @@ import sys
 import click
 
 from askanna import variable as aa_variable
+from askanna.cli.utils import ask_which_project, ask_which_workspace
+from askanna.core.config import Config
+from askanna.core.utils import extract_push_target, getProjectInfo
+
+
+config = Config()
 
 HELP = """
 Manage your variables in AskAnna
@@ -31,8 +37,8 @@ def cli4():
 
 
 @cli1.command(help="List variables in AskAnna", short_help="List variables")
-@click.option('--project', '-p', 'project_suuid', required=False, type=str,
-              help='Project SUUID to list variables for a project')
+@click.option("--project", "-p", "project_suuid", required=False, type=str,
+              help="Project SUUID to list variables for a project")
 def list(project_suuid):
     """
     List variables
@@ -70,10 +76,10 @@ def list(project_suuid):
 
 
 @cli2.command(help="Change a variable in AskAnna", short_help="Change variable")
-@click.option('--id', '-i', 'suuid', required=True, type=str, help='Variable SUUID')
-@click.option('--name', '-n', required=False, type=str, help='New name to set')
-@click.option('--value', '-v', required=False, type=str, help='New value to set')
-@click.option('--masked', '-m', required=False, type=bool, help='Set value to masked')
+@click.option("--id", "-i", "suuid", required=True, type=str, help="Variable SUUID")
+@click.option("--name", "-n", required=False, type=str, help="New name to set")
+@click.option("--value", "-v", required=False, type=str, help="New value to set")
+@click.option("--masked", "-m", required=False, type=bool, help="Set value to masked")
 def change(suuid, name, value, masked):
     """
     Change a variable name, value and if the value should set to be masked.
@@ -95,8 +101,8 @@ def change(suuid, name, value, masked):
 
 
 @cli3.command(help="Delete a variable in AskAnna", short_help="Delete variable")
-@click.option('--id', '-i', 'suuid', required=True, type=str, help='Job variable SUUID')
-@click.option('--force', '-f', is_flag=True, help='Force')
+@click.option("--id", "-i", "suuid", type=str, required=True, help="Job variable SUUID")
+@click.option("--force", "-f", is_flag=True, help="Force")
 def delete(suuid, force):
     """
     Delete a variable in AskAnna
@@ -136,25 +142,60 @@ def delete(suuid, force):
         click.echo("Something went wrong, deletion not performed.", err=True)
 
 
-@cli4.command(help="Create a variable for a project in AskAnna", short_help="Create variable")
-@click.option('--name', '-n', required=True, type=str, help='Name of the variable')
-@click.option('--value', '-v', required=True, type=str, help='Value of the variable')
-@click.option('--masked', '-m', required=False, type=bool, default=False,
-              help='Set value to masked (default is False)')
-@click.option('--project', '-p', 'project_suuid', required=True, type=str,
-              help='Project SUUID where this variable will be created')
+@cli4.command(help="Add a variable to a project in AskAnna", short_help="Add variable")
+@click.option("--name", "-n", required=False, type=str, help="Name of the variable")
+@click.option("--value", "-v", required=False, type=str, help="Value of the variable")
+@click.option("--masked/--not-masked", "-m", "masked", default=False, show_default=False,
+              help="Set value to masked (default is not-masked)")
+@click.option("--project", "-p", "project_suuid", type=str, required=False,
+              help="Project SUUID where this variable will be created")
 def add(name, value, masked, project_suuid):
     """
     Add a variable to a project
     """
-    variable, created = aa_variable.create(name=name, value=value, is_masked=masked, project_suuid=project_suuid)
-    if created:
-        click.echo(
-            "You created variable \"{name}\" with SUUID {id}.".format(
-                name=variable.name,
-                id=variable.short_uuid
-            )
+
+    if project_suuid:
+        project = getProjectInfo(project_suuid=project_suuid)
+        click.echo(f"Selected project: {project.name}")
+    else:
+        # Use the project from the push-target if not set
+        try:
+            push_target = extract_push_target(config.push_target)
+        except ValueError:
+            # the push-target is not set, so don't bother reading it
+            pass
+        else:
+            project = getProjectInfo(project_suuid=project_suuid)
+            if click.confirm(f"\nDo you want to create a variable for project \"{project.name}\"?"):
+                project_suuid = push_target.get("project_suuid")
+                click.echo(f"Selected project: {project.name}")
+
+    if not project_suuid:
+        workspace = ask_which_workspace(question="In which workspace do you want to add a variable?")
+        project = ask_which_project(
+            question="In which project do you want to add a variable?",
+            workspace_suuid=workspace.short_uuid
         )
+
+    confirm = False
+    if not name:
+        name = click.prompt("\nName of the new variable", type=str)
+        confirm = True
+
+    if not value:
+        value = click.prompt("Value of the new variable", type=str)
+        confirm = True
+
+        if not masked:
+            masked = click.prompt("Should the value be masked in logs and the web interface? [y/N]", type=bool)
+
+    if confirm:
+        click.confirm(f"\nDo you want to create the variable \"{name}\" in project \"{project.name}\"?", abort=True)
+
+    variable, created = aa_variable.create(name=name, value=value, is_masked=masked, project_suuid=project.short_uuid)
+    if created:
+        click.echo(f"\nYou created variable \"{variable.name}\" with SUUID {variable.short_uuid} in project "
+                   f"\"{project.name}\"")
         sys.exit(0)
     else:
         click.echo("Something went wrong in creating the variable.", err=True)
