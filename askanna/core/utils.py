@@ -183,7 +183,7 @@ def read_config(path: str) -> dict:
         click.echo(e, err=True)
         sys.exit(1)
     except yaml.scanner.ScannerError as e:
-        click.echo("Error reading askanna.yml due to :", err=True)
+        click.echo("Error reading askanna.yml due to:", err=True)
         click.echo(e.problem, err=True)
         click.echo(e.problem_mark, err=True)
         sys.exit(1)
