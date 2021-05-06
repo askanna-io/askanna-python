@@ -5,9 +5,13 @@ import sys
 import askanna
 from askanna.core.utils import init_checks, update_available
 import click
-from dotenv import find_dotenv, load_dotenv
 
-load_dotenv(find_dotenv())
+try:
+    from dotenv import find_dotenv, load_dotenv
+except ImportError:
+    pass  # we only use dotenv for development
+else:
+    load_dotenv(find_dotenv())
 
 
 HELP = """
