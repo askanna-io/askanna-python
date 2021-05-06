@@ -50,9 +50,11 @@ def push(force: bool, description: str = None):
 
     # read the config and parse jobs, validate the job definitions
     # first validate jobs names
-    validate_yml_job_names(config)
+    if not validate_yml_job_names(config):
+        sys.exit(1)
     # then validate whether we have a schedule defined and validate schedule if needed
-    validate_yml_schedule(config)
+    if not validate_yml_schedule(config):
+        sys.exit(1)
 
     matches_dict = extract_push_target(push_target)
     api_host = matches_dict.get("askanna_host")
