@@ -462,7 +462,9 @@ def parse_cron_schedule(schedule: list):
 
 
 def validate_yml_job_names(config):
-    # Within AskAnna, we have several variables reserved and cannot be used for jobnames
+    """
+    Within AskAnna, we have several variables reserved and cannot be used for jobnames
+    """
     reserved_keys = (
         "cluster",
         "environment",
@@ -470,6 +472,7 @@ def validate_yml_job_names(config):
         "variables",
         "worker",
         "image",
+        "timezone",
     )
 
     overlapping_with_reserved_keys = list(
@@ -492,6 +495,16 @@ def validate_yml_job_names(config):
 
 def validate_yml_schedule(config):
     jobs = config.items()
+    global_timezone = config.get("timezone")
+    # validate the global timezone
+    if global_timezone and global_timezone not in pytz.all_timezones:
+        click.echo(
+            "Invalid timezone setting found in askanna.yml:\n"
+            + f"   timezone: '{global_timezone}'",
+            err=True,
+        )
+        return False
+
     for _, job in jobs:
         if isinstance(job, dict):
             schedule = job.get("schedule")
