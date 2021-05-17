@@ -1,8 +1,15 @@
+include:
+  - template: Code-Quality.gitlab-ci.yml
+
 stages:
   - test
   - build
   - verifybuild
   - publish
+
+code_quality:
+  tags:
+    - docker
 
 .test_template: &test_template
   stage: test
@@ -11,30 +18,13 @@ stages:
     - apt-get update && apt-get install -y git
     - pip install -U pip
     - pip install -U -r requirements_dev.txt
-    - touch ~/.askanna.yml
   tags:
     - kubernetes
 
-python flake8:
+coverage:
   <<: *test_template
   script:
-    - tox -e flake8
-  artifacts:
-    reports:
-      codequality: gl-code-quality-report.json
-
-python lint:
-  <<: *test_template
-  script:
-    - flake8 askanna tests
-  allow_failure: true
-
-python 3:
-  <<: *test_template
-  script:
-    - pytest --cov=askanna --junitxml=junit.xml
-    - coverage html
-    - coverage xml
+    - tox -e coverage
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+([\d\.]+)\%/'
   artifacts:
     expire_in: 2 weeks
@@ -44,6 +34,19 @@ python 3:
     reports:
       cobertura: coverage.xml
       junit: junit.xml
+
+flake8:
+  <<: *test_template
+  script:
+    - tox -e flake8
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+
+twine-check:
+  <<: *test_template
+  script:
+    - tox -e twine-check
 
 python 3.6:
   <<: *test_template
@@ -142,27 +145,34 @@ image python 3.9:
     - python -V
     - askanna --version
     - askanna
+    - askanna-run-utils --version
+    - askanna-run-utils
 
 verify image python 3:
   <<: *verify_docker_build_template
+  needs: [image python 3]
 
 verify image python 3.6:
   <<: *verify_docker_build_template
+  needs: [image python 3.6]
   variables:
     PY_VERSION: "3.6-slim"
 
 verify image python 3.7:
   <<: *verify_docker_build_template
+  needs: [image python 3.7]
   variables:
     PY_VERSION: "3.7-slim"
 
 verify image python 3.8:
   <<: *verify_docker_build_template
+  needs: [image python 3.8]
   variables:
     PY_VERSION: "3.8-slim"
 
 verify image python 3.9:
   <<: *verify_docker_build_template
+  needs: [image python 3.9]
   variables:
     PY_VERSION: "3.9-slim"
 

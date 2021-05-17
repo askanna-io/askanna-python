@@ -1,6 +1,9 @@
 import json
 
-import askanna
+from askanna import (
+    __version__ as askanna_version,
+    USING_ASKANNA_CLI,
+)
 from .config import Config
 from .session import Session
 from .utils import json_serializer
@@ -12,26 +15,21 @@ class Client:
     """
 
     def __init__(self, headers=None, *args, **kwargs):
-        # TODO read config
-
         self.config = Config()
         self.headers = headers or self.generate_authenication_header()
-
         self.session = Session(headers=self.headers)
 
     def generate_authenication_header(self):
         if not self.config.user.token:
             return {}
 
-        askanna_agent = askanna.USING_ASKANNA_CLI and "cli" or "python-sdk"
+        askanna_agent = USING_ASKANNA_CLI and "cli" or "python-sdk"
 
         return {
             "askanna-agent": askanna_agent,
-            "askanna-agent-version": askanna.__version__,
-            "user-agent": "askanna-python/{version}".format(
-                version=askanna.__version__
-            ),
-            "Authorization": "Token {token}".format(token=self.config.user.token),
+            "askanna-agent-version": askanna_version,
+            "user-agent": f"askanna-python/{askanna_version}",
+            "Authorization": f"Token {self.config.user.token}",
         }
 
     def get(self, url, **kwargs):

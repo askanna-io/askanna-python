@@ -2,14 +2,15 @@
 
 """Top-level package for askanna"""
 
-__author__ = """AskAnna"""
+__author__ = "AskAnna Team"
 __email__ = "devops@askanna.io"
 __version__ = "0.8.0"
 
+import re
 import sys
 
-# determine whether we are in the CLI or using the SDK
-USING_ASKANNA_CLI = any([sys.argv[0].endswith("bin/askanna")])
+# Determine whether we are in the CLI or using the SDK
+USING_ASKANNA_CLI : bool = any([re.match(".+bin/askanna*", sys.argv[0])])
 
 try:
     import click  # noqa
