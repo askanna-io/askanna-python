@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import requests
 from typing import Any, List
 import uuid
 from zipfile import ZipFile
@@ -17,6 +18,14 @@ import pytz
 import yaml
 from yaml import load, dump
 
+from askanna import __version__ as askanna_version
+from askanna.settings import (
+    CONFIG_FILE_ASKANNA,
+    CONFIG_ASKANNA_REMOTE,
+    DEFAULT_PROJECT_TEMPLATE,
+    PYPI_PROJECT_URL,
+)
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -25,13 +34,6 @@ except ImportError:
 
 from askanna.core import exceptions
 
-CONFIG_FILE_ASKANNA = os.path.expanduser("~/.askanna.yml")
-
-CONFIG_ASKANNA_REMOTE = {"askanna": {"remote": "https://beta-api.askanna.eu/v1/"}}
-
-DEFAULT_PROJECT_TEMPLATE = (
-    "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
-)
 
 StorageUnit = collections.namedtuple(
     "StorageUnit", ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
@@ -98,42 +100,23 @@ def object_fullname(o):
         return module + "." + o.__class__.__name__
 
 
-def init_checks():
-    create_config(CONFIG_FILE_ASKANNA)
-
-
-def create_config(location: str):
-    expanded_path = os.path.expanduser(location)
-    folder = os.path.dirname(expanded_path)
-
-    if not os.path.exists(folder):
-        os.makedirs(folder, exist_ok=True)
-
-    if not os.path.exists(expanded_path):
-        Path(expanded_path).touch()
-
-        # write initial config since it didn't exist
-        config = store_config(CONFIG_ASKANNA_REMOTE)
-        with open(expanded_path, "w") as f:
-            f.write(config)
-
-
-def update_available(silent_fail=True):
+def update_available() -> bool:
     """
-    Check whether most recent Gitlab release of AskAnna is newer than the
-    AskAnna version in use. If a newer version is available, return a
-    link to the release on Gitlab, otherwise return ``None``.
+    Check whether most recent release of AskAnna on PyPI is newer than the AskAnna version in use. If a newer version
+    is available, return a info message with update instructions.
     """
     try:
-        # FIXME: some code to check the release on Gitlab
-        a = None
-        return a
-    except Exception:
-        if not silent_fail:
-            raise
+        r = requests.get(PYPI_PROJECT_URL)
+    except requests.exceptions.ConnectionError:
+        return False
+    else:
+        pypi_info = r.json()
 
-        # Don't let this interfere with AskAnna usage
-        return None
+    if askanna_version == pypi_info['info']['version']:
+        return False
+    else:
+        click.echo("[INFO] A newer version of AskAnna is available. Update via: pip install -U askanna")
+        return True
 
 
 def check_for_project():
@@ -178,7 +161,21 @@ def read_config(path: str) -> dict:
     Reading existing config or return default dict
     """
     try:
-        return load(open(os.path.expanduser(path), "r"), Loader=Loader) or {}
+        with open(os.path.expanduser(path), "r") as f:
+            return load(f, Loader=Loader) or {}
+    except FileNotFoundError:
+        config_folder = os.path.dirname(CONFIG_FILE_ASKANNA)
+        if not os.path.exists(config_folder):
+            os.makedirs(config_folder, exist_ok=True)
+
+        Path(CONFIG_FILE_ASKANNA).touch()
+
+        # Write initial config if the config file didn't exist
+        config = store_config(CONFIG_ASKANNA_REMOTE)
+        with open(CONFIG_FILE_ASKANNA, "w") as f:
+            f.write(config)
+
+        return CONFIG_ASKANNA_REMOTE
     except TypeError as e:
         click.echo(e, err=True)
         sys.exit(1)
@@ -194,8 +191,7 @@ def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
 
 
 def get_config(check_config=True) -> dict:
-    init_checks()
-    config = read_config(CONFIG_FILE_ASKANNA) or {}
+    config = read_config(CONFIG_FILE_ASKANNA)
 
     # overwrite the AA remote if AA_REMOTE is set in the environment
     is_remote_set = os.getenv("AA_REMOTE")
@@ -210,7 +206,7 @@ def get_config(check_config=True) -> dict:
         config = store_config(CONFIG_ASKANNA_REMOTE)
         with open(CONFIG_FILE_ASKANNA, "w") as f:
             f.write(config)
-        config = read_config(CONFIG_FILE_ASKANNA) or {}
+        config = read_config(CONFIG_FILE_ASKANNA)
 
     # overwrite the user token if AA_TOKEN is set in the environment
     is_token_set = os.getenv("AA_TOKEN")
@@ -250,7 +246,7 @@ def validate_config(config):
 
 
 def store_config(new_config):
-    original_config = read_config(CONFIG_FILE_ASKANNA) or {}
+    original_config = read_config(CONFIG_FILE_ASKANNA)
     original_config.update(**new_config)
     output = dump(original_config, Dumper=Dumper)
     return output

@@ -17,8 +17,8 @@ class TestCLIJob(BaseCLItest):
 
     def testCommadJobChange(self):
         result = CliRunner().invoke(cli_commands, "job change --help")
-        assert "change" in result.output
+        assert "change [OPTIONS]" in result.output
 
     def testCommadJobList(self):
         result = CliRunner().invoke(cli_commands, "job list --help")
-        assert "list" in result.output
+        assert "list [OPTIONS]" in result.output

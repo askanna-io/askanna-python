@@ -1,7 +1,7 @@
 import datetime
 import unittest
 
-from askanna.core.utils import translate_dtype
+from askanna.core.utils import translate_dtype, update_available
 
 
 class DtypeConverterTest(unittest.TestCase):
@@ -23,3 +23,8 @@ class DtypeConverterTest(unittest.TestCase):
         self.assertEqual(translate_dtype(datetime.date(2021, 4, 9)), "date")
         self.assertEqual(translate_dtype(datetime.time(hour=0)), "time")
         self.assertEqual(translate_dtype(datetime.datetime.now()), "datetime")
+
+
+class UpdateAvailableTest(unittest.TestCase):
+    def test_update_available(self):
+        self.assertIn(update_available(), [True, False])
