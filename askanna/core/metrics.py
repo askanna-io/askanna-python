@@ -203,7 +203,7 @@ class MetricCollector:
 
 
 # Start logic for metric collection
-mc = MetricCollector(run_suuid=os.getenv("JOBRUN_SUUID"))
+mc = MetricCollector(run_suuid=os.getenv("AA_RUN_SUUID"))
 
 
 def track_metric(name: str, value, label: dict = None) -> None:

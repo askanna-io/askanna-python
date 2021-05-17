@@ -224,11 +224,6 @@ def get_config(check_config=True) -> dict:
         "PROJECT_TEMPLATE_URL", DEFAULT_PROJECT_TEMPLATE
     )
 
-    # overwrite the project token if set in the env
-    is_project_set = os.getenv("PROJECT_UUID")
-    if is_project_set:
-        config["project"]["uuid"] = is_project_set
-
     project_config = scan_config_in_path()
     if project_config:
         config.update(**read_config(project_config))

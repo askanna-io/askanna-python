@@ -16,8 +16,22 @@ SHORT_HELP = "Push code to AskAnna"
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 @click.option("--force", "-f", is_flag=True, help="Force push")
-@click.option("--description", "-d", required=False, type=str, help="Add description to this code")
-@click.option("--message", "-m", required=False, type=str, help="Add description to this code")
+@click.option(
+    "--description",
+    "-d",
+    required=False,
+    type=str,
+    help="Add description to this code",
+    default="",
+)
+@click.option(
+    "--message",
+    "-m",
+    required=False,
+    type=str,
+    help="Add description to this code",
+    default="",
+)
 def cli(force, description, message):
     if len(description) > 0 and len(message) > 0:
         click.echo("Cannot use both --description and --message.", err=True)

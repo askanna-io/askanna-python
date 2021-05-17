@@ -35,8 +35,6 @@ def package(src: str) -> str:
 def push(force: bool, description: str = None):
     config = get_config()
     api_server = config["askanna"]["remote"]
-    project = config.get("project", {})
-    project_uuid = project.get("uuid")
 
     # read and parse the push-target from askanna
     push_target = config.get("push-target")
@@ -81,10 +79,8 @@ def push(force: bool, description: str = None):
             click.echo(f"Couldn't find specified project {push_target}", err=True)
             sys.exit(1)
 
-        project_uuid = project_info.uuid
-
-    if not project_uuid:
-        click.echo("Cannot upload unregistered project to AskAnna", err=True)
+    if not project_suuid:
+        click.echo("Cannot upload to AskAnna without the project SUUID set", err=True)
         sys.exit(1)
 
     def ask_overwrite() -> bool:
@@ -163,7 +159,7 @@ def push(force: bool, description: str = None):
     }
     uploader = PackageUpload(
         api_server=api_server,
-        project_uuid=project_uuid,
+        project_suuid=project_suuid,
         description=description,
     )
     status, msg = uploader.upload(package_archive, config, fileinfo)

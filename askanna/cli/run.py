@@ -56,7 +56,11 @@ def determine_project(
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
-@click.argument("job_name", required=False, type=str,)
+@click.argument(
+    "job_name",
+    required=False,
+    type=str,
+)
 @click.option("--id", "-i", "job_suuid", required=False, type=str, help="Job SUUID")
 @click.option("--data", "-d", required=False, type=str, default=None, help="JSON data")
 @click.option(
@@ -77,10 +81,27 @@ def determine_project(
     help="Push code first, and then run the job [default: no-push]",
 )
 @click.option("--name", "-n", required=False, type=str, help="Give the run a name")
-@click.option("--description", required=False, type=str, help="Description of the run")
-@click.option("--message", "-m", required=False, type=str, help="[deprecated] Description of the run")
-@click.option("--project", "project_suuid", required=False, type=str, help="Project SUUID")
-@click.option("--workspace", "workspace_suuid", required=False, type=str, help="Workspace SUUID")
+@click.option(
+    "--description",
+    required=False,
+    type=str,
+    help="Description of the run",
+    default="",
+)
+@click.option(
+    "--message",
+    "-m",
+    required=False,
+    type=str,
+    help="[deprecated] Description of the run",
+    default="",
+)
+@click.option(
+    "--project", "project_suuid", required=False, type=str, help="Project SUUID"
+)
+@click.option(
+    "--workspace", "workspace_suuid", required=False, type=str, help="Workspace SUUID"
+)
 def cli(
     job_name,
     job_suuid,
@@ -91,9 +112,9 @@ def cli(
     data_file,
     project_suuid,
     workspace_suuid,
-    push_code
+    push_code,
 ):
-    if len(description) > 0 and len(message):
+    if len(description) > 0 and len(message) > 0:
         click.echo(
             "Warning: usage of --message is deprecated. Please use --description."
         )
