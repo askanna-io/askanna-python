@@ -86,7 +86,10 @@ class Upload:
         # the request to AskAnna API
         req = askanna_client.post(self.register_upload_url, json=info_dict)
         if req.status_code != 201:
-            click.echo("In the AskAnna platform something went wrong with creating the code package.", err=True)
+            click.echo(
+                "In the AskAnna platform something went wrong with creating the code package.",
+                err=True,
+            )
             sys.exit(1)
 
         res = req.json()
@@ -169,7 +172,7 @@ class PackageUpload(Upload):
 
     def create_entry_extrafields(self):
         return {
-            "project": self.kwargs.get("PROJECT_SUUID"),
+            "project": self.kwargs.get("project_suuid"),
             "description": self.kwargs.get("description"),
         }
 
