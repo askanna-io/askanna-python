@@ -1,5 +1,8 @@
 import io
 import os
+import sys
+
+import click
 import resumable
 
 from . import client as askanna_client
@@ -17,10 +20,9 @@ class Upload:
     tpl_upload_pass = "uploaded"
     tpl_upload_fail = "failed"
 
-    def __init__(self, api_server: str, project_uuid: str, *args, **kwargs):
+    def __init__(self, api_server: str, *args, **kwargs):
         self.ASKANNA_API_SERVER = api_server
         self.suuid = None
-        self.project_uuid = project_uuid
         self.resumable_file = None
         self.kwargs = kwargs
 
@@ -76,7 +78,6 @@ class Upload:
     def create_entry(self, config: dict = None, fileinfo: dict = {}) -> str:
         info_dict = {
             "filename": fileinfo.get("filename"),
-            "project": self.project_uuid,
             "size": fileinfo.get("size"),
         }
 
@@ -84,10 +85,13 @@ class Upload:
 
         # the request to AskAnna API
         req = askanna_client.post(self.register_upload_url, json=info_dict)
+        if req.status_code != 201:
+            click.echo("In the AskAnna platform something went wrong with creating the code package.", err=True)
+            sys.exit(1)
+
         res = req.json()
 
         # the result
-        self.uuid = res.get("uuid")
         self.suuid = res.get("short_uuid")
         return self.suuid
 
@@ -126,7 +130,6 @@ class Upload:
             "size": 0,
             "file_no": 0,
             "is_last": False,
-            "package": self.uuid,
         }
 
     def upload_file(self, file_obj):
@@ -148,7 +151,6 @@ class Upload:
         )
 
         if final_call_req.status_code == 200:
-            # print(final_call_req.text)
             return True, self.tpl_upload_pass
         else:
             return False, self.tpl_upload_fail
@@ -167,15 +169,16 @@ class PackageUpload(Upload):
 
     def create_entry_extrafields(self):
         return {
+            "project": self.kwargs.get("PROJECT_SUUID"),
             "description": self.kwargs.get("description"),
         }
 
 
 class ArtifactUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
+    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
 
     tpl_upload_pass = "Artifact is uploaded"
     tpl_upload_fail = "Artifact upload failed"
@@ -188,27 +191,18 @@ class ArtifactUpload(Upload):
         return {
             "ASKANNA_API_SERVER": self.ASKANNA_API_SERVER,
             "ARTIFACT_SUUID": self.suuid,
-            "JOBRUN_SUUID": self.kwargs.get("JOBRUN_SUUID"),
-        }
-
-    def chunk_dict_template(self):
-        return {
-            "filename": "",
-            "size": 0,
-            "file_no": 0,
-            "is_last": False,
-            "artifact": self.uuid,
+            "RUN_SUUID": self.kwargs.get("RUN_SUUID"),
         }
 
 
 class ResultUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/"
+    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/"
     tpl_register_chunk_url = (
-        "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
+        "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
     )
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
     tpl_final_upload_url = (
-        "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
+        "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
     )
 
     tpl_upload_pass = "Result is uploaded"
@@ -217,24 +211,14 @@ class ResultUpload(Upload):
     def url_template_arguments(self):
         return {
             "ASKANNA_API_SERVER": self.ASKANNA_API_SERVER,
-            "JOBRUN_SUUID": self.kwargs.get("JOBRUN_SUUID"),
-            "RESULT_UUID": self.uuid,
+            "RUN_SUUID": self.kwargs.get("RUN_SUUID"),
             "RESULT_SUUID": self.kwargs.get("RESULT_SUUID"),
-        }
-
-    def chunk_dict_template(self):
-        return {
-            "filename": "",
-            "size": 0,
-            "file_no": 0,
-            "is_last": False,
-            "joboutput": self.uuid,
         }
 
     def create_entry(self, config: dict = None, fileinfo: dict = {}) -> str:
         """
-        We don't have to create a new entry as the RESULT_UUID is already defined in the enviroment
+        We don't have to create a new entry as the RESULT_SUUID is already defined in the enviroment
         """
         # the result
-        self.uuid = os.getenv("RESULT_UUID")
-        return self.uuid
+        self.suuid = os.getenv("AA_RESULT_SUUID")
+        return self.suuid

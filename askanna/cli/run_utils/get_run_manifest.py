@@ -16,7 +16,7 @@ SHORT_HELP = "Download manifest for run"
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli(output):
     api_server = client.config.remote
-    run_suuid = os.getenv("JOBRUN_SUUID")
+    run_suuid = os.getenv("AA_RUN_SUUID")
 
     download_url = "/".join(["runinfo", run_suuid, "manifest", ""])
     download_url = api_server + download_url
