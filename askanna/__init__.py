@@ -12,9 +12,9 @@ import sys
 USING_ASKANNA_CLI = any([sys.argv[0].endswith("bin/askanna")])
 
 try:
-    from appdirs import AppDirs  # noqa
+    import click  # noqa
 except Exception as e:
-    # we are propably within an installation
+    # We are propably within an installation
     print(e)
 else:
     from .init import *  # noqa
