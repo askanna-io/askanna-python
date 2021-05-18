@@ -60,12 +60,12 @@ def push(force: bool, description: str = None):
     if not timezone_defined and timezone_local != "UTC":
         click.echo(  # noqa
             f"""
-In the `askanna.yml` we found a job schedule. By default, the AskAnna platform uses time zone UTC.
-Add the next line to your config in `askanna.yml` to use your local time zone for the schedule:
+By default, the AskAnna platform uses time zone UTC. Your current time zone is {timezone_local}.
+To use your local time zone for runnings jobs in this project, add the next line to your config in `askanna.yml`:
 
 timezone: {timezone_local}
 
-For more information check the documentation: https://docs.askanna.io/jobs/schedules/#time-zone
+For more information check the documentation: https://docs.askanna.io/jobs/create-job/#time-zone
 """
         )
 
