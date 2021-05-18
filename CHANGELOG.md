@@ -1,16 +1,33 @@
 # History
 
+## 0.9.0 (2021-05-19)
+
+- Give runs a name and description when you start them.
+  [More info in the documentation.](http://docs.askanna.io/jobs/run-job/)
+- Extend validation of `askanna.yml` with an informative check on the time zone.
+- Update dataclasses of API responses where we removed the `UUID` and `title`. We now only show the short UUID and
+  `name`.
+- In API request add `askanna-agent` and `askanna-agent-version` to inform the platform with which tool and version
+  the request is done.
+- Added a check if a new version of AskAnna is available. For example, if you run `askanna --version` and a new
+  version is available, we show an informative message how you can update.
+- Removed deprecated functions and files.
+- Updated dependencies and removed the superfluous dependency `appdir`.
+- Make `askanna variable add` interactive, so you don't have to look-up the project SUUID to add a variable.
+- Changing the name of a workspace or project can now also be done via the CLI.
+- Install `tzdata` in the default container-image to make it possible to set the time zone of the run environment.
+
 ## 0.8.0 (2021-04-15)
 
 - Added track_variable and track_variables: from now on you can track variables for your runs. Also run environment
-variables are tracked.
+  variables are tracked.
 - Added validation for `askanna.yml` to check job names and schedule definitions
 - Change name and description of a job via the CLI (`askanna job change`) or Python SDK (`askanna.job.change`)
 
 ## 0.7.0 (2021-03-18)
 
 - Adding track_metric and track_metrics: from now on you can track metrics for your runs, both ran on AskAnna servers
-and local runs.
+  and local runs.
 - Regrouped commands used for the askanna-runner under it's own command `askanna-run-utils` instead of `askanna`
 - Improvements in the client on how the AskAnna SDK communicates with the AskAnna API
 - Update PyYAML library from 5.3 to 5.4.1
@@ -93,7 +110,6 @@ and local runs.
 - Adding AskAnna functions for running in job
 - Adding first test to check on push-target
 - Download payload with CLI
-
 
 ## 0.1.0 (2019-12-05)
 
