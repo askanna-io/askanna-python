@@ -15,6 +15,7 @@ from zipfile import ZipFile
 import click
 import croniter
 import pytz
+import tzlocal
 import yaml
 from yaml import load, dump
 
@@ -672,9 +673,16 @@ def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> Lis
     return labels
 
 
-def isIPAddress(ip):
+def isIPAddress(ip : str) -> bool:
     try:
         ipaddress.ip_address(ip)
     except ValueError:
         return False
     return True
+
+
+def getLocalTimezone() -> str:
+    """
+    Determine the local timezone name
+    """
+    return tzlocal.get_localzone().zone
