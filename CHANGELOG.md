@@ -1,6 +1,6 @@
 # History
 
-## 0.9.0 (2021-04-18)
+## 0.9.0 (2021-05-19)
 
 - Give runs a name and description when you start them.
   [More info in the documentation.](http://docs.askanna.io/jobs/run-job/)
