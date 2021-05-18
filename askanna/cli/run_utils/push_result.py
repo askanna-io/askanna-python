@@ -3,7 +3,6 @@ import os
 import sys
 import click
 
-from askanna.core.utils import scan_config_in_path
 from askanna.core.utils import get_config
 from askanna.core.upload import ResultUpload
 
@@ -12,18 +11,6 @@ At the end of a run push the result to AskAnna
 """
 
 SHORT_HELP = "Push result to AskAnna"
-
-
-def create_jobresult(jobname: str, cwd: str) -> str:
-    config = get_config()
-
-    paths = config[jobname].get("output", {}).get("result")
-
-    if isinstance(paths, list):
-        click.echo("Please enter a path in `output/result`, not a list", err=True)
-        sys.exit(1)
-
-    return paths
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
@@ -41,39 +28,34 @@ def cli():
     # or if output.paths is not specified
     # then we skip this step and report this to the stdout
 
-    result_defined = config[job_name].get("output", {}).get("result")
+    result_path = config[job_name].get("output", {}).get("result")
 
-    if not result_defined:
+    if not result_path:
         click.echo(
-            "Result storage aborted, no `output/result` defined for this job in `askanna.yml`"
+            "Result storage aborted. No `output/result` defined for this job in `askanna.yml`."
         )
         sys.exit(0)
-
-    askanna_yml = scan_config_in_path()
-    project_folder = os.path.dirname(askanna_yml)
-
-    # First check whether we have a result defined
-    paths = config[job_name].get("output", {}).get("result")
-    if not paths:
+    elif isinstance(result_path, list):
+        click.echo("Please enter a path in `output/result`, not a list.", err=True)
+        sys.exit(1)
+    elif not os.path.exists(result_path):
         click.echo(
-            "No output was defined in `output/result`, not pushing output to AskAnna"
+            f"output/result: {result_path} does not exist. Not saving result.", err=True
         )
-        sys.exit(0)
-
-    jobresult_archive = create_jobresult(jobname=job_name, cwd=project_folder)
+        sys.exit(1)
 
     click.echo("Uploading result to AskAnna...")
 
     fileinfo = {
-        "filename": os.path.basename(jobresult_archive),
-        "size": os.stat(jobresult_archive).st_size,
+        "filename": os.path.basename(result_path),
+        "size": os.stat(result_path).st_size,
     }
     uploader = ResultUpload(
         api_server=api_server,
         RUN_SUUID=run_suuid,
         RESULT_SUUID=result_suuid,
     )
-    status, msg = uploader.upload(jobresult_archive, config, fileinfo)
+    status, msg = uploader.upload(result_path, config, fileinfo)
     if status:
         click.echo(msg)
         sys.exit(0)
