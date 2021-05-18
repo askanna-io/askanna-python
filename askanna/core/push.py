@@ -9,7 +9,7 @@ import git
 from askanna.core.utils import validate_yml_job_names, validate_yml_schedule
 from askanna.core.utils import zipFilesInDir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
-from askanna.core.utils import extract_push_target, isIPAddress
+from askanna.core.utils import extract_push_target, isIPAddress, getLocalTimezone
 from askanna.core.upload import PackageUpload
 
 
@@ -53,6 +53,21 @@ def push(force: bool, description: str = None):
     # then validate whether we have a schedule defined and validate schedule if needed
     if not validate_yml_schedule(config):
         sys.exit(1)
+
+    # timezone set
+    timezone_defined = config.get("timezone")
+    timezone_local = getLocalTimezone()
+    if not timezone_defined and timezone_local != "UTC":
+        click.echo(  # noqa
+            f"""
+In the `askanna.yml` we found a job schedule. By default, the AskAnna platform uses time zone UTC.
+Add the next line to your config in `askanna.yml` to use your local time zone for the schedule:
+
+timezone: {timezone_local}
+
+For more information check the documentation: https://docs.askanna.io/jobs/schedules/#time-zone
+"""
+        )
 
     matches_dict = extract_push_target(push_target)
     api_host = matches_dict.get("askanna_host")
