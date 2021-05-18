@@ -2,20 +2,20 @@
 
 ## 0.9.0 (2021-04-18)
 
-- Give runns a name and description when you start them.
+- Give runs a name and description when you start them.
   [More info in the documentation.](http://docs.askanna.io/jobs/run-job/)
-- Extend validate of `askanna.yml` with an informative check on the time zone.
+- Extend validation of `askanna.yml` with an informative check on the time zone.
 - Update dataclasses of API responses where we removed the `UUID` and `title`. We now only show the short UUID and
   `name`.
 - In API request add `askanna-agent` and `askanna-agent-version` to inform the platform with which tool and version
   the request is done.
 - Added a check if a new version of AskAnna is available. For example, if you run `askanna --version` and a new
-  version is available, we show an informative messgae how you can update.
-- Removed depreciated functions and files.
-- Updated dependencies and removed the unused dependency appdir.
+  version is available, we show an informative message how you can update.
+- Removed deprecated functions and files.
+- Updated dependencies and removed the superfluous dependency `appdir`.
 - Make `askanna variable add` interactive, so you don't have to look-up the project SUUID to add a variable.
 - Changing the name of a workspace or project can now also be done via the CLI.
-- Install `tzdata` in the default container to make it possible to set the time zome of the run environment.
+- Install `tzdata` in the default container-image to make it possible to set the time zone of the run environment.
 
 ## 0.8.0 (2021-04-15)
 
