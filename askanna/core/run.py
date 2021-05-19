@@ -161,27 +161,16 @@ class RunActionGateway:
         runinfo = self.gateway.detail(suuid=run)
         if include_metrics:
             # also fetch the metrics for the runs
-            run_suuids = [runinfo.short_uuid]
-            query = {"runs": run_suuids}
-            metrics = self.gateway.metrics.list(query_params=query)
-
-            # add the metrics to the runobjects
+            metrics = self.gateway.metrics.get(run=runinfo.short_uuid)
             # run.metrics
-            for metric in metrics:
-                if metric.get("run_suuid") == runinfo.short_uuid:
-                    runinfo.metrics.append(metric)
+            runinfo.metrics = metrics
 
         if include_variables:
             # also fetch the variables for the runs
-            run_suuids = [runinfo.short_uuid]
-            query = {"runs": run_suuids}
-            variables = self.gateway.variables.list(query_params=query)
-
+            variables = self.gateway.variables.get(run=runinfo.short_uuid)
             # add the metrics to the runobjects
             # run.variables
-            for variable in variables:
-                if variable.get("run_suuid") == runinfo.short_uuid:
-                    runinfo.variables.append(variable)
+            runinfo.variables = variables
         return runinfo
 
 
