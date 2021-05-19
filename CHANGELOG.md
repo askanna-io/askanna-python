@@ -16,6 +16,7 @@
 - Make `askanna variable add` interactive, so you don't have to look-up the project SUUID to add a variable.
 - Changing the name of a workspace or project can now also be done via the CLI.
 - Install `tzdata` in the default container-image to make it possible to set the time zone of the run environment.
+- Fix retrieval of runs with `askanna.run.get` with `include_metrics=True` on.
 
 ## 0.8.0 (2021-04-15)
 
