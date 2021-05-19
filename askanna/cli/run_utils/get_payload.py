@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import warnings
 
 import click
 
@@ -10,28 +9,28 @@ from askanna.core.utils import get_config
 
 
 # read defaults from the environment
-default_jobrun_suuid = os.getenv("JOBRUN_SUUID")
-default_payload_suuid = os.getenv("PAYLOAD_SUUID")
-default_payload_file = os.getenv("PAYLOAD_PATH")
+default_run_suuid = os.getenv("AA_RUN_SUUID")
+default_payload_suuid = os.getenv("AA_PAYLOAD_SUUID")
+default_payload_file = os.getenv("AA_PAYLOAD_PATH")
 
 HELP = """Get the payload for the run which is stored in AskAnna"""
 SHORT_HELP = "Get payload from AskAnna"
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
-@click.option("--jobrun", "-j", default=default_jobrun_suuid, show_default=True)
+@click.option("--run", "-r", default=default_run_suuid, show_default=True)
 @click.option("--payload", "-p", default=default_payload_suuid, show_default=True)
 @click.option(
     "--output", "-o", default=default_payload_file, show_default=True, type=click.Path()
 )
-def cli(jobrun, payload, output):
+def cli(run, payload, output):
     config = get_config()
     ASKANNA_API_SERVER = config["askanna"]["remote"]
 
     # we assume we can get jobrun id and the payload
     payload_url = (
-        "{ASKANNA_API_SERVER}jobrun/{JOBRUN_SUUID}/payload/{PAYLOAD_SUUID}/".format(
-            JOBRUN_SUUID=jobrun,
+        "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/payload/{PAYLOAD_SUUID}/".format(
+            RUN_SUUID=run,
             PAYLOAD_SUUID=payload,
             ASKANNA_API_SERVER=ASKANNA_API_SERVER,
         )
@@ -40,11 +39,11 @@ def cli(jobrun, payload, output):
     req = askanna_client.get(payload_url)
 
     if not req.status_code == 200:
-        warnings.warn("Could not retrieve payload with SUUID: {}".format(payload))
+        click.echo(f"Could not retrieve payload with SUUID: {payload}", err=True)
         sys.exit(1)
 
     if output:
         with open(output, "w") as f:
             f.write(req.text)
     else:
-        print(req.text)
+        click.echo(req.text)

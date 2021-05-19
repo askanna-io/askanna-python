@@ -315,7 +315,7 @@ class VariableCollector:
 
 
 # Start logic for variable collection
-vc = VariableCollector(run_suuid=os.getenv("JOBRUN_SUUID"))
+vc = VariableCollector(run_suuid=os.getenv("AA_RUN_SUUID"))
 
 
 # code for exiting in ipython from https://stackoverflow.com/a/40222538

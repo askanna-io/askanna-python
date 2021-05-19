@@ -2,13 +2,15 @@
 import importlib
 import sys
 
-import askanna
-from askanna.core.utils import init_checks
-from askanna.core.utils import update_available
+from askanna import __version__ as askanna_version
 import click
-from dotenv import find_dotenv, load_dotenv
 
-load_dotenv(find_dotenv())
+try:
+    from dotenv import find_dotenv, load_dotenv
+except ImportError:
+    pass  # we only use dotenv for development
+else:
+    load_dotenv(find_dotenv())
 
 
 HELP = """
@@ -33,34 +35,32 @@ def cli():
     try:
         cli_commands()
     except Exception as e:
-        click.echo(e)
+        click.echo(e, err=True)
         sys.exit(1)
 
 
 @click.group(
     help=HELP, short_help=SHORT_HELP, epilog=EPILOG, context_settings=CONTEXT_SETTINGS
 )
-@click.version_option(askanna.__version__)
+@click.version_option(version=askanna_version, prog_name="AskAnna CLI")
 def cli_commands():
-    update_url = update_available()
-    if update_url:
-        click.echo(
-            "INFO: A newer version of AskAnna is available. Update "
-            "via pip or get it at {}".format(update_url),
-            err=True,
-        )
+    """
+    Initialize the AskAnna CLI commands
+    """
 
 
 commands = [
-    "login",
-    "logout",
+    "artifact",
     "create",
     "init",
     "job",
+    "login",
+    "logout",
+    "project",
     "push",
-    "artifact",
-    "variable",
     "run",
+    "variable",
+    "workspace",
 ]
 
 for command in commands:
@@ -68,7 +68,3 @@ for command in commands:
     command_module = importlib.import_module(module_path)
     command_name = command.replace("_", "-")
     cli_commands.add_command(command_module.cli, command_name)
-
-
-# perform initial checks on config and auth status
-init_checks()

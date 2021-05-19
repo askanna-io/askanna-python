@@ -4,7 +4,12 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
-from askanna import __version__ as askanna_version
+from askanna import (
+    __author__ as askanna_author,
+    __email__ as askanna_email,
+    __version__ as askanna_version
+)
+
 
 with open("README.md") as readme_file:
     readme = readme_file.read()
@@ -15,15 +20,14 @@ with open("CHANGELOG.md") as history_file:
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()
 
-setup_requirements = ["wheel~=0.34.2"]
+setup_requirements = ["wheel~=0.36.2"]
 
-test_requirements = []
 
 setup(
     name="askanna",
     version=askanna_version,
-    author="AskAnna",
-    author_email="devops@askanna.io",
+    author=askanna_author,
+    author_email=askanna_email,
     python_requires=">=3.6",
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -44,7 +48,6 @@ setup(
             "askanna-run-utils=askanna.cli.run_utils.tool:cli",
         ],
     },
-    install_requires=requirements,
     description="AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects",
     long_description=readme + "\n\n" + history,
     long_description_content_type="text/markdown",
@@ -52,9 +55,8 @@ setup(
     keywords="askanna ml ai data",
     license="Apache License 2.0",
     packages=find_packages(exclude=["tests"]),
+    install_requires=requirements,
     setup_requires=setup_requirements,
-    test_suite="tests",
-    tests_require=test_requirements,
     url="https://askanna.io",
     project_urls={
         "Documentation Python SDK": "https://docs.askanna.io/python-sdk/",

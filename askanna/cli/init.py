@@ -43,7 +43,7 @@ class CreateProject:
 
         for workspace in r.json():
             workspaces.append(
-                {"suuid": workspace["short_uuid"], "title": workspace["title"]}
+                {"suuid": workspace["short_uuid"], "name": workspace["name"]}
             )
         return workspaces
 
@@ -57,7 +57,7 @@ class CreateProject:
             workspace_list_str = ""
 
             for idx, workspace in enumerate(workspaces, start=1):
-                workspace_list_str += "%d. %s\n" % (idx, workspace["title"])
+                workspace_list_str += "%d. %s\n" % (idx, workspace["name"])
 
             workspace = click.prompt(
                 "\nYou are a member of multiple workspaces. "
@@ -72,7 +72,7 @@ class CreateProject:
 
         if click.confirm(
             "\nDo you want to create a project '{project}' in the workspace '{workspace}'?".format(
-                project=self.name, workspace=selected_workspace["title"]
+                project=self.name, workspace=selected_workspace["name"]
             ),
             abort=True,
         ):
@@ -163,7 +163,7 @@ def cli(name, workspace, description):
     click.echo("{project_url}".format(project_url=project_info["url"]))
     click.echo(
         "\nAs a first step you can configure your first job for this project in the `askanna.yml` file. "
-        "Ones you are done, you can easily push your code to askanna via:\n"
+        "Ones you are done, you can easily push your code to AskAnna via:\n"
         "\n"
         "  askanna push\n"
         "\n"

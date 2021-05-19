@@ -1,11 +1,13 @@
 import collections
 import datetime
 import glob
+import ipaddress
 import mimetypes
 import os
 from pathlib import Path
 import re
 import sys
+import requests
 from typing import Any, List
 import uuid
 from zipfile import ZipFile
@@ -13,7 +15,17 @@ from zipfile import ZipFile
 import click
 import croniter
 import pytz
+import tzlocal
+import yaml
 from yaml import load, dump
+
+from askanna import __version__ as askanna_version
+from askanna.settings import (
+    CONFIG_FILE_ASKANNA,
+    CONFIG_ASKANNA_REMOTE,
+    DEFAULT_PROJECT_TEMPLATE,
+    PYPI_PROJECT_URL,
+)
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -23,13 +35,6 @@ except ImportError:
 
 from askanna.core import exceptions
 
-CONFIG_FILE_ASKANNA = os.path.expanduser("~/.askanna.yml")
-
-CONFIG_ASKANNA_REMOTE = {"askanna": {"remote": "https://beta-api.askanna.eu/v1/"}}
-
-DEFAULT_PROJECT_TEMPLATE = (
-    "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
-)
 
 StorageUnit = collections.namedtuple(
     "StorageUnit", ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
@@ -96,49 +101,30 @@ def object_fullname(o):
         return module + "." + o.__class__.__name__
 
 
-def init_checks():
-    create_config(CONFIG_FILE_ASKANNA)
-
-
-def create_config(location: str):
-    expanded_path = os.path.expanduser(location)
-    folder = os.path.dirname(expanded_path)
-
-    if not os.path.exists(folder):
-        os.makedirs(folder, exist_ok=True)
-
-    if not os.path.exists(expanded_path):
-        Path(expanded_path).touch()
-
-        # write initial config since it didn't exist
-        config = store_config(CONFIG_ASKANNA_REMOTE)
-        with open(expanded_path, "w") as f:
-            f.write(config)
-
-
-def update_available(silent_fail=True):
+def update_available() -> bool:
     """
-    Check whether most recent Gitlab release of askanna is newer than the
-    askanna version in use. If a newer version is available, return a
-    link to the release on Gitlab, otherwise return ``None``.
+    Check whether most recent release of AskAnna on PyPI is newer than the AskAnna version in use. If a newer version
+    is available, return a info message with update instructions.
     """
     try:
-        # FIXME: some code to check the release on Gitlab
-        a = None
-        return a
-    except Exception:
-        if not silent_fail:
-            raise
+        r = requests.get(PYPI_PROJECT_URL)
+    except requests.exceptions.ConnectionError:
+        return False
+    else:
+        pypi_info = r.json()
 
-        # Don't let this interfere with askanna usage
-        return None
+    if askanna_version == pypi_info['info']['version']:
+        return False
+    else:
+        click.echo("[INFO] A newer version of AskAnna is available. Update via: pip install -U askanna")
+        return True
 
 
 def check_for_project():
     """
     Performs a check if we are operating within a project folder. When
     we wish to perform a deploy action, we want to be on the same
-    level with the ``askanna.yml`` to be able to package the file.
+    level with the `askanna.yml` to be able to package the file.
     """
     pyfiles = glob.glob("*.yml")
 
@@ -175,7 +161,30 @@ def read_config(path: str) -> dict:
     """
     Reading existing config or return default dict
     """
-    return load(open(os.path.expanduser(path), "r"), Loader=Loader) or {}
+    try:
+        with open(os.path.expanduser(path), "r") as f:
+            return load(f, Loader=Loader) or {}
+    except FileNotFoundError:
+        config_folder = os.path.dirname(CONFIG_FILE_ASKANNA)
+        if not os.path.exists(config_folder):
+            os.makedirs(config_folder, exist_ok=True)
+
+        Path(CONFIG_FILE_ASKANNA).touch()
+
+        # Write initial config if the config file didn't exist
+        config = store_config(CONFIG_ASKANNA_REMOTE)
+        with open(CONFIG_FILE_ASKANNA, "w") as f:
+            f.write(config)
+
+        return CONFIG_ASKANNA_REMOTE
+    except TypeError as e:
+        click.echo(e, err=True)
+        sys.exit(1)
+    except yaml.scanner.ScannerError as e:
+        click.echo("Error reading askanna.yml due to:", err=True)
+        click.echo(e.problem, err=True)
+        click.echo(e.problem_mark, err=True)
+        sys.exit(1)
 
 
 def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
@@ -183,8 +192,7 @@ def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
 
 
 def get_config(check_config=True) -> dict:
-    init_checks()
-    config = read_config(CONFIG_FILE_ASKANNA) or {}
+    config = read_config(CONFIG_FILE_ASKANNA)
 
     # overwrite the AA remote if AA_REMOTE is set in the environment
     is_remote_set = os.getenv("AA_REMOTE")
@@ -199,7 +207,7 @@ def get_config(check_config=True) -> dict:
         config = store_config(CONFIG_ASKANNA_REMOTE)
         with open(CONFIG_FILE_ASKANNA, "w") as f:
             f.write(config)
-        config = read_config(CONFIG_FILE_ASKANNA) or {}
+        config = read_config(CONFIG_FILE_ASKANNA)
 
     # overwrite the user token if AA_TOKEN is set in the environment
     is_token_set = os.getenv("AA_TOKEN")
@@ -212,11 +220,6 @@ def get_config(check_config=True) -> dict:
     config["project"]["template"] = os.getenv(
         "PROJECT_TEMPLATE_URL", DEFAULT_PROJECT_TEMPLATE
     )
-
-    # overwrite the project token if set in the env
-    is_project_set = os.getenv("PROJECT_UUID")
-    if is_project_set:
-        config["project"]["uuid"] = is_project_set
 
     project_config = scan_config_in_path()
     if project_config:
@@ -239,7 +242,7 @@ def validate_config(config):
 
 
 def store_config(new_config):
-    original_config = read_config(CONFIG_FILE_ASKANNA) or {}
+    original_config = read_config(CONFIG_FILE_ASKANNA)
     original_config.update(**new_config)
     output = dump(original_config, Dumper=Dumper)
     return output
@@ -393,10 +396,7 @@ def validate_cron_line(cron_line: str) -> bool:
     """
     We validate the cron expression with croniter
     """
-    try:
-        return croniter.croniter.is_valid(cron_line)
-    except AttributeError:
-        return False
+    return croniter.croniter.is_valid(cron_line)
 
 
 def parse_cron_line(cron_line: str) -> str:
@@ -454,7 +454,9 @@ def parse_cron_schedule(schedule: list):
 
 
 def validate_yml_job_names(config):
-    # Within AskAnna, we have several variables reserved and cannot be used for jobnames
+    """
+    Within AskAnna, we have several variables reserved and cannot be used for jobnames
+    """
     reserved_keys = (
         "cluster",
         "environment",
@@ -462,6 +464,7 @@ def validate_yml_job_names(config):
         "variables",
         "worker",
         "image",
+        "timezone",
     )
 
     overlapping_with_reserved_keys = list(
@@ -484,6 +487,16 @@ def validate_yml_job_names(config):
 
 def validate_yml_schedule(config):
     jobs = config.items()
+    global_timezone = config.get("timezone")
+    # validate the global timezone
+    if global_timezone and global_timezone not in pytz.all_timezones:
+        click.echo(
+            "Invalid timezone setting found in askanna.yml:\n"
+            + f"   timezone: '{global_timezone}'",
+            err=True,
+        )
+        return False
+
     for _, job in jobs:
         if isinstance(job, dict):
             schedule = job.get("schedule")
@@ -658,3 +671,18 @@ def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> Lis
             else:
                 labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
     return labels
+
+
+def isIPAddress(ip : str) -> bool:
+    try:
+        ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    return True
+
+
+def getLocalTimezone() -> str:
+    """
+    Determine the local timezone name
+    """
+    return tzlocal.get_localzone().zone

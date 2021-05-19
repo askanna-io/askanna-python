@@ -48,7 +48,7 @@ class CreateProject:
 
         for workspace in r.json():
             workspaces.append(
-                {"suuid": workspace["short_uuid"], "title": workspace["title"]}
+                {"suuid": workspace["short_uuid"], "name": workspace["name"]}
             )
         return workspaces
 
@@ -62,7 +62,7 @@ class CreateProject:
             workspace_list_str = ""
 
             for idx, workspace in enumerate(workspaces, start=1):
-                workspace_list_str += "%d. %s\n" % (idx, workspace["title"])
+                workspace_list_str += "%d. %s\n" % (idx, workspace["name"])
 
             workspace = click.prompt(
                 "\nYou are a member of multiple workspaces. "
@@ -77,7 +77,7 @@ class CreateProject:
 
         if click.confirm(
             "Do you want to create a project '{project}' in '{workspace}'?".format(
-                project=self.name, workspace=selected_workspace["title"]
+                project=self.name, workspace=selected_workspace["name"]
             ),
             abort=True,
         ):
@@ -173,13 +173,13 @@ def cli(name, workspace, description, project_template, is_push):
         if is_push:
             click.echo("")  # print an empty line
 
-            # also push the new directory to askanna
+            # also push the new directory to AskAnna
             os.chdir(project_dir)
-            push(force=True, message="Initial push")
+            push(force=True, description="Initial push")
 
     # finish
     click.echo(
         "\nWe have setup the new project. You can check your project in AskAnna at:"
     )
-    click.echo("{project_url}".format(project_url=project_info["url"]))
+    click.echo(project_info["url"])
     click.echo("\nSuccess with your project!")

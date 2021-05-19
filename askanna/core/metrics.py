@@ -179,7 +179,7 @@ class MetricCollector:
 
     def save(self, run_suuid: str = None, force: bool = False) -> None:
         """
-        Connect to askanna backend to save the metrics
+        Connect to AskAnna backend to save the metrics
         We will only attempt to submit if there is data recorded
         """
         if not self.changed and not force:
@@ -203,7 +203,7 @@ class MetricCollector:
 
 
 # Start logic for metric collection
-mc = MetricCollector(run_suuid=os.getenv("JOBRUN_SUUID"))
+mc = MetricCollector(run_suuid=os.getenv("AA_RUN_SUUID"))
 
 
 def track_metric(name: str, value, label: dict = None) -> None:

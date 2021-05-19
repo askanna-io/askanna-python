@@ -1,4 +1,5 @@
 import os
+import sys
 
 import click
 from zipfile import ZipFile
@@ -17,11 +18,15 @@ SHORT_HELP = "Download package code for AskAnna"
 def cli():
     config = get_config()
     api_server = config["askanna"]["remote"]
-    project_suuid = os.getenv("PROJECT_SUUID")
-    package_suuid = os.getenv("PACKAGE_SUUID")
+    project_suuid = os.getenv("AA_PROJECT_SUUID")
+    package_suuid = os.getenv("AA_PACKAGE_SUUID")
 
-    assert project_suuid, "No PROJECT_SUUID found."
-    assert package_suuid, "No PACKAGE_SUUID found."
+    if not project_suuid:
+        click.echo("No AA_PROJECT_SUUID found.", err=True)
+        sys.exit(1)
+    if not package_suuid:
+        click.echo("No AA_PACKAGE_SUUID found.", err=True)
+        sys.exit(1)
 
     download_url = "/".join(
         ["project", project_suuid, "packages", package_suuid, "download", ""]

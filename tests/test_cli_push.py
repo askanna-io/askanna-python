@@ -6,7 +6,7 @@ class TestCliPush(BaseCLItest):
     """
     askanna push
 
-    We expect to initiate a push action of our code to the askanna server
+    We expect to initiate a push action of our code to the AskAnna server
     """
     verb = "push"
 

@@ -9,7 +9,7 @@ import git
 from askanna.core.utils import validate_yml_job_names, validate_yml_schedule
 from askanna.core.utils import zipFilesInDir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
-from askanna.core.utils import extract_push_target
+from askanna.core.utils import extract_push_target, isIPAddress, getLocalTimezone
 from askanna.core.upload import PackageUpload
 
 
@@ -32,33 +32,49 @@ def package(src: str) -> str:
     return random_name
 
 
-def push(force: bool, message: str = None):
+def push(force: bool, description: str = None):
     config = get_config()
     api_server = config["askanna"]["remote"]
-    project = config.get("project", {})
-    project_uuid = project.get("uuid")
 
     # read and parse the push-target from askanna
     push_target = config.get("push-target")
 
     if not push_target:
-        print(
-            "`push-target` is not set, please set the `push-target` in order to push to AskAnna"
+        click.echo(
+            "`push-target` is not set, please set the `push-target` in order to push to AskAnna",
+            err=True,
         )
         sys.exit(1)
 
     # read the config and parse jobs, validate the job definitions
     # first validate jobs names
-    validate_yml_job_names(config)
+    if not validate_yml_job_names(config):
+        sys.exit(1)
     # then validate whether we have a schedule defined and validate schedule if needed
-    validate_yml_schedule(config)
+    if not validate_yml_schedule(config):
+        sys.exit(1)
+
+    # timezone set
+    timezone_defined = config.get("timezone")
+    timezone_local = getLocalTimezone()
+    if not timezone_defined and timezone_local != "UTC":
+        click.echo(  # noqa
+            f"""
+By default, the AskAnna platform uses time zone UTC. Your current time zone is {timezone_local}.
+To use your local time zone for runnings jobs in this project, add the next line to your config in `askanna.yml`:
+
+timezone: {timezone_local}
+
+For more information check the documentation: https://docs.askanna.io/jobs/create-job/#time-zone
+"""
+        )
 
     matches_dict = extract_push_target(push_target)
     api_host = matches_dict.get("askanna_host")
     http_scheme = matches_dict.get("http_scheme")
     if api_host:
         # first also modify the first part
-        if api_host.startswith("localhost"):
+        if api_host.startswith("localhost") or isIPAddress(api_host.split(":")[0]):
             api_host = api_host
         elif api_host not in ["askanna.eu"]:
             # only append the -api suffix if the subdomain is not having this
@@ -72,16 +88,14 @@ def push(force: bool, message: str = None):
     project_suuid = matches_dict.get("project_suuid")
 
     if project_suuid:
-        # make an extra call to askanna to query for the full uuid for this project
+        # make an extra call to AskAnna to query for the full uuid for this project
         project_info = getProjectInfo(project_suuid)
         if project_info.uuid is None:
-            print("Couldn't find specified project {}".format(push_target))
+            click.echo(f"Couldn't find specified project {push_target}", err=True)
             sys.exit(1)
 
-        project_uuid = project_info.uuid
-
-    if not project_uuid:
-        print("Cannot upload unregistered project to AskAnna")
+    if not project_suuid:
+        click.echo("Cannot upload to AskAnna without the project SUUID set", err=True)
         sys.exit(1)
 
     def ask_overwrite() -> bool:
@@ -113,8 +127,9 @@ def push(force: bool, message: str = None):
             return project_folder
 
     if not cwd == project_folder:
-        print(
-            "You are not at the root folder of the project '{}'".format(project_folder)
+        click.echo(
+            f"You are not at the root folder of the project '{project_folder}'",
+            err=True,
         )
         upload_folder = ask_which_folder(cwd, project_folder)
 
@@ -127,28 +142,29 @@ def push(force: bool, message: str = None):
             overwrite = ask_overwrite()
 
         if not overwrite:
-            print(
+            click.echo(
                 "We are not pushing your code to AskAnna. You choose not to replace your "
-                "existing code."
+                "existing code.",
+                err=True,
             )
             sys.exit(0)
 
     package_archive = package(upload_folder)
 
-    # attach message to this package upload
-    if not message:
+    # attach the description to this package upload
+    if not description:
         # try git
         try:
             repo = git.Repo(".")
         except Exception as e:
-            print(e)
+            click.echo(e, err=True)
         else:
             commit = repo.head.commit
-            message = commit.message
+            description = commit.message
 
-    # if there is still no message set then use the zipfilename
-    if not message:
-        message = os.path.basename(package_archive)
+    # if there is still no description set then use the zipfilename
+    if not description:
+        description = os.path.basename(package_archive)
 
     click.echo("Uploading '{}' to AskAnna...".format(upload_folder))
 
@@ -158,8 +174,8 @@ def push(force: bool, message: str = None):
     }
     uploader = PackageUpload(
         api_server=api_server,
-        project_uuid=project_uuid,
-        description=message,
+        project_suuid=project_suuid,
+        description=description,
     )
     status, msg = uploader.upload(package_archive, config, fileinfo)
     if status:
@@ -167,14 +183,15 @@ def push(force: bool, message: str = None):
         try:
             os.remove(package_archive)
             os.rmdir(os.path.dirname(package_archive))
-            print("Successfully pushed the project to AskAnna!")
+            click.echo("Successfully pushed the project to AskAnna!")
         except OSError as e:
-            print(
+            click.echo(
                 "Pushing your code was successful, but we could not remove the temporary file "
-                "used for uploading your code to AskAnna."
+                "used for uploading your code to AskAnna.",
+                err=True,
             )
-            print("The error: {}".format(e.strerror))
-            print("You can manually delete the file: {}".format(package_archive))
+            click.echo(f"The error: {e.strerror}", err=True)
+            click.echo(f"You can manually delete the file: {package_archive}", err=True)
     else:
-        print(msg)
+        click.echo(msg, err=True)
         sys.exit(1)

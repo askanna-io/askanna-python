@@ -22,7 +22,10 @@ This command will allow you to start a run in AskAnna.
 SHORT_HELP = "Start a run in AskAnna"
 
 
-def determine_project(project_suuid: str = None, workspace_suuid: str = None) -> Project:
+def determine_project(
+    project_suuid: str = None,
+    workspace_suuid: str = None,
+) -> Project:
     if not project_suuid:
         # Use the project from the push-target if not set
         try:
@@ -41,22 +44,31 @@ def determine_project(project_suuid: str = None, workspace_suuid: str = None) ->
         return project
     else:
         if not workspace_suuid:
-            workspace = ask_which_workspace(question="From which workspace do you want to run a job?")
+            workspace = ask_which_workspace(
+                question="From which workspace do you want to run a job?"
+            )
             workspace_suuid = workspace.short_uuid
 
-        return ask_which_project(question="From which project do you want to run a job?",
-                                 workspace_suuid=workspace_suuid)
+        return ask_which_project(
+            question="From which project do you want to run a job?",
+            workspace_suuid=workspace_suuid,
+        )
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
-@click.argument("job_name", required=False)
-@click.option("--id", "-i", "job_suuid", required=False, help="Job SUUID")
-@click.option("--data", "-d", required=False, default=None, help="JSON data")
+@click.argument(
+    "job_name",
+    required=False,
+    type=str,
+)
+@click.option("--id", "-i", "job_suuid", required=False, type=str, help="Job SUUID")
+@click.option("--data", "-d", required=False, type=str, default=None, help="JSON data")
 @click.option(
     "--data-file",
     "-D",
     "data_file",
     required=False,
+    type=str,
     default=None,
     help="File with JSON data",
 )
@@ -68,32 +80,63 @@ def determine_project(project_suuid: str = None, workspace_suuid: str = None) ->
     show_default=False,
     help="Push code first, and then run the job [default: no-push]",
 )
-@click.option("--message", "-m", required=False, help="Add description to the code")
-@click.option("--project", "project_suuid", required=False, help="Project SUUID")
-@click.option("--workspace", "workspace_suuid", required=False, help="Workspace SUUID")
+@click.option("--name", "-n", required=False, type=str, help="Give the run a name")
+@click.option(
+    "--description",
+    required=False,
+    type=str,
+    help="Description of the run",
+    default="",
+)
+@click.option(
+    "--message",
+    "-m",
+    required=False,
+    type=str,
+    help="[deprecated] Description of the run",
+    default="",
+)
+@click.option(
+    "--project", "project_suuid", required=False, type=str, help="Project SUUID"
+)
+@click.option(
+    "--workspace", "workspace_suuid", required=False, type=str, help="Workspace SUUID"
+)
 def cli(
     job_name,
     job_suuid,
+    name,
+    description,
+    message,
     data,
     data_file,
     project_suuid,
     workspace_suuid,
-    push_code=False,
-    message=None,
+    push_code,
 ):
-    if push_code:
-        push(force=True, message=message)
+    if len(description) > 0 and len(message) > 0:
+        click.echo(
+            "Warning: usage of --message is deprecated. Please use --description."
+        )
+        click.echo("Cannot use both --description and --message.", err=True)
+        sys.exit(1)
+    elif len(message) > 0:
+        click.echo(
+            "Warning: usage of --message is deprecated. Please use --description."
+        )
+        description = message
 
-    # If data and data_file is set, only use input from data
-    if data:
+    if data and data_file:
+        click.echo("Cannot use both --data and --data-file.", err=True)
+        sys.exit(1)
+    elif data:
         data = json.loads(data)
-        if data_file:
-            click.echo(
-                "Because `--data` was set, we will not use the data from your data file"
-            )
     elif data_file:
         with open(data_file) as json_file:
             data = json.load(json_file)
+
+    if push_code:
+        push(force=True, description=description)
 
     # Only determine project when it's necessary
     project = None
@@ -112,11 +155,12 @@ def cli(
             click.echo(e)
             sys.exit(1)
     else:
-        job = ask_which_job(question="Which job do you want to run?", project_suuid=project.short_uuid)
+        job = ask_which_job(
+            question="Which job do you want to run?",
+            project_suuid=project.short_uuid,
+        )
 
-        if not click.confirm(
-            "\nDo you want to run the job '{}'?".format(job.name), abort=True
-        ):
+        if not click.confirm(f"\nDo you want to run the job '{job.name}'?", abort=True):
             click.echo(f"Aborted! Not running job {job.name}")
         else:
             click.echo("")
@@ -124,7 +168,12 @@ def cli(
         job_suuid = job.short_uuid
 
     try:
-        run = askanna_run.start(job_suuid=job_suuid, data=data)
+        run = askanna_run.start(
+            job_suuid=job_suuid,
+            data=data,
+            name=name,
+            description=description,
+        )
     except Exception as e:
         click.echo(e)
         sys.exit(1)

@@ -1,14 +1,11 @@
 -r requirements.txt
 
 bumpversion~=0.5.3
-wheel~=0.34.2
-tox~=3.16.0
-
 flake8~=3.8.3
+numpy~=1.19.5        # numpy is only required during development for testing numpy support
+pre-commit~=2.12.1
 pytest~=5.4.3
 pytest-cov~=2.11.1
-
-# numpy is only required during development for testing numpy support
-numpy~=1.19.5
-
--r requirements.txt
+python-dotenv~=0.17.1
+responses~=0.13.2    # for testing only
+tox~=3.16.0
