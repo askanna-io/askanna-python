@@ -1,6 +1,7 @@
 import unittest
 import responses
 
+from askanna.core import client
 from askanna.core.project import ProjectGateway
 
 a_sample_project_response = {
@@ -32,25 +33,27 @@ a_sample_project_response = {
 
 class SDKProjectTest(unittest.TestCase):
     def setUp(self):
+        self.base_url = client.config.remote
+
         self.responses = responses.RequestsMock()
         self.responses.start()
 
         self.responses.add(
             responses.PATCH,
-            url="https://beta-api.askanna.eu/v1/project/abcd-abcd-abcd-abcd/",
+            url=self.base_url + "project/abcd-abcd-abcd-abcd/",
             json=a_sample_project_response,
             match=[responses.json_params_matcher({"name": "new name"})],
         )
 
         self.responses.add(
             responses.PATCH,
-            url="https://beta-api.askanna.eu/v1/project/abcd-abcd-abcd-abcd/",
+            url=self.base_url + "project/abcd-abcd-abcd-abcd/",
             json=a_sample_project_response,
             match=[responses.json_params_matcher({"description": "new description"})],
         )
         self.responses.add(
             responses.PATCH,
-            url="https://beta-api.askanna.eu/v1/project/abcd-abcd-abcd-abcd/",
+            url=self.base_url + "project/abcd-abcd-abcd-abcd/",
             json=a_sample_project_response,
             match=[
                 responses.json_params_matcher(
