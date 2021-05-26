@@ -1,6 +1,7 @@
 import unittest
 import responses
 
+from askanna.core import client
 from askanna.core.run import RunGateway
 
 a_sample_run_response = {
@@ -36,29 +37,31 @@ a_sample_run_response = {
 
 class SDKRunTest(unittest.TestCase):
     def setUp(self):
+        self.base_url = client.config.remote
+
         self.responses = responses.RequestsMock()
         self.responses.start()
 
         self.responses.add(
             responses.POST,
-            url="https://beta-api.askanna.eu/v1/run/abcd-abcd-abcd-abcd/",
+            url=self.base_url + "run/abcd-abcd-abcd-abcd/",
             json=a_sample_run_response,
         )
 
         self.responses.add(
             responses.POST,
-            url="https://beta-api.askanna.eu/v1/run/abcd-abcd-abcd-abcd/?name=new+name",
+            url=self.base_url + "run/abcd-abcd-abcd-abcd/?name=new+name",
             json=a_sample_run_response,
         )
 
         self.responses.add(
             responses.POST,
-            url="https://beta-api.askanna.eu/v1/run/abcd-abcd-abcd-abcd/?description=new+description",
+            url=self.base_url + "run/abcd-abcd-abcd-abcd/?description=new+description",
             json=a_sample_run_response,
         )
         self.responses.add(
             responses.POST,
-            url="https://beta-api.askanna.eu/v1/run/abcd-abcd-abcd-abcd/?name=new+name&description=new+description",
+            url=self.base_url + "run/abcd-abcd-abcd-abcd/?name=new+name&description=new+description",
             json=a_sample_run_response,
         )
 
