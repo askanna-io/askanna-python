@@ -1,6 +1,6 @@
 # History
 
-## 0.10.0 (2021-06)
+## 0.10.0 (2021-06-02)
 
 - Add functionality to get run results:
   - CLI: `askanna result get`
