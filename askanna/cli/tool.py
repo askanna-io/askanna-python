@@ -58,6 +58,7 @@ commands = [
     "logout",
     "project",
     "push",
+    "result",
     "run",
     "variable",
     "workspace",

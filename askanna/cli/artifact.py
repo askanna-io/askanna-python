@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-import math
 import os
 import sys
-import time
 from zipfile import ZipFile
 import click
 
-from askanna.core import client as askanna_client
+from askanna.core.download import ChunkedDownload
 from askanna.core.utils import zipPaths
 from askanna.core.utils import scan_config_in_path
 from askanna.core.utils import get_config, string_expand_variables
@@ -108,138 +106,48 @@ def add():
         sys.exit(1)
 
 
-class ChunkedDownload:
-    def __init__(self, url, client, output=None):
-        """
-        Takes an url to download from, this can be a url which could redirect to another URI.
-        """
-        self.history = []
-        self.download_queue = []
-        self.chunk_size = 1024 * 1024 * 100  # 100MB
-        self.output_target = output
-
-        self.url = url
-        self.size = 0
-        self.accept_ranges = "none"
-
-        self.client = client
-        self.perform_preflight(url=url)
-
-    @property
-    def status_code(self):
-        """
-        Return the last status_code
-        """
-        return self.history[-1][1]
-
-    def perform_preflight(self, url):
-        """
-        We take the session from self.client and will do a preflight request to
-        determine whether the url will result in a (final) http_response_code=200
-        """
-        r = self.client.head(url)
-        self.history.append([url, r.status_code, r.headers])
-
-        if r.status_code in [301, 302] and r.headers.get("Location"):
-            self.url = r.headers.get("Location")
-            return self.perform_preflight(url=r.headers.get("Location"))
-        elif r.status_code == 200:
-            self.size = int(r.headers.get("Content-Length"))
-            self.accept_ranges = r.headers.get("Accept-Ranges", "none")
-
-    def setup_download(self):
-        """
-        Download the self.url and chunk (if needed) the download
-        """
-        no_chunks = math.ceil(self.size / self.chunk_size)
-        for chunk_no in range(0, no_chunks):
-            self.download_queue.append(
-                [
-                    chunk_no,
-                    chunk_no * self.chunk_size,
-                    (chunk_no + 1) * self.chunk_size - 1,
-                ]
-            )
-        # fix last end byte
-        self.download_queue[-1][-1] = self.size
-
-    def download(self):
-        """
-        Download the target_url, we consume the queue and write partial files.
-        In the end we glue them to the original intended file.
-        """
-        self.setup_download()
-        finished_queue = []
-        while len(self.download_queue):
-            chunk = self.download_queue.pop(0)
-            range_header = {
-                "Range": "{accept_ranges}={start}-{end}".format(
-                    accept_ranges=self.accept_ranges, start=chunk[1], end=chunk[2]
-                )
-            }
-
-            try:
-                r = self.client.get(self.url, stream=True, headers=range_header)
-                # so far so good on the download, save the result
-                with open("file_{}.part".format(chunk[0]), "wb") as f:
-                    for dlchunk in r.iter_content(chunk_size=1024):
-                        f.write(dlchunk)
-            except Exception as e:
-                print(e)
-                self.download_queue.append(chunk)
-            else:
-                finished_queue.append(chunk)
-        # combine the chunks in to one file
-        with open(self.output_target, "wb") as f:
-            finished_queue = sorted(finished_queue, key=lambda x: x[0])
-            for chunk in finished_queue:
-                chunkfilename = "file_{}.part".format(chunk[0])
-                with open(chunkfilename, "rb") as chunkfile:
-                    f.write(chunkfile.read())
-                # delete the chunkfile
-                os.remove(chunkfilename)
-
-
 @cli2.command(
     help="Download an artifact of a run", short_help="Download a run artifact"
 )
-@click.option("--id", "-i", required=True, type=str, help="Run SUUID")
-@click.option("--output", "-o", show_default=True, type=click.Path())
-def get(id, output):
+@click.option("--id", "-i", "suuid", prompt='Run SUUID', required=True, type=str, help="Run SUUID")
+@click.option("--output", "-o", "output_path", show_default=True, type=click.Path(), help="File name to save (zip)")
+def get(suuid, output_path):
     """
-    Download an artifact of a job run
+    Download an artifact of a run
     """
     config = get_config()
     ASKANNA_API_SERVER = config.get("askanna", {}).get("remote")
+    url = f"{ASKANNA_API_SERVER}artifact/{suuid}/"
 
-    base_url = "{server}".format(server=ASKANNA_API_SERVER)
-    url = base_url + "artifact/{}".format(id)
+    if not output_path:
+        output_path = f"artifact_{suuid}.zip"
 
-    if not output:
-        output = "artifact_{suuid}_{datetime}.zip".format(
-            suuid=id, datetime=time.strftime("%Y%m%d-%H%M%S")
+    if os.path.isdir(output_path):
+        click.echo(
+            "The output argument is a directory. Please provide a file name (zip) for the output.",
+            err=True
         )
+        sys.exit(1)
 
-    if os.path.exists(output):
+    if os.path.exists(output_path):
         click.echo(
             "The output file already exists. We will not overwrite the existing file.",
             err=True,
         )
         sys.exit(1)
 
-    stable_download = ChunkedDownload(url=url, client=askanna_client, output=output)
+    stable_download = ChunkedDownload(url=url)
     if stable_download.status_code != 200:
-        click.echo("We cannot find this artifact for you", err=True)
+        click.echo("We cannot find this artifact for you.", err=True)
         sys.exit(1)
-    click.echo("Downloading the artifact has started.")
-    stable_download.download()
-
-    click.echo("We have succesfully downloaded the job run artifact.")
-    click.echo("The artifact is saved in: {file}".format(file=output))
+    click.echo("Downloading the artifact has started...")
+    stable_download.download(output_file=output_path)
+    click.echo("We have succesfully downloaded the artifact.")
+    click.echo(f"The artifact is saved in: {output_path}")
 
 
 cli = click.CommandCollection(
     sources=[cli1, cli2],
-    help="Save and download run artifacts",
-    short_help="Save and download run artifacts",
+    help="Download artifact of a run",
+    short_help="Download run artifact",
 )
