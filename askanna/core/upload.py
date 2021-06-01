@@ -17,8 +17,8 @@ class Upload:
     )
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
-    tpl_upload_pass = "uploaded"
-    tpl_upload_fail = "failed"
+    tpl_upload_pass = "File is uploaded"
+    tpl_upload_fail = "Upload failed"
 
     def __init__(self, api_server: str, *args, **kwargs):
         self.ASKANNA_API_SERVER = api_server
@@ -87,7 +87,7 @@ class Upload:
         req = askanna_client.post(self.register_upload_url, json=info_dict)
         if req.status_code != 201:
             click.echo(
-                "In the AskAnna platform something went wrong with creating the code package.",
+                "In the AskAnna platform something went wrong with creating the upload entry.",
                 err=True,
             )
             sys.exit(1)
@@ -194,7 +194,7 @@ class ArtifactUpload(Upload):
         return {
             "ASKANNA_API_SERVER": self.ASKANNA_API_SERVER,
             "ARTIFACT_SUUID": self.suuid,
-            "RUN_SUUID": self.kwargs.get("RUN_SUUID"),
+            "RUN_SUUID": self.kwargs.get("run_suuid"),
         }
 
 

@@ -23,10 +23,8 @@ def cli():
 
     result_suuid = os.getenv("AA_RESULT_SUUID")
 
-    # first check whether we need to create artifacts or not
-    # if output is not specifed
-    # or if output.paths is not specified
-    # then we skip this step and report this to the stdout
+    # First check whether we need to create result or not.
+    # If output.result is not specified, we skip this step and report this to the stdout.
 
     result_path = config[job_name].get("output", {}).get("result")
 

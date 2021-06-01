@@ -50,6 +50,7 @@ def cli_commands():
 
 
 commands = [
+    "push_artifact",
     "push_metrics",
     "push_result",
     "push_variables",
