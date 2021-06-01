@@ -6,6 +6,10 @@ class GetError(Error):
     pass
 
 
+class HeadError(Error):
+    pass
+
+
 class PostError(Error):
     pass
 

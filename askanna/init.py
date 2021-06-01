@@ -8,8 +8,9 @@ from askanna.core.job import JobGateway
 from askanna.core.metrics import track_metric, track_metrics, MetricGateway  # noqa
 from askanna.core.variables_tracked import track_variable, track_variables  # noqa
 from askanna.core.project import ProjectGateway
-from askanna.core.utils import update_available
+from askanna.core.result import ResultGateway
 from askanna.core.run import RunMultipleQueryGateway, RunActionGateway
+from askanna.core.utils import update_available
 from askanna.core.workspace import WorkspaceGateway
 
 
@@ -21,6 +22,7 @@ if USING_ASKANNA_CLI:
 job = JobGateway()
 metrics = MetricGateway()
 project = ProjectGateway()
+result = ResultGateway()
 run = RunActionGateway()
 runs = RunMultipleQueryGateway()
 workspace = WorkspaceGateway()
