@@ -3,8 +3,9 @@ import os
 import sys
 import click
 
+from askanna.core import client as askanna_client
 from askanna.core.download import ChunkedDownload
-from askanna.core.utils import get_config, content_type_file_extension
+from askanna.core.utils import content_type_file_extension
 
 
 @click.group()
@@ -21,17 +22,15 @@ def get(suuid, output_path):
     """
     Download a result of a run
     """
-    config = get_config()
-    ASKANNA_API_SERVER = config.get("askanna", {}).get("remote")
-    url = f"{ASKANNA_API_SERVER}result/{suuid}/"
+    result_url = f"{askanna_client.config.remote}result/{suuid}/"
+    stable_download = ChunkedDownload(result_url)
 
-    stable_download = ChunkedDownload(url=url)
     if stable_download.status_code != 200:
-        click.echo("We cannot find this result for you.", err=True)
+        click.echo(f"{stable_download.status_code} - We cannot find this result for you", err=True)
         sys.exit(1)
 
     if not output_path:
-        file_extension = content_type_file_extension(stable_download.content_type)
+        file_extension = content_type_file_extension(str(stable_download.content_type))
         output_path = f"result_{suuid}{file_extension}"
 
     if os.path.isdir(output_path):

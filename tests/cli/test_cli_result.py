@@ -88,7 +88,7 @@ class TestCLIResult(unittest.TestCase):
 
         assert result.exception
         assert "Run SUUID: 1234-1234-1234-1234" in result.output
-        assert "We cannot find this result for you." in result.output
+        assert "404 - We cannot find this result for you" in result.output
 
     def test_command_result_get_prompt(self):
         result = CliRunner().invoke(cli_commands, "result get", input="abcd-abcd-abcd-abcd")
