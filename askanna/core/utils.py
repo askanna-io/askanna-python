@@ -689,3 +689,22 @@ def getLocalTimezone() -> str:
     Determine the local timezone name
     """
     return tzlocal.get_localzone().zone
+
+
+def content_type_file_extension(content_type : str) -> str:
+    content_type_file_extension_mapping = {
+        "application/csv": ".csv",
+        "application/json": ".json",
+        "application/pdf": ".pdf",
+        "application/vnd.ms-excel": ".xls",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+        "application/zip": ".zip",
+        "image/jpeg": ".jpeg",
+        "image/png": ".png",
+        "text/plain": ".txt",
+        "text/xml": ".xml",
+    }
+
+    file_extension = content_type_file_extension_mapping.get(content_type, ".unknown")
+
+    return file_extension
