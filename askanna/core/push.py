@@ -2,12 +2,13 @@ import os
 import sys
 import tempfile
 import uuid
+from zipfile import ZipFile
 
 import click
 import git
 
 from askanna.core.utils import validate_yml_job_names, validate_yml_schedule
-from askanna.core.utils import zipFilesInDir, scan_config_in_path
+from askanna.core.utils import zip_files_in_dir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
 from askanna.core.utils import extract_push_target, isIPAddress, getLocalTimezone
 from askanna.core.upload import PackageUpload
@@ -21,15 +22,20 @@ def package(src: str) -> str:
     # make a temporary directory
     tmpdir = tempfile.mkdtemp(prefix="askanna-package")
 
-    random_name = os.path.join(
+    zip_file = os.path.join(
         tmpdir,
         "{pwd_dir_name}_{random_suffix}.zip".format(
             pwd_dir_name=pwd_dir_name, random_suffix=random_suffix
         ),
     )
 
-    zipFilesInDir(src, random_name, lambda x: x)
-    return random_name
+    cwd = os.getcwd()
+    os.chdir(src)
+    with ZipFile(zip_file, mode="w") as f:
+        zip_files_in_dir(".", f)
+    os.chdir(cwd)
+
+    return zip_file
 
 
 def push(force: bool, description: str = None):
@@ -127,10 +133,7 @@ For more information check the documentation: https://docs.askanna.io/jobs/creat
             return project_folder
 
     if not cwd == project_folder:
-        click.echo(
-            f"You are not at the root folder of the project '{project_folder}'",
-            err=True,
-        )
+        click.echo(f"You are not at the root folder of the project '{project_folder}'.")
         upload_folder = ask_which_folder(cwd, project_folder)
 
     # check for existing package

@@ -4,11 +4,12 @@ import sys
 from zipfile import ZipFile
 import click
 
+from askanna.cli.run_utils.utils import string_expand_variables
 from askanna.core.download import ChunkedDownload
-from askanna.core.utils import zipPaths
-from askanna.core.utils import scan_config_in_path
-from askanna.core.utils import get_config, string_expand_variables
 from askanna.core.upload import ArtifactUpload
+from askanna.core.utils import scan_config_in_path
+from askanna.core.utils import get_config
+from askanna.core.utils import zip_paths
 
 
 @click.group()
@@ -25,17 +26,21 @@ def create_artifact(cwd: str, paths: list) -> str:
     # expand and translate paths if they are configured with variables
     paths = string_expand_variables(paths)
 
-    zipFileName = "/tmp/artifact.zip"
-    with ZipFile(zipFileName, mode="w") as zipObj:
-        zipPaths(zipObj, paths, cwd)
+    zip_file = "/tmp/artifact.zip"
+    with ZipFile(zip_file, mode="w") as f:
+        zip_paths(paths, f)
 
-    return zipFileName
+    return zip_file
 
 
 @cli1.command(
-    help="After a run, save the artifact", short_help="Save artifact from a run"
+    help="[deprecated] After a run, save the artifact", short_help="[deprecated] Save artifact from a run"
 )
 def add():
+    click.echo(
+        "In a future version we will deprecate the command 'askanna artifact add'. Please use "
+        "'askanna-run-utils push-artifact'."
+    )
     config = get_config()
     api_server = config["askanna"]["remote"]
 
@@ -43,8 +48,12 @@ def add():
     run_suuid = os.getenv("AA_RUN_SUUID")
     job_name = os.getenv("AA_JOB_NAME")
 
+    if not run_suuid:
+        click.echo("Cannot push from unregistered run to AskAnna", err=True)
+        sys.exit(1)
+
     if not project_suuid:
-        click.echo("Cannot upload from unregistered project to AskAnna", err=True)
+        click.echo("Cannot push from unregistered project to AskAnna", err=True)
         sys.exit(1)
 
     # first check whether we need to create artifacts or not
@@ -94,8 +103,7 @@ def add():
     }
     uploader = ArtifactUpload(
         api_server=api_server,
-        PROJECT_SUUID=project_suuid,
-        RUN_SUUID=run_suuid,
+        run_suuid=run_suuid,
     )
     status, msg = uploader.upload(artifact_archive, config, fileinfo)
     if status:

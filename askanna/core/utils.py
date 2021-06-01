@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 import sys
 import requests
-from typing import Any, List
+from typing import Any, List, Callable, Union
 import uuid
 from zipfile import ZipFile
 
@@ -113,10 +113,12 @@ def update_available() -> bool:
     else:
         pypi_info = r.json()
 
-    if askanna_version == pypi_info['info']['version']:
+    if askanna_version == pypi_info["info"]["version"]:
         return False
     else:
-        click.echo("[INFO] A newer version of AskAnna is available. Update via: pip install -U askanna")
+        click.echo(
+            "[INFO] A newer version of AskAnna is available. Update via: pip install -U askanna"
+        )
         return True
 
 
@@ -248,63 +250,98 @@ def store_config(new_config):
     return output
 
 
-# Zip the files from given directory that matches the filter
-def zipFilesInDir(dirName, zipFileName, filter):
-    os.chdir(dirName)
-    # create a ZipFile object
-    with ZipFile(zipFileName, mode="w") as zipObj:
-        # Iterate over all the files in directory
-        for folderName, subfolders, filenames in os.walk("."):
-            for filename in filenames:
-                if filter(filename):
-                    # create complete filepath of file in directory
-                    filePath = os.path.join(folderName, filename)
-                    # Add file to zip
-                    zipObj.write(filePath)
+# Zip the files that matches the filter from given directory
+def zip_files_in_dir(
+    directory_path: str, zip_file: ZipFile, filter=lambda x: x
+) -> None:
+    files = get_files_in_dir(directory_path=directory_path, filter=filter)
+
+    # Iterate over all the files and zip them
+    for file in sorted(files):
+        zip_file.write(file)
 
 
-def zipAFile(zipObj: ZipFile, dirpath: str, filepath: str, prefixdir: str) -> None:
-    # create complete filepath of file in directory
-    filePath = os.path.join(dirpath, filepath)
-    # Add file to zip
-    zipObj.write(filePath)
+def get_files_in_dir(
+    directory_path: str, filter: Callable[[str], Union[str, bool]] = lambda x: x
+) -> set:
+    file_list = set()
 
-
-def zipFolder(zipObj: ZipFile, dirpath: str, prefixdir: str):
-    os.chdir(dirpath)
     # Iterate over all the files in directory
-    for folderName, subfolders, filenames in os.walk("."):
-        for filename in filenames:
-            # create complete filepath of file in directory
-            filePath = os.path.join(folderName, filename)
-            # Add file to zip
-            zipObj.write(filePath, os.path.join(prefixdir, filePath))
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            if filter(file):
+                # Create complete filepath of file in directory
+                file_path = os.path.join(root, file)
+                if file_path.startswith("./"):
+                    file_path = file_path[2:]
+                file_list.add(file_path)
+
+    return file_list
 
 
-def zipPaths(zipObj: ZipFile, paths: list, cwd: str):
-    for targetloc in paths:
-        if targetloc.startswith("/"):
-            prefixdir = targetloc
-        else:
-            prefixdir = targetloc
-            targetloc = os.path.join(cwd, targetloc)
+def zip_paths(paths: List, zip_file: ZipFile, exclude_paths: List = []) -> None:
+    files = get_files_in_paths(paths, exclude_paths)
 
-        # check for existence
+    # Iterate over all the files and zip them
+    for file in sorted(files):
+        zip_file.write(file)
 
-        if not os.path.exists(targetloc):
-            click.echo(f"{targetloc} does not exists ... skipping")
+
+def get_files_in_paths(paths: List, exclude_paths: List = []) -> set:
+    files = set()
+
+    # first filter out empty string paths
+    for path in filter(lambda x: len(x), paths):
+        # replace asteriks if possible
+        if path.startswith("*"):
+            path = "." + path[1:]
+
+        if path.endswith("/*"):
+            path = path[:-1]
+
+        if not os.path.exists(path):
+            click.echo(f"{path} does not exists...skipping")
             continue
 
-        if os.path.isdir(targetloc):
-            zipFolder(zipObj, targetloc, prefixdir=prefixdir)
-        else:
-            # we got a file?
-            zipAFile(
-                zipObj,
-                dirpath=os.path.dirname(targetloc),
-                filepath=os.path.basename(targetloc),
-                prefixdir=prefixdir,
+        # base folder path and check whether this is in the exclude_list
+        base_folder = "/".join(path.split("/")[:2])
+        if base_folder in exclude_paths:
+            click.echo(
+                f"[CONFIG ERROR] '{base_folder}' from '{path}' is on the exclusion list. AskAnna does not allow to "
+                "access these files. This path is ignored and we continue with the other paths.",
+                err=True,
             )
+            continue
+
+        if os.path.isdir(path):
+            files.update(get_files_in_dir(path))
+        else:  # so, we got a file
+            if path.startswith("./"):
+                path = path[2:]
+            files.add(path)
+
+    return sorted(files)
+
+
+def create_zip_from_paths(filename: str, paths: List = []) -> None:
+    """
+    Create a ZipFile on the given `filename` location
+    """
+    # we exclude the following directories from included into the zip
+    exclude_paths = [
+        "/",
+        "/bin",
+        "/dev",
+        "/lib",
+        "/mnt",
+        "/opt",
+        "/proc",
+        "/usr",
+        "/var",
+    ]
+
+    with ZipFile(filename, mode="w") as f:
+        zip_paths(paths, f, exclude_paths=exclude_paths)
 
 
 def _file_type(path):
@@ -324,16 +361,6 @@ def _file_type(path):
     type_, _ = mimetypes.guess_type(path)
     # When no type can be inferred, File.type returns an empty string
     return "" if type_ is None else type_
-
-
-def string_expand_variables(strings: list) -> list:
-    var_matcher = re.compile(r"\$\{(?P<MYVAR>[\w\-]+)\}")
-    for idx, line in enumerate(strings):
-        matches = var_matcher.findall(line)
-        for m in matches:
-            line = line.replace("${" + m + "}", os.getenv(m.strip()))
-        strings[idx] = line
-    return strings
 
 
 def getProjectInfo(project_suuid):
@@ -441,7 +468,7 @@ def parse_cron_line(cron_line: str) -> str:
     return cron_line
 
 
-def parse_cron_schedule(schedule: list):
+def parse_cron_schedule(schedule: List):
     """
     Determine and validate which format the cron defition it has, it can be one of the following:
     - * * * * *  (m, h, d, m, weekday)
@@ -676,7 +703,7 @@ def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> Lis
     return labels
 
 
-def isIPAddress(ip : str) -> bool:
+def isIPAddress(ip: str) -> bool:
     try:
         ipaddress.ip_address(ip)
     except ValueError:
