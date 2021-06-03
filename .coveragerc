@@ -2,11 +2,9 @@
 include = askanna/*
 branch = True
 omit =
-    # don't cover migrations and tests
-    *migrations*
+    # don't cover tests
     *tests*
-    # don't cover html & txt files
-    *.html
+    # don't cover txt files
     *.txt
     # don't cover .sh files
     *.sh

@@ -1,6 +1,7 @@
 import unittest
 import responses
 
+from askanna.core import client
 from askanna.core.workspace import WorkspaceGateway
 
 a_sample_workspace_response = {
@@ -15,25 +16,27 @@ a_sample_workspace_response = {
 
 class SDKworkspaceTest(unittest.TestCase):
     def setUp(self):
+        self.base_url = client.config.remote
+
         self.responses = responses.RequestsMock()
         self.responses.start()
 
         self.responses.add(
             responses.PATCH,
-            url="https://beta-api.askanna.eu/v1/workspace/abcd-abcd-abcd-abcd/",
+            url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
             json=a_sample_workspace_response,
             match=[responses.json_params_matcher({"name": "new name"})],
         )
 
         self.responses.add(
             responses.PATCH,
-            url="https://beta-api.askanna.eu/v1/workspace/abcd-abcd-abcd-abcd/",
+            url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
             json=a_sample_workspace_response,
             match=[responses.json_params_matcher({"description": "new description"})],
         )
         self.responses.add(
             responses.PATCH,
-            url="https://beta-api.askanna.eu/v1/workspace/abcd-abcd-abcd-abcd/",
+            url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
             json=a_sample_workspace_response,
             match=[
                 responses.json_params_matcher(

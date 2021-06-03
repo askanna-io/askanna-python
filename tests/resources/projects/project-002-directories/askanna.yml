@@ -1,0 +1,16 @@
+push-target: https://askanna.eu/1S6G-K3fI-visU-LKac/project/36E6-cEhG-uTjV-2mrB
+
+train-model:
+  job:
+    - pip install -r requirements.txt
+    - python src/train.py ${alpha} ${l1_ratio}
+  output:
+    result: model/model.pkl
+    artifact:
+      - data/
+
+select-best-model:
+  job:
+    - python select-best-model.py
+  output:
+    artifact: model/model.pkl

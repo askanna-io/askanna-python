@@ -17,3 +17,7 @@ plugins:
     channel: beta
     config:
       editorconfig: .editorconfig
+exclude_patterns:
+  - "**/test/"
+  - "**/tests/"
+  - tests/

@@ -1,0 +1,55 @@
+push-target: https://beta.askanna.eu/2Bd3-fHXM-Lf22-Xne7/project/3FtY-Bb1W-Kj1m-ZAED
+
+train-model:
+  job:
+    - pip install -r requirements.txt
+    - python src/models/train_model.py
+  output:
+    artifact:
+      - .
+
+create_dataset:
+  job:
+    - pip install -r requirements.txt
+    - python src/data/create_dataset.py
+  output:
+    result: data/processed/input.csv
+    artifact:
+      - data/interim
+
+create_features:
+  job:
+    - pip install -r requirements.txt
+    - python src/data/create_features.py
+  output:
+    result: data/processed/input-2.csv
+    artifact:
+      - data/interim/.gitkeep
+      - data/processed
+      - data/input/not-exist.csv
+
+serve-model:
+  job:
+    - pip install -r requirements.txt
+    - python src/models/serve_model.py {{ PAYLOAD_PATH }}
+  output:
+    result: result/prediction.json
+
+evaluate-model:
+  job:
+    - pip install -r requirements.txt
+    - python src/models/evaluate_model.py
+    - runipy notebooks/demo-result.ipynb notebooks/result-demo-result.ipynb
+  output:
+    result: result/evaluation.json
+    artifact: /
+
+test multiple models:
+  job:
+    - pip install -r requirements_multiple-models.txt
+    - python src/models/test-multiple-models.py
+  output:
+    artifact:
+      - models/benchmark_models_performance.png
+      - models/benchmark_models_time.png
+      - models
