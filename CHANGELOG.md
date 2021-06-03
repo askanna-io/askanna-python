@@ -1,5 +1,14 @@
 # History
 
+## 0.10.0 (2021-06-02)
+
+- Add functionality to get run results:
+  - CLI: `askanna result get`
+  - Python SDK: `askanna.result.get()` and `askanna.result.get_content_type()`
+- Refactor how we zip artifact paths. The new function fixes an issue with saving individual files. Also, it has some
+  built in protection that you cannot zip the full filesystem as an artifact.
+- Add run utils function to push the artifact, and prepare for removing `askanna artifact add`
+
 ## 0.9.0 (2021-05-19)
 
 - Give runs a name and description when you start them.
