@@ -111,7 +111,10 @@ def update_available() -> bool:
     except requests.exceptions.ConnectionError:
         return False
     else:
-        pypi_info = r.json()
+        if r.status_code == 200:
+            pypi_info = r.json()
+        else:
+            return False
 
     if askanna_version == pypi_info["info"]["version"]:
         return False
