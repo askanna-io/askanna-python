@@ -130,6 +130,8 @@ class RunActionGateway:
                 "To start a run we need at least a job SUUID or job name"
             )
         elif not job_suuid:
+            if not project_suuid:
+                project_suuid = self.gateway.client.config.project_suuid
             job_gateway = JobGateway()
             job_suuid = job_gateway.get_job_by_name(
                 job_name=job_name, project_suuid=project_suuid

@@ -4,6 +4,7 @@
 # Please note: never do `import askanna` here, this will cause an recursive import loop
 
 from askanna import USING_ASKANNA_CLI
+from askanna.core.config import Config
 from askanna.core.job import JobGateway
 from askanna.core.metrics import track_metric, track_metrics, MetricGateway  # noqa
 from askanna.core.variables_tracked import track_variable, track_variables  # noqa
@@ -16,6 +17,8 @@ from askanna.core.workspace import WorkspaceGateway
 
 if USING_ASKANNA_CLI:
     update_available()
+
+config = Config()
 
 # Instantiated objects for query or actions, these do not contain any data on load and will be filled with data on
 # using detail/get/list actions from it.
