@@ -146,7 +146,7 @@ class VariableTrackedGateway:
 
 def track_variable(name: str, value, label: dict = None) -> None:
     # store the variable
-    if not validate_value(value):
+    if value and not validate_value(value):
         click.echo(
             f"AskAnna cannot store this datatype. Variable not stored for {name}, {value}, {label}."
         )
@@ -166,7 +166,10 @@ def track_variable(name: str, value, label: dict = None) -> None:
         value = "***masked***"
 
     # add value to track queue
-    datapair = VariableDataPair(name=name, value=value, dtype=translate_dtype(value))
+    if value:
+        datapair = VariableDataPair(name=name, value=value, dtype=translate_dtype(value))
+    else:
+        datapair = VariableDataPair(name=name, value=None, dtype="tag")
     labels = [
         VariableLabel(name="source", value="run", dtype="string")
     ] + labels_to_type(label, labelclass=VariableLabel)

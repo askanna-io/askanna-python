@@ -640,13 +640,15 @@ def translate_dtype(value: Any) -> str:
 
     supported_types = {
         "bool": "boolean",
-        "str": "string",
-        "int": "integer",
-        "float": "float",
-        "dict": "dictionary",
         "datetime.datetime": "datetime",
         "datetime.time": "time",
         "datetime.date": "date",
+        "dict": "dictionary",
+        "float": "float",
+        "int": "integer",
+        "list": "list",
+        "str": "string",
+        "tag": "tag",
     }
 
     try:
@@ -665,14 +667,15 @@ def validate_value(value: Any) -> bool:
     """
     supported_types = [
         "bool",
-        "str",
-        "int",
-        "float",
         "datetime.date",
         "datetime.datetime",
         "datetime.time",
-        "tag",  # single string marked as tag
         "dict",
+        "float",
+        "int",
+        "list",
+        "str",
+        "tag",
     ]
 
     try:
@@ -692,14 +695,16 @@ def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> Lis
     # test label type, if it is a string, then convert it to tag
     if isinstance(label, str):
         labels.append(labelclass(name=label, value=None, dtype="tag"))
-        label = None
-
-    if label:
+    elif isinstance(label, list):
+        for name in label:
+            labels.append(labelclass(name=name, value=None, dtype="tag"))
+    elif label:
         for k, v in label.items():
             if v is None:
                 labels.append(labelclass(name=k, value=None, dtype="tag"))
             else:
                 labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
+
     return labels
 
 

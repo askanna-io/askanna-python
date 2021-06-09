@@ -18,6 +18,7 @@ class DtypeConverterTest(unittest.TestCase):
         self.assertEqual(translate_dtype(3.14), "float")
         self.assertEqual(translate_dtype(5.0), "float")
 
+        self.assertEqual(translate_dtype(["test", "some text"]), "list")
         self.assertEqual(translate_dtype({"test": True}), "dictionary")
 
         self.assertEqual(translate_dtype(datetime.date(2021, 4, 9)), "date")
