@@ -59,45 +59,53 @@ supported_data_types = {
     "tag": "tag",
 }
 
-# list taken from https://numpy.org/doc/stable/user/basics.types.html
-numpy_types = {
-    "numpy.bool_": "boolean",
-    "numpy.intc": "integer",
-    "numpy.int_": "integer",
-    "numpy.uint": "integer",
-    "numpy.short": "integer",
-    "numpy.ushort": "integer",
-    "numpy.longlong": "integer",
-    "numpy.ulonglong": "integer",
-    "numpy.half": "float",
-    "numpy.float16": "float",
-    "numpy.single": "float",
-    "numpy.double": "float",
-    "numpy.longdouble": "float",
-    "numpy.csingle": "float",
-    "numpy.cdouble": "float",
-    "numpy.clongdouble": "float",
-    # more platform specific types
-    "numpy.int8": "integer",
-    "numpy.int16": "integer",
-    "numpy.int32": "integer",
-    "numpy.int64": "integer",
-    "numpy.uint8": "integer",
-    "numpy.uint16": "integer",
-    "numpy.uint32": "integer",
-    "numpy.uint64": "integer",
-    "numpy.intp": "integer",
-    "numpy.uintp": "integer",
-    "numpy.float32": "float",
-    "numpy.float64": "float",
-    "numpy.float_": "float",
-    # python equivalant of Decimal, convert to float now
-    "numpy.complex64": "float",
-    "numpy.complex128": "float",
-    "numpy.complex_": "float",
-    # list type
-    "numpy.array": "list",
-}
+try:
+    import numpy as np  # noqa: F401
+except ImportError:
+    numpy_available = False
+    pass  # do nothing we don't support numpy
+else:
+    numpy_available = True
+    # list taken from https://numpy.org/doc/stable/user/basics.types.html
+    numpy_types = {
+        "numpy.bool_": "boolean",
+        "numpy.intc": "integer",
+        "numpy.int_": "integer",
+        "numpy.uint": "integer",
+        "numpy.short": "integer",
+        "numpy.ushort": "integer",
+        "numpy.longlong": "integer",
+        "numpy.ulonglong": "integer",
+        "numpy.half": "float",
+        "numpy.float16": "float",
+        "numpy.single": "float",
+        "numpy.double": "float",
+        "numpy.longdouble": "float",
+        "numpy.csingle": "float",
+        "numpy.cdouble": "float",
+        "numpy.clongdouble": "float",
+        # more platform specific types
+        "numpy.int8": "integer",
+        "numpy.int16": "integer",
+        "numpy.int32": "integer",
+        "numpy.int64": "integer",
+        "numpy.uint8": "integer",
+        "numpy.uint16": "integer",
+        "numpy.uint32": "integer",
+        "numpy.uint64": "integer",
+        "numpy.intp": "integer",
+        "numpy.uintp": "integer",
+        "numpy.float32": "float",
+        "numpy.float64": "float",
+        "numpy.float_": "float",
+        # python equivalant of Decimal, convert to float now
+        "numpy.complex64": "float",
+        "numpy.complex128": "float",
+        "numpy.complex_": "float",
+        # list type
+        "numpy.array": "list",
+    }
+    supported_data_types.update(**numpy_types)
 
 
 def object_fullname(o):
@@ -624,8 +632,6 @@ def create_suuid(uuid_obj) -> str:
 
 
 def serialize_numpy_for_json(obj):
-    import numpy as np
-
     # the o.item() is a generic method on each numpy dtype.
     if isinstance(obj, np.generic):
         return obj.item()
@@ -637,12 +643,7 @@ def serialize_numpy_for_json(obj):
 def json_serializer(obj):
     if isinstance(obj, (datetime.time, datetime.date, datetime.datetime)):
         return obj.isoformat()
-
-    try:
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pass  # we don't convert numpy datatypes, if we find one, we will just crash
-    else:
+    if numpy_available:
         obj = serialize_numpy_for_json(obj)
     return obj
 
@@ -653,13 +654,6 @@ def translate_dtype(value: Any) -> str:
     """
     typename = object_fullname(value)
 
-    try:
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pass  # do nothing we don't support numpy
-    else:
-        supported_data_types.update(**numpy_types)
-
     return supported_data_types.get(typename, typename)
 
 
@@ -667,12 +661,6 @@ def validate_value(value: Any) -> bool:
     """
     Validate whether the value set is supported
     """
-    try:
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pass  # do nothing we don't support numpy
-    else:
-        supported_data_types.update(**numpy_types)
 
     return object_fullname(value) in supported_data_types
 
