@@ -44,6 +44,21 @@ diskunit = StorageUnit(
     B=1, KiB=1024 ** 1, MiB=1024 ** 2, GiB=1024 ** 3, TiB=1024 ** 4, PiB=1024 ** 5
 )
 
+supported_data_types = {
+    # primitive types
+    "bool": "boolean",
+    "int": "integer",
+    "float": "float",
+    "str": "string",
+    # complex types
+    "datetime.datetime": "datetime",
+    "datetime.time": "time",
+    "datetime.date": "date",
+    "dict": "dictionary",
+    "list": "list",
+    "tag": "tag",
+}
+
 # list taken from https://numpy.org/doc/stable/user/basics.types.html
 numpy_types = {
     "numpy.bool_": "boolean",
@@ -638,54 +653,28 @@ def translate_dtype(value: Any) -> str:
     """
     typename = object_fullname(value)
 
-    supported_types = {
-        "bool": "boolean",
-        "datetime.datetime": "datetime",
-        "datetime.time": "time",
-        "datetime.date": "date",
-        "dict": "dictionary",
-        "float": "float",
-        "int": "integer",
-        "list": "list",
-        "str": "string",
-        "tag": "tag",
-    }
-
     try:
         import numpy as np  # noqa: F401
     except ImportError:
         pass  # do nothing we don't support numpy
     else:
-        supported_types.update(**numpy_types)
+        supported_data_types.update(**numpy_types)
 
-    return supported_types.get(typename, typename)
+    return supported_data_types.get(typename, typename)
 
 
 def validate_value(value: Any) -> bool:
     """
     Validate whether the value set is supported
     """
-    supported_types = [
-        "bool",
-        "datetime.date",
-        "datetime.datetime",
-        "datetime.time",
-        "dict",
-        "float",
-        "int",
-        "list",
-        "str",
-        "tag",
-    ]
-
     try:
         import numpy as np  # noqa: F401
     except ImportError:
         pass  # do nothing we don't support numpy
     else:
-        supported_types += numpy_types.keys()
+        supported_data_types.update(**numpy_types)
 
-    return object_fullname(value) in supported_types
+    return object_fullname(value) in supported_data_types
 
 
 def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> List:
