@@ -677,7 +677,7 @@ def validate_value(value: Any) -> bool:
     return object_fullname(value) in supported_data_types
 
 
-def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> List:
+def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List:
     # process labels
     labels = []
 
@@ -692,7 +692,13 @@ def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> Lis
             if v is None:
                 labels.append(labelclass(name=k, value=None, dtype="tag"))
             else:
-                labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
+                if v and not validate_value(v):
+                    click.echo(
+                        f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
+                        err=True
+                    )
+                else:
+                    labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
 
     return labels
 

@@ -210,7 +210,8 @@ def track_metric(name: str, value, label: dict = None) -> None:
     # store the metric
     if value and not validate_value(value):
         click.echo(
-            f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}."
+            f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}.",
+            err=True
         )
         return
     # add value to track queue
