@@ -1,10 +1,32 @@
 import datetime
 import unittest
 
-from askanna.core.utils import translate_dtype, update_available
+from askanna.core.utils import translate_dtype, validate_value, update_available
 
 
-class DtypeConverterTest(unittest.TestCase):
+class TestValidateValue(unittest.TestCase):
+    def test_translate_dtype(self):
+        self.assertTrue(validate_value(True))
+        self.assertTrue(validate_value(False))
+
+        self.assertTrue(validate_value("0"))
+        self.assertTrue(validate_value("some text"))
+
+        self.assertTrue(validate_value(0))
+        self.assertTrue(translate_dtype(10))
+
+        self.assertTrue(validate_value(3.14))
+        self.assertTrue(validate_value(5.0))
+
+        self.assertTrue(validate_value(["test", "some text"]))
+        self.assertTrue(validate_value({"test": True}))
+
+        self.assertTrue(validate_value(datetime.date(2021, 4, 9)))
+        self.assertTrue(validate_value(datetime.time(hour=0)))
+        self.assertTrue(validate_value(datetime.datetime.now()))
+
+
+class TestTranslateDtype(unittest.TestCase):
     def test_translate_dtype(self):
         self.assertEqual(translate_dtype(True), "boolean")
         self.assertEqual(translate_dtype(False), "boolean")
@@ -26,6 +48,6 @@ class DtypeConverterTest(unittest.TestCase):
         self.assertEqual(translate_dtype(datetime.datetime.now()), "datetime")
 
 
-class UpdateAvailableTest(unittest.TestCase):
+class TestUpdateAvailable(unittest.TestCase):
     def test_update_available(self):
         self.assertIn(update_available(), [True, False])
