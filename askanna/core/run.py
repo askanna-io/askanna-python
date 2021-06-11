@@ -201,17 +201,29 @@ class RunMultipleQueryGateway(RunActionGateway):
         self,
         project: str = None,
         job: str = None,
+        job_name: str = None,
         runs: list = None,
         limit: int = 100,
         offset: int = 0,
+        ordering: str = "-created",
         include_metrics: bool = False,
         include_variables: bool = False,
     ) -> List[RunInfo]:
+        if job and job_name:
+            raise exceptions.GetError(
+                "Parameters 'job' and 'job_name' are both set. Please use or 'job' or 'job_name'."
+            )
+        if job_name:
+            project_suuid = project or self.gateway.client.config.project_suuid
+            job_gateway = JobGateway()
+            job = job_gateway.get_job_by_name(job_name=job_name, project_suuid=project_suuid).short_uuid
+
         query = self.get_query(project, job, runs)
         query.update(
             {
                 "limit": limit,
                 "offset": offset,
+                "ordering": ordering,
             }
         )
         rgw = RunGateway()
