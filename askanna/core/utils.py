@@ -62,8 +62,8 @@ supported_data_types = {
 try:
     import numpy as np  # noqa: F401
 except ImportError:
+    # do nothing we don't support numpy
     numpy_available = False
-    pass  # do nothing we don't support numpy
 else:
     numpy_available = True
     # list taken from https://numpy.org/doc/stable/user/basics.types.html
