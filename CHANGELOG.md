@@ -1,6 +1,10 @@
 # History
 
-## 0.10.0 (2021-06-02)
+## 0.11.0 (2021-06-..)
+
+- Remove deprecated CLI command `askanna artifact add`
+
+## 0.10.0 (2021-06-03)
 
 - Add functionality to get run results:
   - CLI: `askanna result get`
