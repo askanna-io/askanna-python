@@ -1,6 +1,16 @@
 # History
 
-## 0.10.0 (2021-06-02)
+## 0.11.0 (2021-06-16)
+
+- `track_metric(s)` and `track_variable(s)` now also support date type `list`
+- Extended `askanna.runs.get` with the option to filter on `job_name` and to order on `create` date
+- When you start a run using the job name via the Python SDK, we now use the project SUUID from the config as a
+  default filter.
+- If you run a Python script from an AskAnna project directory, we also load the project SUUID in the config.
+- Remove deprecated CLI command `askanna artifact add`
+- Try to check if an update is available, but don't crash if we cannot run the check
+
+## 0.10.0 (2021-06-03)
 
 - Add functionality to get run results:
   - CLI: `askanna result get`

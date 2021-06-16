@@ -1,5 +1,8 @@
-from askanna.core.utils import get_config
+from askanna.core.utils import extract_push_target, get_config
 from askanna.core.user import User
+
+
+config = get_config(check_config=False)
 
 
 class Config:
@@ -7,30 +10,35 @@ class Config:
     Configuration management for AskAnna CLI & SDK
     """
 
-    config = {}
-
-    def __init__(self, *args, **kwargs):
-        self.config = get_config(check_config=False)
-        self.user = self.user_from_config()
-
     @property
     def remote(self):
-        return self.config.get("askanna", {}).get(
+        return config.get("askanna", {}).get(
             "remote", "https://beta-api.askanna.eu/v1/"
         )
 
     @property
-    def push_target(self):
-        return self.config.get("push-target")
+    def user(self):
+        token = config.get("auth", {}).get("token")
+        return User(token=token)
 
     @property
-    def auth(self):
-        return self.config.get("auth", {})
+    def push_target(self):
+        return config.get("push-target")
 
-    def user_from_config(self):
-        """
-        Try to read an auth token
-        if that is the case configure a User instance with a token set
-        """
-        token = self.auth.get("token")
-        return User(token=token)
+    @property
+    def workspace_suuid(self):
+        try:
+            push_target = extract_push_target(self.push_target)
+        except ValueError:
+            # the push-target is not set, so don't bother reading it
+            return None
+        return push_target.get("workspace_suuid")
+
+    @property
+    def project_suuid(self):
+        try:
+            push_target = extract_push_target(self.push_target)
+        except ValueError:
+            # the push-target is not set, so don't bother reading it
+            return None
+        return push_target.get("project_suuid")

@@ -44,45 +44,68 @@ diskunit = StorageUnit(
     B=1, KiB=1024 ** 1, MiB=1024 ** 2, GiB=1024 ** 3, TiB=1024 ** 4, PiB=1024 ** 5
 )
 
-# list taken from https://numpy.org/doc/stable/user/basics.types.html
-numpy_types = {
-    "numpy.bool_": "boolean",
-    "numpy.intc": "integer",
-    "numpy.int_": "integer",
-    "numpy.uint": "integer",
-    "numpy.short": "integer",
-    "numpy.ushort": "integer",
-    "numpy.longlong": "integer",
-    "numpy.ulonglong": "integer",
-    "numpy.half": "float",
-    "numpy.float16": "float",
-    "numpy.single": "float",
-    "numpy.double": "float",
-    "numpy.longdouble": "float",
-    "numpy.csingle": "float",
-    "numpy.cdouble": "float",
-    "numpy.clongdouble": "float",
-    # more platform specific types
-    "numpy.int8": "integer",
-    "numpy.int16": "integer",
-    "numpy.int32": "integer",
-    "numpy.int64": "integer",
-    "numpy.uint8": "integer",
-    "numpy.uint16": "integer",
-    "numpy.uint32": "integer",
-    "numpy.uint64": "integer",
-    "numpy.intp": "integer",
-    "numpy.uintp": "integer",
-    "numpy.float32": "float",
-    "numpy.float64": "float",
-    "numpy.float_": "float",
-    # python equivalant of Decimal, convert to float now
-    "numpy.complex64": "float",
-    "numpy.complex128": "float",
-    "numpy.complex_": "float",
-    # list type
-    "numpy.array": "list",
+supported_data_types = {
+    # primitive types
+    "bool": "boolean",
+    "int": "integer",
+    "float": "float",
+    "str": "string",
+    # complex types
+    "datetime.datetime": "datetime",
+    "datetime.time": "time",
+    "datetime.date": "date",
+    "dict": "dictionary",
+    "list": "list",
+    "tag": "tag",
 }
+
+try:
+    import numpy as np  # noqa: F401
+except ImportError:
+    # do nothing we don't support numpy
+    numpy_available = False
+else:
+    numpy_available = True
+    # list taken from https://numpy.org/doc/stable/user/basics.types.html
+    numpy_types = {
+        "numpy.bool_": "boolean",
+        "numpy.intc": "integer",
+        "numpy.int_": "integer",
+        "numpy.uint": "integer",
+        "numpy.short": "integer",
+        "numpy.ushort": "integer",
+        "numpy.longlong": "integer",
+        "numpy.ulonglong": "integer",
+        "numpy.half": "float",
+        "numpy.float16": "float",
+        "numpy.single": "float",
+        "numpy.double": "float",
+        "numpy.longdouble": "float",
+        "numpy.csingle": "float",
+        "numpy.cdouble": "float",
+        "numpy.clongdouble": "float",
+        # more platform specific types
+        "numpy.int8": "integer",
+        "numpy.int16": "integer",
+        "numpy.int32": "integer",
+        "numpy.int64": "integer",
+        "numpy.uint8": "integer",
+        "numpy.uint16": "integer",
+        "numpy.uint32": "integer",
+        "numpy.uint64": "integer",
+        "numpy.intp": "integer",
+        "numpy.uintp": "integer",
+        "numpy.float32": "float",
+        "numpy.float64": "float",
+        "numpy.float_": "float",
+        # python equivalant of Decimal, convert to float now
+        "numpy.complex64": "float",
+        "numpy.complex128": "float",
+        "numpy.complex_": "float",
+        # list type
+        "numpy.array": "list",
+    }
+    supported_data_types.update(**numpy_types)
 
 
 def object_fullname(o):
@@ -111,7 +134,10 @@ def update_available() -> bool:
     except requests.exceptions.ConnectionError:
         return False
     else:
-        pypi_info = r.json()
+        if r.status_code == 200:
+            pypi_info = r.json()
+        else:
+            return False
 
     if askanna_version == pypi_info["info"]["version"]:
         return False
@@ -609,8 +635,6 @@ def create_suuid(uuid_obj) -> str:
 
 
 def serialize_numpy_for_json(obj):
-    import numpy as np
-
     # the o.item() is a generic method on each numpy dtype.
     if isinstance(obj, np.generic):
         return obj.item()
@@ -622,12 +646,7 @@ def serialize_numpy_for_json(obj):
 def json_serializer(obj):
     if isinstance(obj, (datetime.time, datetime.date, datetime.datetime)):
         return obj.isoformat()
-
-    try:
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pass  # we don't convert numpy datatypes, if we find one, we will just crash
-    else:
+    if numpy_available:
         obj = serialize_numpy_for_json(obj)
     return obj
 
@@ -638,68 +657,40 @@ def translate_dtype(value: Any) -> str:
     """
     typename = object_fullname(value)
 
-    supported_types = {
-        "bool": "boolean",
-        "str": "string",
-        "int": "integer",
-        "float": "float",
-        "dict": "dictionary",
-        "datetime.datetime": "datetime",
-        "datetime.time": "time",
-        "datetime.date": "date",
-    }
-
-    try:
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pass  # do nothing we don't support numpy
-    else:
-        supported_types.update(**numpy_types)
-
-    return supported_types.get(typename, typename)
+    return supported_data_types.get(typename, typename)
 
 
 def validate_value(value: Any) -> bool:
     """
     Validate whether the value set is supported
     """
-    supported_types = [
-        "bool",
-        "str",
-        "int",
-        "float",
-        "datetime.date",
-        "datetime.datetime",
-        "datetime.time",
-        "tag",  # single string marked as tag
-        "dict",
-    ]
 
-    try:
-        import numpy as np  # noqa: F401
-    except ImportError:
-        pass  # do nothing we don't support numpy
-    else:
-        supported_types += numpy_types.keys()
-
-    return object_fullname(value) in supported_types
+    return object_fullname(value) in supported_data_types
 
 
-def labels_to_type(label: dict = None, labelclass=collections.namedtuple) -> List:
+def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List:
     # process labels
     labels = []
 
     # test label type, if it is a string, then convert it to tag
     if isinstance(label, str):
         labels.append(labelclass(name=label, value=None, dtype="tag"))
-        label = None
-
-    if label:
+    elif isinstance(label, list):
+        for name in label:
+            labels.append(labelclass(name=name, value=None, dtype="tag"))
+    elif label:
         for k, v in label.items():
             if v is None:
                 labels.append(labelclass(name=k, value=None, dtype="tag"))
             else:
-                labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
+                if v and not validate_value(v):
+                    click.echo(
+                        f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
+                        err=True
+                    )
+                else:
+                    labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
+
     return labels
 
 

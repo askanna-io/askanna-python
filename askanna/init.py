@@ -3,7 +3,10 @@
 
 # Please note: never do `import askanna` here, this will cause an recursive import loop
 
+import click
+
 from askanna import USING_ASKANNA_CLI
+from askanna.core.config import Config
 from askanna.core.job import JobGateway
 from askanna.core.metrics import track_metric, track_metrics, MetricGateway  # noqa
 from askanna.core.variables_tracked import track_variable, track_variables  # noqa
@@ -15,7 +18,12 @@ from askanna.core.workspace import WorkspaceGateway
 
 
 if USING_ASKANNA_CLI:
-    update_available()
+    try:
+        update_available()
+    except Exception as e:
+        click.echo(f"Something went wrong while checking if an update is available: {e}", err=True)
+
+config = Config()
 
 # Instantiated objects for query or actions, these do not contain any data on load and will be filled with data on
 # using detail/get/list actions from it.

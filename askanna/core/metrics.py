@@ -208,13 +208,17 @@ mc = MetricCollector(run_suuid=os.getenv("AA_RUN_SUUID"))
 
 def track_metric(name: str, value, label: dict = None) -> None:
     # store the metric
-    if not validate_value(value):
+    if value and not validate_value(value):
         click.echo(
-            f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}."
+            f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}.",
+            err=True
         )
         return
     # add value to track queue
-    datapair = MetricDataPair(name=name, value=value, dtype=translate_dtype(value))
+    if value:
+        datapair = MetricDataPair(name=name, value=value, dtype=translate_dtype(value))
+    else:
+        datapair = MetricDataPair(name=name, value=None, dtype="tag")
     labels = labels_to_type(label, labelclass=MetricLabel)
 
     metric = Metric(metric=datapair, label=labels)

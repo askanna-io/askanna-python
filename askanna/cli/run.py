@@ -4,16 +4,14 @@ import sys
 
 import click
 
+from askanna import config
 from askanna import run as askanna_run
 from askanna import job as askanna_job
 from askanna.core.dataclasses import Project
 from askanna.cli.utils import ask_which_job, ask_which_project, ask_which_workspace
-from askanna.core.config import Config
 from askanna.core.push import push
-from askanna.core.utils import extract_push_target, getProjectInfo
+from askanna.core.utils import getProjectInfo
 
-
-config = Config()
 
 HELP = """
 This command will allow you to start a run in AskAnna.
@@ -27,14 +25,7 @@ def determine_project(
     workspace_suuid: str = None,
 ) -> Project:
     if not project_suuid:
-        # Use the project from the push-target if not set
-        try:
-            push_target = extract_push_target(config.push_target)
-        except ValueError:
-            # the push-target is not set, so don't bother reading it
-            pass
-        else:
-            project_suuid = push_target.get("project_suuid")
+        project_suuid = config.project_suuid
 
     # Still if there is no project_suuid found, we will ask which project to use
     if project_suuid:
