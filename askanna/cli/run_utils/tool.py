@@ -35,7 +35,7 @@ def cli():
     try:
         cli_commands()
     except Exception as e:
-        click.echo(e)
+        click.echo(e, err=True)
         sys.exit(1)
 
 

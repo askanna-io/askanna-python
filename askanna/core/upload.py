@@ -20,8 +20,8 @@ class Upload:
     tpl_upload_pass = "File is uploaded"
     tpl_upload_fail = "Upload failed"
 
-    def __init__(self, api_server: str, *args, **kwargs):
-        self.ASKANNA_API_SERVER = api_server
+    def __init__(self, api_server: str = None, *args, **kwargs):
+        self.ASKANNA_API_SERVER = api_server or askanna_client.config.remote
         self.suuid = None
         self.resumable_file = None
         self.kwargs = kwargs
@@ -199,13 +199,13 @@ class ArtifactUpload(Upload):
 
 
 class ResultUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/"
+    tpl_register_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/"
     tpl_register_chunk_url = (
-        "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
+        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
     )
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
     tpl_final_upload_url = (
-        "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
+        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
     )
 
     tpl_upload_pass = "Result is uploaded"
@@ -215,13 +215,5 @@ class ResultUpload(Upload):
         return {
             "ASKANNA_API_SERVER": self.ASKANNA_API_SERVER,
             "RUN_SUUID": self.kwargs.get("RUN_SUUID"),
-            "RESULT_SUUID": self.kwargs.get("RESULT_SUUID"),
+            "RESULT_SUUID": self.suuid,
         }
-
-    def create_entry(self, config: dict = None, fileinfo: dict = {}) -> str:
-        """
-        We don't have to create a new entry as the RESULT_SUUID is already defined in the enviroment
-        """
-        # the result
-        self.suuid = os.getenv("AA_RESULT_SUUID")
-        return self.suuid
