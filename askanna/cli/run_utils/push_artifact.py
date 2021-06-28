@@ -19,7 +19,6 @@ SHORT_HELP = "Push artifact to AskAnna"
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
     config = get_config()
-    api_server = config["askanna"]["remote"]
     run_suuid = os.getenv("AA_RUN_SUUID")
     job_name = os.getenv("AA_JOB_NAME")
 
@@ -72,7 +71,6 @@ def cli():
         "size": os.stat(zip_file).st_size,
     }
     uploader = ArtifactUpload(
-        api_server=api_server,
         run_suuid=run_suuid,
     )
     status, msg = uploader.upload(zip_file, config, fileinfo)

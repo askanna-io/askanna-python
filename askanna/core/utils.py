@@ -133,6 +133,8 @@ def update_available() -> bool:
         r = requests.get(PYPI_PROJECT_URL)
     except requests.exceptions.ConnectionError:
         return False
+    except requests.exceptions.HTTPError:
+        return False
     else:
         if r.status_code == 200:
             pypi_info = r.json()
@@ -709,7 +711,7 @@ def getLocalTimezone() -> str:
     return tzlocal.get_localzone().zone
 
 
-def content_type_file_extension(content_type : str) -> str:
+def content_type_file_extension(content_type: str) -> str:
     content_type_file_extension_mapping = {
         "application/csv": ".csv",
         "application/json": ".json",

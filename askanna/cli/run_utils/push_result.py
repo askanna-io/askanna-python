@@ -16,16 +16,12 @@ SHORT_HELP = "Push result to AskAnna"
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
     config = get_config()
-    api_server = config["askanna"]["remote"]
 
     run_suuid = os.getenv("AA_RUN_SUUID")
     job_name = os.getenv("AA_JOB_NAME")
 
-    result_suuid = os.getenv("AA_RESULT_SUUID")
-
     # First check whether we need to create result or not.
     # If output.result is not specified, we skip this step and report this to the stdout.
-
     result_path = config[job_name].get("output", {}).get("result")
 
     if not result_path:
@@ -48,11 +44,7 @@ def cli():
         "filename": os.path.basename(result_path),
         "size": os.stat(result_path).st_size,
     }
-    uploader = ResultUpload(
-        api_server=api_server,
-        RUN_SUUID=run_suuid,
-        RESULT_SUUID=result_suuid,
-    )
+    uploader = ResultUpload(RUN_SUUID=run_suuid)
     status, msg = uploader.upload(result_path, config, fileinfo)
     if status:
         click.echo(msg)
