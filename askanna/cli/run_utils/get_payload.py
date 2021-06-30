@@ -29,7 +29,7 @@ def cli(run, payload, output):
 
     # we assume we can get jobrun id and the payload
     payload_url = (
-        "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/payload/{PAYLOAD_SUUID}/".format(
+        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/payload/{PAYLOAD_SUUID}/".format(
             RUN_SUUID=run,
             PAYLOAD_SUUID=payload,
             ASKANNA_API_SERVER=ASKANNA_API_SERVER,

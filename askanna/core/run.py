@@ -73,7 +73,7 @@ class RunGateway:
         """
         suuid = suuid or self.run_suuid
 
-        url = "{}{}/{}/".format(self.client.config.remote, "jobrun", suuid)
+        url = "{}{}/{}/".format(self.client.config.remote, "runinfo", suuid)
 
         r = self.client.get(url)
         if r.status_code != 200:
@@ -216,7 +216,9 @@ class RunMultipleQueryGateway(RunActionGateway):
         if job_name:
             project_suuid = project or self.gateway.client.config.project_suuid
             job_gateway = JobGateway()
-            job = job_gateway.get_job_by_name(job_name=job_name, project_suuid=project_suuid).short_uuid
+            job = job_gateway.get_job_by_name(
+                job_name=job_name, project_suuid=project_suuid
+            ).short_uuid
 
         query = self.get_query(project, job, runs)
         query.update(
