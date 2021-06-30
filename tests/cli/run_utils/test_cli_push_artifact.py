@@ -38,27 +38,30 @@ class TestCLIPushArtifact(unittest.TestCase):
 
         self.responses.add(
             responses.POST,
-            url=self.base_url + "jobrun/abcd-abcd-abcd-abcd/artifact/",
+            url=self.base_url + "runinfo/abcd-abcd-abcd-abcd/artifact/",
             json={"short_uuid": "1234-1234-1234-1234"},
             status=201,
         )
 
         self.responses.add(
             responses.POST,
-            url=self.base_url + "jobrun/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/artifactchunk/",
+            url=self.base_url
+            + "runinfo/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/artifactchunk/",
             json={"uuid": "ab12-ab12-ab12-ab12"},
             status=201,
         )
 
         self.responses.add(
             responses.POST,
-            url=self.base_url + "jobrun/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/artifactchunk/ab12-ab12-ab12-ab12/chunk/",  # noqa
+            url=self.base_url
+            + "runinfo/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/artifactchunk/ab12-ab12-ab12-ab12/chunk/",  # noqa
             status=200,
         )
 
         self.responses.add(
             responses.POST,
-            url=self.base_url + "jobrun/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/finish_upload/",
+            url=self.base_url
+            + "runinfo/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/finish_upload/",
             status=200,
         )
 
@@ -67,12 +70,24 @@ class TestCLIPushArtifact(unittest.TestCase):
         self.responses.reset
 
     def test_command_line_access(self):
-        result = CliRunner().invoke(cli_commands, ['--help', self.verb, ])
+        result = CliRunner().invoke(
+            cli_commands,
+            [
+                "--help",
+                self.verb,
+            ],
+        )
         assert result.exit_code == 0
         assert len(result.output) > 0
 
     def test_command_push_artifact(self):
-        result = CliRunner().invoke(cli_commands, ['--help', self.verb, ])
+        result = CliRunner().invoke(
+            cli_commands,
+            [
+                "--help",
+                self.verb,
+            ],
+        )
         assert self.verb in result.output
         self.assertIn(self.verb, result.output)
         self.assertNotIn("noop", result.output)
@@ -90,7 +105,10 @@ class TestCLIPushArtifact(unittest.TestCase):
         os.environ["AA_RUN_SUUID"] = "abcd-abcd-abcd-abcd"
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 1
-        assert "The job name is not set. We cannot push artifact to AskAnna." in result.output
+        assert (
+            "The job name is not set. We cannot push artifact to AskAnna."
+            in result.output
+        )
 
     def test_command_push_artifact_config_ok_no_artifact(self):
         project_dir = "tests/resources/projects/project-001-simple"
@@ -101,7 +119,10 @@ class TestCLIPushArtifact(unittest.TestCase):
 
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 0
-        assert "Artifact creation aborted, no `output/artifact` defined for this job in `askanna.yml`" in result.output
+        assert (
+            "Artifact creation aborted, no `output/artifact` defined for this job in `askanna.yml`"
+            in result.output
+        )
 
     def test_command_push_artifact_config_ok_job_with_artifact(self):
         project_dir = "tests/resources/projects/project-001-simple"
@@ -124,7 +145,10 @@ class TestCLIPushArtifact(unittest.TestCase):
 
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 0
-        assert "Deprecation warning: in a future version we remove the output/paths option." in result.output
+        assert (
+            "Deprecation warning: in a future version we remove the output/paths option."
+            in result.output
+        )
         assert "Uploading artifact to AskAnna..." in result.output
         assert "Artifact is uploaded" in result.output
 

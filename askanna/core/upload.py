@@ -178,10 +178,10 @@ class PackageUpload(Upload):
 
 
 class ArtifactUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}jobrun/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
+    tpl_register_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
 
     tpl_upload_pass = "Artifact is uploaded"
     tpl_upload_fail = "Artifact upload failed"
