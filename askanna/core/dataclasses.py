@@ -55,6 +55,7 @@ class Run:
     created: datetime.datetime
     updated: datetime.datetime
     finished: datetime.datetime = None
+    duration: int = 0
 
 
 @dataclass
