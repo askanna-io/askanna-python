@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 import sys
 import requests
-from typing import Any, List, Callable, Union
+from typing import Any, List, Callable, Tuple, Union
 import uuid
 from zipfile import ZipFile
 
@@ -670,6 +670,31 @@ def validate_value(value: Any) -> bool:
     return object_fullname(value) in supported_data_types
 
 
+def transform_value(value: Any) -> Tuple[Any, bool]:
+    """
+    Transform values in support datatypes
+    """
+    if object_fullname(value) == "range":
+        return list(value), True
+
+    return value, False
+
+
+def prepare_and_validate_value(value: Any) -> Tuple[Any, bool]:
+    """
+    Validate value and if necessary transform values in support datatypes
+    """
+    if validate_value(value):
+        return value, True
+
+    # Try to transform the value
+    value, transform = transform_value(value)
+    if transform:
+        return value, True
+
+    return value, False
+
+
 def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List:
     # process labels
     labels = []
@@ -685,14 +710,15 @@ def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List
             if v is None:
                 labels.append(labelclass(name=k, value=None, dtype="tag"))
             else:
-                if v and not validate_value(v):
-                    click.echo(
-                        f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
-                        err=True
-                    )
-                else:
-                    labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
-
+                if v:
+                    v, valid = prepare_and_validate_value(v)
+                    if valid:
+                        labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
+                    else:
+                        click.echo(
+                            f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
+                            err=True
+                        )
     return labels
 
 

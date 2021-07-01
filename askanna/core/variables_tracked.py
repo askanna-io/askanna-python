@@ -7,7 +7,7 @@ import json
 import os
 import sys
 import tempfile
-from typing import List
+from typing import Any, List
 import uuid
 
 import click
@@ -18,9 +18,9 @@ from askanna.core.dataclasses import VariableTracked, VariableDataPair, Variable
 from askanna.core.utils import (
     create_suuid,
     json_serializer,
-    translate_dtype,
-    validate_value,
     labels_to_type,
+    translate_dtype,
+    prepare_and_validate_value,
 )
 
 __all__ = [
@@ -144,14 +144,16 @@ class VariableTrackedGateway:
         return VariablesQuerySet(variables=r.json())
 
 
-def track_variable(name: str, value, label: dict = None) -> None:
+def track_variable(name: str, value: Any, label: dict = None) -> None:
     # store the variable
-    if value and not validate_value(value):
-        click.echo(
-            f"AskAnna cannot store this datatype. Variable not stored for {name}, {value}, {label}.",
-            err=True
-        )
-        return
+    if value:
+        value, valid = prepare_and_validate_value(value)
+        if not valid:
+            click.echo(
+                f"AskAnna cannot store this datatype. Variable not stored for {name}, {value}, {label}.",
+                err=True
+            )
+            return
 
     # we don't want to store secrets, so filter them and replace value if it is sensitive information
     variable_name = name.upper()
