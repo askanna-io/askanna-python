@@ -1,7 +1,14 @@
 import datetime
 import unittest
 
-from askanna.core.utils import translate_dtype, validate_value, update_available
+import numpy as np
+from askanna.core.utils import (
+    prepare_and_validate_value,
+    translate_dtype,
+    transform_value,
+    update_available,
+    validate_value,
+)
 
 
 class TestValidateValue(unittest.TestCase):
@@ -18,12 +25,50 @@ class TestValidateValue(unittest.TestCase):
         self.assertTrue(validate_value(3.14))
         self.assertTrue(validate_value(5.0))
 
+        self.assertTrue(validate_value(np.float(5.21)))
+
         self.assertTrue(validate_value(["test", "some text"]))
         self.assertTrue(validate_value({"test": True}))
 
         self.assertTrue(validate_value(datetime.date(2021, 4, 9)))
         self.assertTrue(validate_value(datetime.time(hour=0)))
         self.assertTrue(validate_value(datetime.datetime.now()))
+
+        self.assertFalse(validate_value(range(0, 10)))
+
+
+class TestPrepareAndValidateValue(unittest.TestCase):
+    def test_prepare_and_validate_value_string(self):
+        value, valid = prepare_and_validate_value("some text")
+        self.assertEqual(value, "some text")
+        self.assertTrue(valid)
+
+    def test_prepare_and_validate_value_range(self):
+        value, valid = prepare_and_validate_value(range(0, 3))
+        self.assertEqual(value, [0, 1, 2])
+        self.assertTrue(valid)
+
+    def test_prepare_and_validate_value_numpy_float(self):
+        value, valid = prepare_and_validate_value(np.float(5.21))
+        self.assertEqual(value, 5.21)
+        self.assertTrue(valid)
+
+
+class TestTransformValue(unittest.TestCase):
+    def test_transform_value_string(self):
+        value, transform = transform_value("some text")
+        self.assertEqual(value, "some text")
+        self.assertFalse(transform)
+
+    def test_transform_value_range(self):
+        value, transform = transform_value(range(0, 3))
+        self.assertEqual(value, [0, 1, 2])
+        self.assertTrue(transform)
+
+    def test_transform_value_numpy_float(self):
+        value, transform = transform_value(np.float(5.21))
+        self.assertEqual(value, 5.21)
+        self.assertFalse(transform)
 
 
 class TestTranslateDtype(unittest.TestCase):
