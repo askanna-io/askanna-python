@@ -80,7 +80,6 @@ class RunInfo:
 
     created: datetime.datetime
     modified: datetime.datetime
-    deleted: datetime.datetime
     duration: int
 
     result: dict = None
