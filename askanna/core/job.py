@@ -16,7 +16,7 @@ class JobGateway:
     def list(self, project_suuid: str = None) -> list:
         if project_suuid:
             # build url to select for project only
-            url = "{}{}/{}/{}".format(
+            url = "{}{}/{}/{}/".format(
                 self.client.config.remote,
                 "project",
                 project_suuid,
