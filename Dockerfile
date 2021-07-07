@@ -16,14 +16,14 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     g++ \
-    tzdata
+    tzdata \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN pip install -U pip \
-    && rm -rf /root/.cache
-
-RUN pip install .
-
-RUN rm -rf /app
+    && pip install . \
+    && rm -rf /root/.cache \
+    && rm -rf /app
 
 # Set working directory
 WORKDIR /code

@@ -100,24 +100,29 @@ python 3.9:
 
 image python 3:
   <<: *build_docker_image_template
+  needs: [coverage]
 
 image python 3.6:
   <<: *build_docker_image_template
+  needs: [python 3.6]
   variables:
     PY_VERSION: "3.6-slim"
 
 image python 3.7:
   <<: *build_docker_image_template
+  needs: [python 3.7]
   variables:
     PY_VERSION: "3.7-slim"
 
 image python 3.8:
   <<: *build_docker_image_template
+  needs: [python 3.8]
   variables:
     PY_VERSION: "3.8-slim"
 
 image python 3.9:
   <<: *build_docker_image_template
+  needs: [python 3.9]
   variables:
     PY_VERSION: "3.9-slim"
 
@@ -196,14 +201,45 @@ publish_to_testpypi:
   image: python:3-slim
   tags:
     - kubernetes
+  allow_failure: true
   before_script:
     - echo $PYPITESTRC | base64 -d > ~/.pypirc
     - pip install -U pip wheel twine
   script:
     - python3 setup.py sdist bdist_wheel
     - twine upload --verbose --non-interactive --config-file ~/.pypirc -r testpypi dist/*
-  allow_failure: true
   when: manual
   except:
+    refs:
+      - master
+
+publish_to_docker:
+  stage: publish
+  image: docker:latest
+  services:
+    - docker:dind
+  tags:
+    - docker
+  allow_failure: true
+  before_script:
+    - echo "$DOCKER_TOKEN" | docker login --username $DOCKER_USER --password-stdin
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
+  script:
+    - docker pull gitlab.askanna.io:4567/askanna/askanna-cli --all-tags
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-master askanna/python:3
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-master askanna/python:latest
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.6-slim-master askanna/python:3.6
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.7-slim-master askanna/python:3.7
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.8-slim-master askanna/python:3.8
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.9-slim-master askanna/python:3.9
+    - docker push askanna/python:latest
+    - docker push askanna/python:3
+    - docker push askanna/python:3.6
+    - docker push askanna/python:3.7
+    - docker push askanna/python:3.8
+    - docker push askanna/python:3.9
+  after_script:
+    - docker logout
+  only:
     refs:
       - master
