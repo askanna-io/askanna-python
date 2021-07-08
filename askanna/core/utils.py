@@ -7,8 +7,7 @@ import os
 from pathlib import Path
 import re
 import sys
-import requests
-from typing import Any, List, Callable, Tuple, Union
+from typing import Any, List, Callable, Tuple, Union, Dict
 import uuid
 from zipfile import ZipFile
 
@@ -16,6 +15,7 @@ import click
 import croniter
 import pytz
 import tzlocal
+import requests
 import yaml
 from yaml import load, dump
 
@@ -221,7 +221,7 @@ def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
     return os.path.isfile(os.path.join(path, filename))
 
 
-def get_config(check_config=True) -> dict:
+def get_config(check_config=True) -> Dict:
     config = read_config(CONFIG_FILE_ASKANNA)
 
     # overwrite the AA remote if AA_REMOTE is set in the environment
@@ -261,7 +261,7 @@ def get_config(check_config=True) -> dict:
     return config
 
 
-def validate_config(config):
+def validate_config(config: Dict):
     try:
         config["auth"]["token"]
     except KeyError:
@@ -543,7 +543,48 @@ def validate_yml_job_names(config):
     return True
 
 
-def validate_yml_schedule(config):
+def validate_yml_environments(config: Dict, jobname=None) -> bool:
+    """
+    Validate the environment definitions (if defined)
+    """
+    # Do we have a global `environment` defined?
+    environment = config.get("environment")
+    if environment:
+        if not isinstance(environment, dict):
+            if jobname:
+                click.echo(
+                    f"Invalid definition of `environment` found in job `{jobname}`:\n"
+                    f"environment: {environment}\n"
+                    "\n"
+                    "For environment documentation: https://docs.askanna.io/environments/",
+                    err=True,
+                )
+            else:
+                click.echo(
+                    "Invalid definition of `environment` found:\n"
+                    f"environment: {environment}\n"
+                    "\n"
+                    "For environment documentation: https://docs.askanna.io/environments/",
+                    err=True,
+                )
+            return False
+        else:
+            # make sure we have at least the `image` defined
+            image = environment.get("image")
+            if not image:
+                click.echo(
+                    "`image` was not defined in the `environment`:\n"
+                    f"environment: {environment}\n"
+                    "\n"
+                    "For environment documentation: https://docs.askanna.io/environments/",
+                    err=True,
+                )
+                return False
+
+    return True
+
+
+def validate_yml_job(config):
     jobs = config.items()
     global_timezone = config.get("timezone")
     # validate the global timezone
@@ -555,8 +596,10 @@ def validate_yml_schedule(config):
         )
         return False
 
-    for _, job in jobs:
+    for jobname, job in jobs:
         if isinstance(job, dict):
+            if not validate_yml_environments(job, jobname=jobname):
+                return False
             schedule = job.get("schedule")
             timezone = job.get("timezone")
             if not schedule:
@@ -713,11 +756,13 @@ def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List
                 if v:
                     v, valid = prepare_and_validate_value(v)
                     if valid:
-                        labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
+                        labels.append(
+                            labelclass(name=k, value=v, dtype=translate_dtype(v))
+                        )
                     else:
                         click.echo(
                             f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
-                            err=True
+                            err=True,
                         )
     return labels
 

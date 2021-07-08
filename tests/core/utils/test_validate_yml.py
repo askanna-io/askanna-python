@@ -7,7 +7,11 @@ except ImportError:
     from yaml import Loader
 
 
-from askanna.core.utils import validate_yml_schedule, validate_yml_job_names
+from askanna.core.utils import (
+    validate_yml_environments,
+    validate_yml_job,
+    validate_yml_job_names,
+)
 
 
 class YAMLValidationTest(unittest.TestCase):
@@ -21,7 +25,7 @@ test_job:
     - python test.py
 """
         config = load(config_yml, Loader=Loader)
-        self.assertTrue(validate_yml_schedule(config))
+        self.assertTrue(validate_yml_job(config))
 
     def test_config_fail_schedule(self):
         config_yml = """
@@ -40,7 +44,7 @@ test_job:
     - []
 """
         config = load(config_yml, Loader=Loader)
-        self.assertFalse(validate_yml_schedule(config))
+        self.assertFalse(validate_yml_job(config))
 
     def test_config_fail_schedule2(self):
         config_yml = """
@@ -54,7 +58,7 @@ test_job:
     - []
 """
         config = load(config_yml, Loader=Loader)
-        self.assertFalse(validate_yml_schedule(config))
+        self.assertFalse(validate_yml_job(config))
 
     def test_config_good_schedule(self):
         config_yml = """
@@ -69,7 +73,7 @@ test_job:
     - "@midnight"
 """
         config = load(config_yml, Loader=Loader)
-        self.assertTrue(validate_yml_schedule(config))
+        self.assertTrue(validate_yml_job(config))
 
     def test_config_invalid_timezone(self):
         config_yml = """
@@ -81,7 +85,7 @@ test_job:
   timezone: "Nowhere"
 """
         config = load(config_yml, Loader=Loader)
-        self.assertFalse(validate_yml_schedule(config))
+        self.assertFalse(validate_yml_job(config))
 
     def test_config_valid_timezone(self):
         config_yml = """
@@ -93,7 +97,7 @@ test_job:
   timezone: "Europe/Amsterdam"
 """
         config = load(config_yml, Loader=Loader)
-        self.assertTrue(validate_yml_schedule(config))
+        self.assertTrue(validate_yml_job(config))
 
     def test_config_bad_jobname(self):
         config_yml = """
@@ -126,3 +130,37 @@ image:
 """
         config = load(config_yml, Loader=Loader)
         self.assertTrue(validate_yml_job_names(config))
+
+
+class TestYMLEnvironments(unittest.TestCase):
+    def test_yml_global_environment(self):
+        self.assertTrue(
+            validate_yml_environments({"environment": {"image": "askanna/python:3"}})
+        )
+
+        self.assertFalse(
+            validate_yml_environments({"environment": {"something": "foo"}})
+        )
+
+        self.assertFalse(validate_yml_environments({"environment": "askanna/python:3"}))
+
+    def test_job_environment(self):
+        config_yml = """
+test_job:
+  job:
+    - python test.py
+  environment:
+    image: python:3-slim
+"""
+        config = load(config_yml, Loader=Loader)
+        self.assertTrue(validate_yml_job(config))
+
+        config_yml = """
+test_job:
+  job:
+    - python test.py
+  environment:
+    missing_image: foobar
+"""
+        config = load(config_yml, Loader=Loader)
+        self.assertFalse(validate_yml_job(config))
