@@ -1,5 +1,14 @@
 # History
 
+## 0.12.0 (2021-07-08)
+
+- Updated endpoints changes from `/v1/jobrun/` to `/v1/runinfo/`
+- We now register an result upload before uploading. This is change required by API `v0.7.0`.
+- Updates on the dataclass from `RunInfo` adding fields `environment`, `duration`, `result`, `started`
+- Deprecation of dataclass fields on `RunInfo`: `runner`, `deleted`
+- `track_metric` now also supports `range` type as a value to track
+- We publish our images also on DockerHub starting from now
+
 ## 0.11.0 (2021-06-16)
 
 - `track_metric(s)` and `track_variable(s)` now also support date type `list`
