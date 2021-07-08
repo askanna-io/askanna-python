@@ -7,8 +7,7 @@ import os
 from pathlib import Path
 import re
 import sys
-import requests
-from typing import Any, List, Callable, Union
+from typing import Any, List, Callable, Tuple, Union, Dict
 import uuid
 from zipfile import ZipFile
 
@@ -16,6 +15,7 @@ import click
 import croniter
 import pytz
 import tzlocal
+import requests
 import yaml
 from yaml import load, dump
 
@@ -133,6 +133,8 @@ def update_available() -> bool:
         r = requests.get(PYPI_PROJECT_URL)
     except requests.exceptions.ConnectionError:
         return False
+    except requests.exceptions.HTTPError:
+        return False
     else:
         if r.status_code == 200:
             pypi_info = r.json()
@@ -219,7 +221,7 @@ def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
     return os.path.isfile(os.path.join(path, filename))
 
 
-def get_config(check_config=True) -> dict:
+def get_config(check_config=True) -> Dict:
     config = read_config(CONFIG_FILE_ASKANNA)
 
     # overwrite the AA remote if AA_REMOTE is set in the environment
@@ -259,7 +261,7 @@ def get_config(check_config=True) -> dict:
     return config
 
 
-def validate_config(config):
+def validate_config(config: Dict):
     try:
         config["auth"]["token"]
     except KeyError:
@@ -541,7 +543,48 @@ def validate_yml_job_names(config):
     return True
 
 
-def validate_yml_schedule(config):
+def validate_yml_environments(config: Dict, jobname=None) -> bool:
+    """
+    Validate the environment definitions (if defined)
+    """
+    # Do we have a global `environment` defined?
+    environment = config.get("environment")
+    if environment:
+        if not isinstance(environment, dict):
+            if jobname:
+                click.echo(
+                    f"Invalid definition of `environment` found in job `{jobname}`:\n"
+                    f"environment: {environment}\n"
+                    "\n"
+                    "For environment documentation: https://docs.askanna.io/environments/",
+                    err=True,
+                )
+            else:
+                click.echo(
+                    "Invalid definition of `environment` found:\n"
+                    f"environment: {environment}\n"
+                    "\n"
+                    "For environment documentation: https://docs.askanna.io/environments/",
+                    err=True,
+                )
+            return False
+        else:
+            # make sure we have at least the `image` defined
+            image = environment.get("image")
+            if not image:
+                click.echo(
+                    "`image` was not defined in the `environment`:\n"
+                    f"environment: {environment}\n"
+                    "\n"
+                    "For environment documentation: https://docs.askanna.io/environments/",
+                    err=True,
+                )
+                return False
+
+    return True
+
+
+def validate_yml_job(config):
     jobs = config.items()
     global_timezone = config.get("timezone")
     # validate the global timezone
@@ -553,8 +596,10 @@ def validate_yml_schedule(config):
         )
         return False
 
-    for _, job in jobs:
+    for jobname, job in jobs:
         if isinstance(job, dict):
+            if not validate_yml_environments(job, jobname=jobname):
+                return False
             schedule = job.get("schedule")
             timezone = job.get("timezone")
             if not schedule:
@@ -668,6 +713,31 @@ def validate_value(value: Any) -> bool:
     return object_fullname(value) in supported_data_types
 
 
+def transform_value(value: Any) -> Tuple[Any, bool]:
+    """
+    Transform values in support datatypes
+    """
+    if object_fullname(value) == "range":
+        return list(value), True
+
+    return value, False
+
+
+def prepare_and_validate_value(value: Any) -> Tuple[Any, bool]:
+    """
+    Validate value and if necessary transform values in support datatypes
+    """
+    if validate_value(value):
+        return value, True
+
+    # Try to transform the value
+    value, transform = transform_value(value)
+    if transform:
+        return value, True
+
+    return value, False
+
+
 def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List:
     # process labels
     labels = []
@@ -683,14 +753,17 @@ def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List
             if v is None:
                 labels.append(labelclass(name=k, value=None, dtype="tag"))
             else:
-                if v and not validate_value(v):
-                    click.echo(
-                        f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
-                        err=True
-                    )
-                else:
-                    labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
-
+                if v:
+                    v, valid = prepare_and_validate_value(v)
+                    if valid:
+                        labels.append(
+                            labelclass(name=k, value=v, dtype=translate_dtype(v))
+                        )
+                    else:
+                        click.echo(
+                            f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
+                            err=True,
+                        )
     return labels
 
 
@@ -709,7 +782,7 @@ def getLocalTimezone() -> str:
     return tzlocal.get_localzone().zone
 
 
-def content_type_file_extension(content_type : str) -> str:
+def content_type_file_extension(content_type: str) -> str:
     content_type_file_extension_mapping = {
         "application/csv": ".csv",
         "application/json": ".json",

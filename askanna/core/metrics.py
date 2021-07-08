@@ -3,7 +3,7 @@ import json
 import os
 import sys
 import tempfile
-from typing import List
+from typing import Any, List
 import uuid
 
 import click
@@ -14,9 +14,9 @@ from askanna.core.dataclasses import Metric, MetricDataPair, MetricLabel
 from askanna.core.utils import (
     create_suuid,
     json_serializer,
-    translate_dtype,
-    validate_value,
     labels_to_type,
+    prepare_and_validate_value,
+    translate_dtype,
 )
 
 __all__ = ["track_metric", "track_metrics", "MetricCollector", "MetricGateway"]
@@ -206,14 +206,16 @@ class MetricCollector:
 mc = MetricCollector(run_suuid=os.getenv("AA_RUN_SUUID"))
 
 
-def track_metric(name: str, value, label: dict = None) -> None:
+def track_metric(name: str, value: Any, label: dict = None) -> None:
     # store the metric
-    if value and not validate_value(value):
-        click.echo(
-            f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}.",
-            err=True
-        )
-        return
+    if value:
+        value, valid = prepare_and_validate_value(value)
+        if not valid:
+            click.echo(
+                f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}.",
+                err=True
+            )
+            return
     # add value to track queue
     if value:
         datapair = MetricDataPair(name=name, value=value, dtype=translate_dtype(value))

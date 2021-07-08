@@ -4,13 +4,14 @@
 
 __author__ = "AskAnna Team"
 __email__ = "devops@askanna.io"
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
 import re
 import sys
 
 # Determine whether we are in the CLI or using the SDK
-USING_ASKANNA_CLI : bool = any([re.match(".+bin/askanna*", sys.argv[0])])
+# we only check for the `askanna` executable
+USING_ASKANNA_CLI: bool = any([re.match(".+bin/askanna$", sys.argv[0])])
 
 try:
     import click  # noqa

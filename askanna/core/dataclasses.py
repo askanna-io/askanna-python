@@ -15,6 +15,7 @@ class Job:
     created: datetime.datetime
     modified: datetime.datetime
     environment: str
+    timezone: str
 
 
 @dataclass
@@ -54,6 +55,7 @@ class Run:
     created: datetime.datetime
     updated: datetime.datetime
     finished: datetime.datetime = None
+    duration: int = 0
 
 
 @dataclass
@@ -63,21 +65,25 @@ class RunInfo:
     status: str
     uuid: uuid.UUID
     short_uuid: str
-    name: str
-    description: str
+
     project: dict
     artifact: dict
     package: dict
     owner: dict
     trigger: dict
-    runner: dict
     payload: dict
     jobdef: dict
+    environment: dict
+
     metricsmeta: dict
     variablesmeta: dict
+
     created: datetime.datetime
     modified: datetime.datetime
-    deleted: datetime.datetime
+    duration: int
+
+    result: dict = None
+    started: datetime.datetime = None
     finished: datetime.datetime = None
 
     metrics = []

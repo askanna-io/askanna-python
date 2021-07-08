@@ -7,7 +7,11 @@ from zipfile import ZipFile
 import click
 import git
 
-from askanna.core.utils import validate_yml_job_names, validate_yml_schedule
+from askanna.core.utils import (
+    validate_yml_job_names,
+    validate_yml_job,
+    validate_yml_environments,
+)
 from askanna.core.utils import zip_files_in_dir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
 from askanna.core.utils import extract_push_target, isIPAddress, getLocalTimezone
@@ -40,7 +44,6 @@ def package(src: str) -> str:
 
 def push(force: bool, description: str = None):
     config = get_config()
-    api_server = config["askanna"]["remote"]
 
     # read and parse the push-target from askanna
     push_target = config.get("push-target")
@@ -53,11 +56,16 @@ def push(force: bool, description: str = None):
         sys.exit(1)
 
     # read the config and parse jobs, validate the job definitions
-    # first validate jobs names
+    # validate whether the global environment definitions are correct
+    if not validate_yml_environments(config):
+        sys.exit(1)
+
+    # validate jobs names
     if not validate_yml_job_names(config):
         sys.exit(1)
-    # then validate whether we have a schedule defined and validate schedule if needed
-    if not validate_yml_schedule(config):
+
+    # then validate the job
+    if not validate_yml_job(config):
         sys.exit(1)
 
     # timezone set
@@ -77,6 +85,7 @@ For more information check the documentation: https://docs.askanna.io/jobs/creat
 
     matches_dict = extract_push_target(push_target)
     api_host = matches_dict.get("askanna_host")
+    api_server = None
     http_scheme = matches_dict.get("http_scheme")
     if api_host:
         # first also modify the first part
