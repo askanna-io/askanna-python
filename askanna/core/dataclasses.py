@@ -52,6 +52,7 @@ class Run:
     job: dict
     workspace: dict
     project: dict
+    environment: dict
     created: datetime.datetime
     updated: datetime.datetime
     finished: datetime.datetime = None
