@@ -7,7 +7,7 @@ import click
 from typing import List
 
 from askanna.core import client, exceptions
-from askanna.core.dataclasses import RunInfo, Run
+from askanna.core.dataclasses import Run, RunInfo, RunStatus
 from askanna.core.job import JobGateway
 from askanna.core.metrics import MetricGateway
 from askanna.core.variables_tracked import VariableTrackedGateway
@@ -84,7 +84,7 @@ class RunGateway:
 
         return RunInfo(**r.json())
 
-    def status(self, suuid: str = None) -> Run:
+    def status(self, suuid: str = None) -> RunStatus:
         suuid = suuid or self.run_suuid
 
         if not suuid:
@@ -101,7 +101,7 @@ class RunGateway:
                 "of the run: {}".format(r.status_code, r.reason)
             )
 
-        return Run(**r.json())
+        return RunStatus(**r.json())
 
 
 class RunActionGateway:

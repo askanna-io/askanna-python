@@ -1,5 +1,13 @@
 # History
 
+## 0.12.2 (2021-07-22)
+
+- Add dataclass `RunStatus` to fix starting a new run
+
+## 0.12.1 (2021-07-22)
+
+- Add environment to `Run` dataclass
+
 ## 0.12.0 (2021-07-08)
 
 - Updated endpoints changes from `/v1/jobrun/` to `/v1/runinfo/`

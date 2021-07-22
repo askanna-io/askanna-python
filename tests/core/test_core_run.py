@@ -31,17 +31,6 @@ a_sample_run_response = {
         "uuid": "695fcc8b-ba8c-4575-a1e0-f0fcfc70a349",
         "short_uuid": "3Cpy-QMzd-MVko-1rDQ",
     },
-    "environment": {
-        "name": "",
-        "description": None,
-        "label": None,
-        "image": {
-            "name": "python",
-            "tag": "3.8-slim",
-            "digest": "sha256:9b0d7419e2811710aacee87c40a2c94693e2b6810c3e7e466b8c7fc5bde4cd66",
-        },
-        "timezone": "UTC",
-    },
     "next_url": "https://beta-api.askanna.eu/v1/status/4F8q-nTCK-M2nA-aXUg/",
 }
 
