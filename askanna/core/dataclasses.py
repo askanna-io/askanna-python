@@ -40,7 +40,27 @@ class Project:
 class Run:
     """
     This dataclass holds information about the run which just started
-    Also the datamodel to host the status of a run.
+    """
+
+    message_type: str
+    status: str
+    uuid: uuid.UUID
+    short_uuid: str
+    name: str
+    next_url: str
+    job: dict
+    workspace: dict
+    project: dict
+    created: datetime.datetime
+    updated: datetime.datetime
+    finished: datetime.datetime = None
+    duration: int = 0
+
+
+@dataclass
+class RunStatus:
+    """
+    This dataclass holds information about the status of a run.
     """
 
     message_type: str
