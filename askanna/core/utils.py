@@ -13,6 +13,7 @@ from zipfile import ZipFile
 
 import click
 import croniter
+from email_validator import validate_email, EmailNotValidError
 import igittigitt
 import pytz
 import tzlocal
@@ -123,6 +124,10 @@ def object_fullname(o):
         return o.__class__.__name__  # Avoid reporting __builtin__
     else:
         return module + "." + o.__class__.__name__
+
+
+def flatten(t):
+    return [item for sublist in t for item in sublist]
 
 
 def update_available() -> bool:
@@ -638,6 +643,40 @@ def validate_yml_notifications(config: Dict, jobname=None) -> bool:
                     err=True,
                 )
             return False
+
+        # proceed with validation of the content
+        # assume we can get values out of all/email and error/email
+        noti_all_values = notifications.get("all", {}).get("email", [])
+        noti_error_values = notifications.get("error", {}).get("email", [])
+
+        all_email = sorted(
+            flatten(
+                list(
+                    map(
+                        lambda x: x.split(","),
+                        noti_all_values + noti_error_values,
+                    )
+                )
+            )
+        )
+        for value in all_email:
+            if value.startswith("${") and value.endswith("}"):
+                # we found a variable not subsituted yet
+                continue
+            if value in ["workspace admins", "workspace members"]:
+                # valid addresees
+                continue
+
+            # validate on actual content of the value whether it is an e-mail address or not
+            try:
+                validate_email(value)
+            except EmailNotValidError:
+                click.echo(
+                    "Invalid `notifications/email` found:\n" f"{value}" "\n",
+                    err=True,
+                )
+                return False
+
     return True
 
 
