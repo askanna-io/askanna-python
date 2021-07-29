@@ -1,5 +1,10 @@
 # History
 
+## 0.13.0 (2021-07-29)
+
+- Added `notifications` to dataclasses `Job` and `Project`. We validate whether notifications are setup correctly.
+- Introducing `.askannaignore` using the same syntax as `.gitignore` to exclude files from pushing to AskAnna.
+
 ## 0.12.2 (2021-07-22)
 
 - Add dataclass `RunStatus` to fix starting a new run
