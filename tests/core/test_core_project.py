@@ -22,6 +22,14 @@ a_sample_project_response = {
         "short_uuid": "1nsB-23lb-YKp6-4HZ4",
         "name": "askanna_core.zip",
     },
+    "notifications": {
+        "all": {
+            "email": []
+        },
+        "error": {
+            "email": []
+        }
+    },
     "created": "2021-01-21T10:48:11.743045Z",
     "modified": "2021-04-21T07:38:06.884762Z",
     "description": None,

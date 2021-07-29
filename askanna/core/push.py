@@ -7,11 +7,7 @@ from zipfile import ZipFile
 import click
 import git
 
-from askanna.core.utils import (
-    validate_yml_job_names,
-    validate_yml_job,
-    validate_yml_environments,
-)
+from askanna.core.utils import validate_askanna_yml
 from askanna.core.utils import zip_files_in_dir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
 from askanna.core.utils import extract_push_target, isIPAddress, getLocalTimezone
@@ -56,16 +52,8 @@ def push(force: bool, description: str = None):
         sys.exit(1)
 
     # read the config and parse jobs, validate the job definitions
-    # validate whether the global environment definitions are correct
-    if not validate_yml_environments(config):
-        sys.exit(1)
-
-    # validate jobs names
-    if not validate_yml_job_names(config):
-        sys.exit(1)
-
     # then validate the job
-    if not validate_yml_job(config):
+    if not validate_askanna_yml(config):
         sys.exit(1)
 
     # timezone set

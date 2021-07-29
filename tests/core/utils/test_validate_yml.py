@@ -9,7 +9,7 @@ except ImportError:
 
 from askanna.core.utils import (
     validate_yml_environments,
-    validate_yml_job,
+    validate_askanna_yml,
     validate_yml_job_names,
 )
 
@@ -25,7 +25,7 @@ test_job:
     - python test.py
 """
         config = load(config_yml, Loader=Loader)
-        self.assertTrue(validate_yml_job(config))
+        self.assertTrue(validate_askanna_yml(config))
 
     def test_config_fail_schedule(self):
         config_yml = """
@@ -44,7 +44,7 @@ test_job:
     - []
 """
         config = load(config_yml, Loader=Loader)
-        self.assertFalse(validate_yml_job(config))
+        self.assertFalse(validate_askanna_yml(config))
 
     def test_config_fail_schedule2(self):
         config_yml = """
@@ -58,7 +58,7 @@ test_job:
     - []
 """
         config = load(config_yml, Loader=Loader)
-        self.assertFalse(validate_yml_job(config))
+        self.assertFalse(validate_askanna_yml(config))
 
     def test_config_good_schedule(self):
         config_yml = """
@@ -73,7 +73,7 @@ test_job:
     - "@midnight"
 """
         config = load(config_yml, Loader=Loader)
-        self.assertTrue(validate_yml_job(config))
+        self.assertTrue(validate_askanna_yml(config))
 
     def test_config_invalid_timezone(self):
         config_yml = """
@@ -85,7 +85,7 @@ test_job:
   timezone: "Nowhere"
 """
         config = load(config_yml, Loader=Loader)
-        self.assertFalse(validate_yml_job(config))
+        self.assertFalse(validate_askanna_yml(config))
 
     def test_config_valid_timezone(self):
         config_yml = """
@@ -97,7 +97,7 @@ test_job:
   timezone: "Europe/Amsterdam"
 """
         config = load(config_yml, Loader=Loader)
-        self.assertTrue(validate_yml_job(config))
+        self.assertTrue(validate_askanna_yml(config))
 
     def test_config_bad_jobname(self):
         config_yml = """
@@ -153,7 +153,7 @@ test_job:
     image: python:3-slim
 """
         config = load(config_yml, Loader=Loader)
-        self.assertTrue(validate_yml_job(config))
+        self.assertTrue(validate_askanna_yml(config))
 
         config_yml = """
 test_job:
@@ -163,4 +163,4 @@ test_job:
     missing_image: foobar
 """
         config = load(config_yml, Loader=Loader)
-        self.assertFalse(validate_yml_job(config))
+        self.assertFalse(validate_askanna_yml(config))
