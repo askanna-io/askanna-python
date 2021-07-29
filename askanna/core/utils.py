@@ -7,12 +7,13 @@ import os
 from pathlib import Path
 import re
 import sys
-from typing import Any, List, Callable, Tuple, Union, Dict
+from typing import Any, List, Tuple, Dict
 import uuid
 from zipfile import ZipFile
 
 import click
 import croniter
+import igittigitt
 import pytz
 import tzlocal
 import requests
@@ -279,29 +280,31 @@ def store_config(new_config):
 
 
 # Zip the files that matches the filter from given directory
-def zip_files_in_dir(
-    directory_path: str, zip_file: ZipFile, filter=lambda x: x
-) -> None:
-    files = get_files_in_dir(directory_path=directory_path, filter=filter)
+def zip_files_in_dir(directory_path: str, zip_file: ZipFile, ignore_file: str = None) -> None:
+    files = get_files_in_dir(directory_path=directory_path, ignore_file=ignore_file)
 
     # Iterate over all the files and zip them
     for file in sorted(files):
         zip_file.write(file)
 
 
-def get_files_in_dir(
-    directory_path: str, filter: Callable[[str], Union[str, bool]] = lambda x: x
-) -> set:
+def get_files_in_dir(directory_path: str, ignore_file: str = None) -> set:
     file_list = set()
+
+    ignore_parser = igittigitt.IgnoreParser()
+    if ignore_file:
+        ignore_parser.parse_rule_files(os.path.dirname(ignore_file), ignore_file)
 
     # Iterate over all the files in directory
     for root, _, files in os.walk(directory_path):
         for file in files:
-            if filter(file):
-                # Create complete filepath of file in directory
-                file_path = os.path.join(root, file)
-                if file_path.startswith("./"):
-                    file_path = file_path[2:]
+            # Create complete filepath of file in directory
+            file_path = os.path.join(root, file)
+            if file_path.startswith("./"):
+                file_path = file_path[2:]
+
+            # can we add this file to the collection?
+            if not ignore_parser.match(file_path):
                 file_list.add(file_path)
 
     return file_list
@@ -643,15 +646,20 @@ def validate_askanna_yml(config):
     Given an dictionary of askanna.yml validate each component
     """
     jobs = config.items()
+
     global_timezone = config.get("timezone")
     # validate the global timezone
-    if global_timezone and global_timezone not in pytz.all_timezones:
-        click.echo(
-            "Invalid timezone setting found in askanna.yml:\n"
-            + f"   timezone: '{global_timezone}'",
-            err=True,
-        )
-        return False
+    if global_timezone:
+        if global_timezone not in pytz.all_timezones:
+            click.echo(
+                "Invalid timezone setting found in askanna.yml:\n"
+                + f"timezone: {global_timezone}",
+                err=True,
+            )
+            return False
+        timezone_checked = True  # used later, so we only print a warning message about the timezone once
+    else:
+        timezone_checked = False  # used later, so we only print a warning message about the timezone once
 
     # validate whether the global environment definitions are correct
     if not validate_yml_environments(config):
@@ -685,12 +693,40 @@ def validate_askanna_yml(config):
                     )
                     return False
             # validate the timezone if set
+            timezone = job.get("timezone")
             if timezone and timezone not in pytz.all_timezones:
                 click.echo(
-                    f"Invalid timezone found in job: `{job}`: `{timezone}`",
+                    f"Invalid timezone setting found in job `{jobname}`:\n"
+                    + f"timezone: {timezone}",
                     err=True,
                 )
                 return False
+
+            # validate the schedule
+            schedule = job.get("schedule")
+            if schedule:
+                for cron_line, parsed in parse_cron_schedule(schedule):
+                    if not parsed:
+                        click.echo(
+                            f"Invalid schedule definition `{cron_line}` found in job `{jobname}`",
+                            err=True,
+                        )
+                        return False
+
+                if not timezone and not global_timezone and not timezone_checked:
+                    timezone_local = getLocalTimezone()
+                    if timezone_local != "UTC":
+                        click.echo(  # noqa
+                            f"""
+By default, the AskAnna platform uses time zone UTC. Your current time zone is {timezone_local}.
+To use your local time zone for scheduling jobs in this project, add the next line to your config in `askanna.yml`:
+
+timezone: {timezone_local}
+
+For more information, read the documentation: https://docs.askanna.io/jobs/create-job/#time-zone
+"""
+                        )
+                    timezone_checked = True
     return True
 
 

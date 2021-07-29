@@ -89,19 +89,6 @@ class TestZipFiles(unittest.TestCase):
         self.assertEqual(len(files), 3)
         self.assertTrue("askanna.yml" in files)
 
-    def test_zip_dir_simple_with_lambda(self):
-        project_dir = "tests/resources/projects/project-001-simple"
-        os.chdir(project_dir)
-
-        with ZipFile(self.zip_file, mode="w") as f:
-            zip_files_in_dir(".", f, lambda x: x)
-
-        with ZipFile(self.zip_file, "r") as f:
-            files = set(f.namelist())
-
-        self.assertEqual(len(files), 3)
-        self.assertTrue("askanna.yml" in files)
-
     def test_zip_dir_directories(self):
         project_dir = "tests/resources/projects/project-002-directories"
         os.chdir(project_dir)
@@ -115,17 +102,18 @@ class TestZipFiles(unittest.TestCase):
         self.assertEqual(len(files), 7)
         self.assertTrue("askanna.yml" in files)
 
-    def test_zip_dir_subdirectories_with_lambda(self):
+    def test_zip_dir_subdirectories_with_gitignore(self):
         project_dir = "tests/resources/projects/project-003-subdirectories"
         os.chdir(project_dir)
 
         with ZipFile(self.zip_file, mode="w") as f:
-            zip_files_in_dir(".", f, lambda x: x)
+            zip_files_in_dir(".", f, ignore_file=".gitignore")
 
         with ZipFile(self.zip_file, "r") as f:
             files = set(f.namelist())
+            print(files)
 
-        self.assertEqual(len(files), 25)
+        self.assertEqual(len(files), 21)
         self.assertTrue("askanna.yml" in files)
 
     def test_zip_paths_simple(self):
@@ -219,7 +207,7 @@ class TestZipFiles(unittest.TestCase):
         with ZipFile(self.zip_file, "r") as f:
             files = set(f.namelist())
 
-        self.assertEqual(len(files), 25)
+        self.assertEqual(len(files), 28)
         self.assertTrue("askanna.yml" in files)
         self.assertTrue("data/input/input.csv" in files)
         self.assertTrue("models/model.pkl" in files)
