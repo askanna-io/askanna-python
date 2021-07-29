@@ -518,6 +518,7 @@ def validate_yml_job_names(config):
         "environment",
         "image",
         "job",
+        "notifications",
         "project",
         "push-target",
         "timezone",
@@ -584,7 +585,63 @@ def validate_yml_environments(config: Dict, jobname=None) -> bool:
     return True
 
 
-def validate_yml_job(config):
+def validate_yml_notifications(config: Dict, jobname=None) -> bool:
+    """
+    Validate the definition of `notifications` in global and job
+    """
+    notifications = config.get("notifications")
+    if notifications and not isinstance(notifications, dict):
+        if jobname:
+            click.echo(
+                f"Invalid definition of `notifications` found in job `{jobname}`:\n"
+                f"notifications: {notifications}"
+                "\n"
+                "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                err=True,
+            )
+        else:
+            click.echo(
+                "Invalid `notifications` setting found:"
+                f"notifications: {notifications}"
+                "\n"
+                "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                err=True,
+            )
+        return False
+    elif notifications and isinstance(notifications, dict):
+        # check for values of `all` and `error`, both should be dicts
+        noti_all = notifications.get("all")
+        noti_error = notifications.get("error")
+        if any(
+            [
+                noti_all and not isinstance(noti_all, dict),
+                noti_error and not isinstance(noti_error, dict),
+            ]
+        ):
+            if jobname:
+                click.echo(
+                    f"Invalid definition of `notifications` found in job `{jobname}`:\n"
+                    f"notifications: {notifications}"
+                    "\n"
+                    "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                    err=True,
+                )
+            else:
+                click.echo(
+                    "Invalid `notifications` setting found:\n"
+                    f"notifications: {notifications}"
+                    "\n"
+                    "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                    err=True,
+                )
+            return False
+    return True
+
+
+def validate_askanna_yml(config):
+    """
+    Given an dictionary of askanna.yml validate each component
+    """
     jobs = config.items()
     global_timezone = config.get("timezone")
     # validate the global timezone
@@ -596,10 +653,25 @@ def validate_yml_job(config):
         )
         return False
 
+    # validate whether the global environment definitions are correct
+    if not validate_yml_environments(config):
+        return False
+
+    # validate for global notification settings
+    if not validate_yml_notifications(config):
+        return False
+
+    # validate jobs names
+    if not validate_yml_job_names(config):
+        return False
+
     for jobname, job in jobs:
         if isinstance(job, dict):
             if not validate_yml_environments(job, jobname=jobname):
                 return False
+            if not validate_yml_notifications(job, jobname=jobname):
+                return False
+
             schedule = job.get("schedule")
             timezone = job.get("timezone")
             if not schedule:

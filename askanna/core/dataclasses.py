@@ -11,6 +11,7 @@ class Job:
     uuid: uuid.UUID
     short_uuid: str
     project: dict
+    notifications: dict
     schedules: list
     created: datetime.datetime
     modified: datetime.datetime
@@ -26,6 +27,7 @@ class Project:
     short_uuid: str
     created_by: dict
     package: dict
+    notifications: dict
     template: str
     created: datetime.datetime
     modified: datetime.datetime
