@@ -10,7 +10,7 @@ import git
 from askanna.core.utils import validate_askanna_yml
 from askanna.core.utils import zip_files_in_dir, scan_config_in_path
 from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
-from askanna.core.utils import extract_push_target, isIPAddress, getLocalTimezone
+from askanna.core.utils import extract_push_target, isIPAddress
 from askanna.core.upload import PackageUpload
 
 
@@ -29,10 +29,19 @@ def package(src: str) -> str:
         ),
     )
 
+    if os.path.isfile(os.path.join(src, "askannaignore")):
+        ignore_file = os.path.join(src, "askannaignore")
+    elif os.path.isfile(os.path.join(src, ".askannaignore")):
+        ignore_file = os.path.join(src, ".askannaignore")
+    elif os.path.isfile(os.path.join(src, ".gitignore")):
+        ignore_file = os.path.join(src, ".gitignore")
+    else:
+        ignore_file = None
+
     cwd = os.getcwd()
     os.chdir(src)
     with ZipFile(zip_file, mode="w") as f:
-        zip_files_in_dir(".", f)
+        zip_files_in_dir(".", f, ignore_file)
     os.chdir(cwd)
 
     return zip_file
@@ -46,7 +55,7 @@ def push(force: bool, description: str = None):
 
     if not push_target:
         click.echo(
-            "`push-target` is not set, please set the `push-target` in order to push to AskAnna",
+            "`push-target` is not set, please set the `push-target` in the `askanna.yml` in order to push to AskAnna",
             err=True,
         )
         sys.exit(1)
@@ -55,21 +64,6 @@ def push(force: bool, description: str = None):
     # then validate the job
     if not validate_askanna_yml(config):
         sys.exit(1)
-
-    # timezone set
-    timezone_defined = config.get("timezone")
-    timezone_local = getLocalTimezone()
-    if not timezone_defined and timezone_local != "UTC":
-        click.echo(  # noqa
-            f"""
-By default, the AskAnna platform uses time zone UTC. Your current time zone is {timezone_local}.
-To use your local time zone for runnings jobs in this project, add the next line to your config in `askanna.yml`:
-
-timezone: {timezone_local}
-
-For more information check the documentation: https://docs.askanna.io/jobs/create-job/#time-zone
-"""
-        )
 
     matches_dict = extract_push_target(push_target)
     api_host = matches_dict.get("askanna_host")
@@ -112,26 +106,8 @@ For more information check the documentation: https://docs.askanna.io/jobs/creat
         else:
             return False
 
-    cwd = os.getcwd()
-
-    upload_folder = cwd
     askanna_config = scan_config_in_path()
     project_folder = os.path.dirname(askanna_config)
-
-    def ask_which_folder(cwd, project_folder) -> str:
-        confirm = input("Proceed upload [c]urrent or [p]roject folder? : ")
-        answer = confirm.strip()
-        if answer not in ["c", "p"]:
-            print("Invalid option selected, choose from: c or p")
-            return ask_which_folder(cwd, project_folder)
-        if confirm == "c":
-            return cwd
-        if confirm == "p":
-            return project_folder
-
-    if not cwd == project_folder:
-        click.echo(f"You are not at the root folder of the project '{project_folder}'.")
-        upload_folder = ask_which_folder(cwd, project_folder)
 
     # check for existing package
     packages = getProjectPackages(project_info)
@@ -149,7 +125,7 @@ For more information check the documentation: https://docs.askanna.io/jobs/creat
             )
             sys.exit(0)
 
-    package_archive = package(upload_folder)
+    package_archive = package(project_folder)
 
     # attach the description to this package upload
     if not description:
@@ -166,7 +142,7 @@ For more information check the documentation: https://docs.askanna.io/jobs/creat
     if not description:
         description = os.path.basename(package_archive)
 
-    click.echo("Uploading '{}' to AskAnna...".format(upload_folder))
+    click.echo("Uploading '{}' to AskAnna...".format(project_folder))
 
     fileinfo = {
         "filename": os.path.basename(package_archive),

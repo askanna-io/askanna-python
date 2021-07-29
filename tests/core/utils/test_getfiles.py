@@ -1,5 +1,6 @@
 import os
 import unittest
+
 import pytest
 
 from askanna.core.utils import get_files_in_dir, get_files_in_paths
@@ -34,8 +35,44 @@ class TestGetFiles(unittest.TestCase):
         os.chdir(project_dir)
 
         files = get_files_in_dir(".")
-        self.assertEqual(len(files), 25)
+        self.assertEqual(len(files), 28)
         self.assertTrue("askanna.yml" in files)
+
+    def test_get_files_in_dir_with_gitignore(self):
+        project_dir = "tests/resources/projects/project-003-subdirectories"
+        os.chdir(project_dir)
+
+        files = get_files_in_dir(".", ignore_file=".gitignore")
+        self.assertEqual(len(files), 21)
+        self.assertTrue("askanna.yml" in files)
+        self.assertTrue("data/input/input.csv" in files)
+        self.assertFalse("data/interim/.gitkeep" in files)
+        self.assertFalse("data/processed/input.csv" in files)
+        self.assertFalse("data/processed/input-2.csv" in files)
+
+    def test_get_files_in_dir_with_dotaskannaignore(self):
+        project_dir = "tests/resources/projects/project-003-subdirectories"
+        os.chdir(project_dir)
+
+        files = get_files_in_dir(".", ignore_file=".askannaignore")
+        self.assertEqual(len(files), 21)
+        self.assertTrue("askanna.yml" in files)
+        self.assertFalse("data/input/input.csv" in files)
+        self.assertTrue("data/interim/.gitkeep" in files)
+        self.assertFalse("data/processed/input.csv" in files)
+        self.assertFalse("data/processed/input-2.csv" in files)
+
+    def test_get_files_in_dir_with_askannaignore(self):
+        project_dir = "tests/resources/projects/project-003-subdirectories"
+        os.chdir(project_dir)
+
+        files = get_files_in_dir(".", ignore_file="askannaignore")
+        self.assertEqual(len(files), 22)
+        self.assertTrue("askanna.yml" in files)
+        self.assertFalse("data/input/input.csv" in files)
+        self.assertFalse("data/interim/.gitkeep" in files)
+        self.assertTrue("data/processed/input.csv" in files)
+        self.assertTrue("data/processed/input-2.csv" in files)
 
     def test_get_files_paths_simple(self):
         project_dir = "tests/resources/projects/project-001-simple"
@@ -124,7 +161,7 @@ class TestGetFiles(unittest.TestCase):
         os.chdir(project_dir)
 
         files = get_files_in_paths(".")
-        self.assertEqual(len(files), 25)
+        self.assertEqual(len(files), 28)
         self.assertTrue("askanna.yml" in files)
 
     def test_get_files_paths_subdirectories_dirs(self):
@@ -235,5 +272,5 @@ class TestGetFiles(unittest.TestCase):
 
         paths = ["/", "."]
         files = get_files_in_paths(paths, exclude_paths)
-        self.assertEqual(len(files), 25)
+        self.assertEqual(len(files), 28)
         self.assertTrue("askanna.yml" in files)
