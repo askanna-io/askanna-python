@@ -11,6 +11,8 @@ a_sample_workspace_response = {
     "name": "AskAnna",
     "description": "",
     "short_uuid": "3Cpy-QMzd-MVko-1rDQ",
+    "visibility": "PUBLIC",
+    "is_member": True,
 }
 
 
