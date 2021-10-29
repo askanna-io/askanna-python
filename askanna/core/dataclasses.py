@@ -29,9 +29,12 @@ class Project:
     package: dict
     notifications: dict
     template: str
+    permission: dict
+    visibility: str
     created: datetime.datetime
     modified: datetime.datetime
     workspace: dict
+    is_member: bool
     url: str = None
 
     def __str__(self):
@@ -141,6 +144,8 @@ class Workspace:
     description: str
     uuid: uuid.UUID
     short_uuid: str
+    visibility: str
+    is_member: bool
     created: datetime.datetime
     modified: datetime.datetime
 

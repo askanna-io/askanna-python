@@ -13,7 +13,7 @@ code_quality:
 
 .test_template: &test_template
   stage: test
-  image: python:3-slim
+  image: python:3.9-slim
   before_script:
     - apt-get update && apt-get install -y git
     - pip install -U pip
