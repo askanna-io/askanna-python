@@ -1,5 +1,13 @@
 # History
 
+## 0.13.1 (2021-10-29)
+
+- Added `is_member` to dataclasses `Workspace` and `Project` to denote whether the user is member of the object. 
+  Users can now list public workspaces and workspaces, so this flag can indicate the membership
+- Added `permission` to dataclass `Project` to list permissions the user has for ths particular object. 
+- Added `visibility` to dataclasses `Workspace` and `Project` to indicate whether this is a `PUBLIC` or `PRIVATE`
+ workspace or project.
+
 ## 0.13.0 (2021-07-29)
 
 - Added `notifications` to dataclasses `Job` and `Project`. We validate whether notifications are setup correctly.
