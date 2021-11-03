@@ -4,24 +4,21 @@ This is the class which act as gateway to the API of AskAnna
 """
 import sys
 
-from askanna.core import client, exceptions
-from askanna.core.dataclasses import Workspace
-
 import click
+
+from askanna.core import exceptions
+from askanna.core.apiclient import client
+from askanna.core.dataclasses import Workspace
 
 
 class WorkspaceGateway:
     def __init__(self, *args, **kwargs):
         self.client = client
+        self.base_url = self.client.base_url + "workspace/"
 
     def list(self) -> list:
-        # build url to select for project only
-        url = "{}{}/".format(
-            self.client.config.remote,
-            "workspace",
-        )
+        r = self.client.get(self.base_url)
 
-        r = self.client.get(url)
         if r.status_code != 200:
             raise exceptions.GetError(
                 "{} - Something went wrong while retrieving "
@@ -36,7 +33,7 @@ class WorkspaceGateway:
         """
         Change the workspace information
         """
-        url = "{}{}/{}/".format(self.client.config.remote, "workspace", suuid)
+        url = f"{self.base_url}{suuid}/"
 
         changes = [
             ["name", name],

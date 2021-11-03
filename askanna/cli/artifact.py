@@ -3,8 +3,8 @@ import os
 import sys
 import click
 
+from askanna.core.apiclient import client
 from askanna.core.download import ChunkedDownload
-from askanna.core.utils import get_config
 
 
 @click.group()
@@ -21,9 +21,7 @@ def get(suuid, output_path):
     """
     Download an artifact of a run
     """
-    config = get_config()
-    ASKANNA_API_SERVER = config.get("askanna", {}).get("remote")
-    url = f"{ASKANNA_API_SERVER}artifact/{suuid}/"
+    url = f"{client.base_url}artifact/{suuid}/"
 
     if not output_path:
         output_path = f"artifact_{suuid}.zip"

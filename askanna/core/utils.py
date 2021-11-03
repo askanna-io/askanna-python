@@ -1,12 +1,8 @@
 import collections
 import datetime
-import glob
 import ipaddress
 import mimetypes
 import os
-from pathlib import Path
-import re
-import sys
 from typing import Any, List, Tuple, Dict
 import uuid
 from zipfile import ZipFile
@@ -18,24 +14,9 @@ import igittigitt
 import pytz
 import tzlocal
 import requests
-import yaml
-from yaml import load, dump
 
 from askanna import __version__ as askanna_version
-from askanna.settings import (
-    CONFIG_FILE_ASKANNA,
-    CONFIG_ASKANNA_REMOTE,
-    DEFAULT_PROJECT_TEMPLATE,
-    PYPI_PROJECT_URL,
-)
-
-try:
-    from yaml import CLoader as Loader, CDumper as Dumper
-except ImportError:
-    from yaml import Loader, Dumper
-
-
-from askanna.core import exceptions
+from askanna.settings import PYPI_PROJECT_URL
 
 
 StorageUnit = collections.namedtuple(
@@ -156,134 +137,6 @@ def update_available() -> bool:
         return True
 
 
-def check_for_project():
-    """
-    Performs a check if we are operating within a project folder. When
-    we wish to perform a deploy action, we want to be on the same
-    level with the `askanna.yml` to be able to package the file.
-    """
-    pyfiles = glob.glob("*.yml")
-
-    # look for the setup.py file
-    if "askanna.yml" in pyfiles:
-        return True
-    else:
-        return False
-
-
-def scan_config_in_path(cwd=None):
-    """
-    Look for askanna.yml in parent directories
-    """
-    if not cwd:
-        cwd = os.getcwd()
-    project_configfile = ""
-    # first check whether we already can find in the current workdir
-    if contains_configfile(cwd):
-        project_configfile = os.path.join(cwd, "askanna.yml")
-    else:
-        # traverse up all directories untill we find an askanna.yml file
-        split_path = os.path.split(cwd)
-        # in any other cases, look in parent directories
-        while split_path[1] != "":
-            if contains_configfile(split_path[0]):
-                project_configfile = os.path.join(split_path[0], "askanna.yml")
-                break
-            split_path = os.path.split(split_path[0])
-    return project_configfile
-
-
-def read_config(path: str) -> dict:
-    """
-    Reading existing config or return default dict
-    """
-    try:
-        with open(os.path.expanduser(path), "r") as f:
-            return load(f, Loader=Loader) or {}
-    except FileNotFoundError:
-        config_folder = os.path.dirname(CONFIG_FILE_ASKANNA)
-        if not os.path.exists(config_folder):
-            os.makedirs(config_folder, exist_ok=True)
-
-        Path(CONFIG_FILE_ASKANNA).touch()
-
-        # Write initial config if the config file didn't exist
-        config = store_config(CONFIG_ASKANNA_REMOTE)
-        with open(CONFIG_FILE_ASKANNA, "w") as f:
-            f.write(config)
-
-        return CONFIG_ASKANNA_REMOTE
-    except TypeError as e:
-        click.echo(e, err=True)
-        sys.exit(1)
-    except yaml.scanner.ScannerError as e:
-        click.echo("Error reading askanna.yml due to:", err=True)
-        click.echo(e.problem, err=True)
-        click.echo(e.problem_mark, err=True)
-        sys.exit(1)
-
-
-def contains_configfile(path: str, filename: str = "askanna.yml") -> bool:
-    return os.path.isfile(os.path.join(path, filename))
-
-
-def get_config(check_config=True) -> Dict:
-    config = read_config(CONFIG_FILE_ASKANNA)
-
-    # overwrite the AA remote if AA_REMOTE is set in the environment
-    is_remote_set = os.getenv("AA_REMOTE")
-    if is_remote_set:
-        config["askanna"] = config.get("askanna", {})
-        config["askanna"]["remote"] = is_remote_set
-
-    # if askanna remote is not set, add a default remote to the config file
-    try:
-        config["askanna"]["remote"]
-    except KeyError:
-        config = store_config(CONFIG_ASKANNA_REMOTE)
-        with open(CONFIG_FILE_ASKANNA, "w") as f:
-            f.write(config)
-        config = read_config(CONFIG_FILE_ASKANNA)
-
-    # overwrite the user token if AA_TOKEN is set in the environment
-    is_token_set = os.getenv("AA_TOKEN")
-    if is_token_set:
-        config["auth"] = config.get("auth", {})
-        config["auth"]["token"] = is_token_set
-
-    # set the project template
-    config["project"] = config.get("project", {})
-    config["project"]["template"] = os.getenv(
-        "PROJECT_TEMPLATE_URL", DEFAULT_PROJECT_TEMPLATE
-    )
-
-    project_config = scan_config_in_path()
-    if project_config:
-        config.update(**read_config(project_config))
-
-    if check_config:
-        validate_config(config)
-
-    return config
-
-
-def validate_config(config: Dict):
-    try:
-        config["auth"]["token"]
-    except KeyError:
-        click.echo(
-            "You are not logged in. Please login first via `askanna login`.", err=True
-        )
-        sys.exit(1)
-
-
-def store_config(new_config):
-    original_config = read_config(CONFIG_FILE_ASKANNA)
-    original_config.update(**new_config)
-    output = dump(original_config, Dumper=Dumper)
-    return output
-
-
 # Zip the files that matches the filter from given directory
 def zip_files_in_dir(directory_path: str, zip_file: ZipFile, ignore_file: str = None) -> None:
     files = get_files_in_dir(directory_path=directory_path, ignore_file=ignore_file)
@@ -380,7 +233,7 @@ def create_zip_from_paths(filename: str, paths: List = []) -> None:
         zip_paths(paths, f, exclude_paths=exclude_paths)
 
 
-def _file_type(path):
+def file_type(path):
     """Mimic the type parameter of a JS File object.
     Resumable.js uses the File object's type attribute to guess mime type,
     which is guessed from file extention accoring to
@@ -399,36 +252,13 @@ def _file_type(path):
     return "" if type_ is None else type_
 
 
-def getProjectInfo(project_suuid):
-    # import the lib functions here, to prevent circular import
-    from askanna.core import client
-    from askanna.core.config import Config
-    from askanna.core.dataclasses import Project
-
-    config = Config()
-    r = client.get(
-        "{api_server}project/{project_suuid}/".format(
-            api_server=config.remote, project_suuid=project_suuid
-        ),
-    )
-
-    if r.status_code != 200:
-        raise exceptions.GetError(
-            "{} - Something went wrong while retrieving the "
-            "project info: {}".format(r.status_code, r.reason)
-        )
-
-    return Project(**r.json())
-
-
 def getProjectPackages(project, offset=0, limit=1):
-    from askanna.core import client
-    from askanna.core.config import Config
+    from askanna.core.apiclient import client
+    from askanna.config import config
 
-    config = Config()
     r = client.get(
-        "{api_server}project/{project_suuid}/packages/?offset={offset}&limit={limit}".format(
-            api_server=config.remote,
+        "{api_server}/v1/project/{project_suuid}/packages/?offset={offset}&limit={limit}".format(
+            api_server=config.server.remote,
             project_suuid=project.short_uuid,
             offset=offset,
             limit=limit,
@@ -438,21 +268,6 @@ def getProjectPackages(project, offset=0, limit=1):
         return []
 
     return r.json()
-
-
-def extract_push_target(push_target: str):
-    """
-    Extract push target from the url configured
-    Workspace is optional
-    """
-    if not push_target:
-        raise ValueError("Cannot extract push-target if push-target is not set.")
-    match_pattern = re.compile(
-        r"(?P<http_scheme>https|http):\/\/(?P<askanna_host>[\w\.\-\:]+)\/(?P<workspace_suuid>[\w-]+){0,1}\/{0,1}project\/(?P<project_suuid>[\w-]+)\/{0,1}"  # noqa: E501
-    )
-    matches = match_pattern.match(push_target)
-    matches_dict = matches.groupdict()
-    return matches_dict
 
 
 def validate_cron_line(cron_line: str) -> bool:

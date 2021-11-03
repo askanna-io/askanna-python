@@ -3,7 +3,7 @@ import os
 import sys
 import click
 
-from askanna.core import client as askanna_client
+from askanna.core.apiclient import client
 from askanna.core.download import ChunkedDownload
 from askanna.core.utils import content_type_file_extension
 
@@ -22,7 +22,7 @@ def get(suuid, output_path):
     """
     Download a result of a run
     """
-    result_url = f"{askanna_client.config.remote}result/{suuid}/"
+    result_url = f"{client.base_url}result/{suuid}/"
     stable_download = ChunkedDownload(result_url)
 
     if stable_download.status_code != 200:

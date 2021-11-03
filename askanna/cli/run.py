@@ -4,13 +4,15 @@ import sys
 
 import click
 
-from askanna import config
-from askanna import run as askanna_run
-from askanna import job as askanna_job
+from askanna import (
+    job as aa_job,
+    project as aa_project,
+    run as aa_run,
+)
+from askanna.config import config
 from askanna.core.dataclasses import Project
 from askanna.cli.utils import ask_which_job, ask_which_project, ask_which_workspace
 from askanna.core.push import push
-from askanna.core.utils import getProjectInfo
 
 
 HELP = """
@@ -25,13 +27,12 @@ def determine_project(
     workspace_suuid: str = None,
 ) -> Project:
     if not project_suuid:
-        project_suuid = config.project_suuid
+        project_suuid = config.project.project_suuid
 
     # Still if there is no project_suuid found, we will ask which project to use
     if project_suuid:
-        project = getProjectInfo(project_suuid=project_suuid)
+        project = aa_project.detail(project_suuid)
         click.echo(f"Selected project: {project.name}")
-
         return project
     else:
         if not workspace_suuid:
@@ -138,7 +139,7 @@ def cli(
         pass
     elif job_name:
         try:
-            job = askanna_job.get_job_by_name(
+            job = aa_job.get_job_by_name(
                 job_name=job_name, project_suuid=project.short_uuid
             )
             job_suuid = job.short_uuid
@@ -159,7 +160,7 @@ def cli(
         job_suuid = job.short_uuid
 
     try:
-        run = askanna_run.start(
+        run = aa_run.start(
             job_suuid=job_suuid,
             data=data,
             name=name,

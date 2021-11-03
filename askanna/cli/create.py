@@ -4,9 +4,11 @@ from cookiecutter.exceptions import OutputDirExistsException
 import os
 from slugify import slugify
 
-from askanna.core import client as askanna_client
-from askanna.core.utils import get_config
+from askanna.cli.utils import ask_which_workspace
+from askanna.core.apiclient import client
 from askanna.core.push import push
+from askanna.settings import DEFAULT_PROJECT_TEMPLATE
+
 
 HELP = """
 This command will allow you to create an AskAnna project in a new directory
@@ -15,83 +17,19 @@ This command will allow you to create an AskAnna project in a new directory
 SHORT_HELP = "Create a project in a new directory"
 
 
-def get_user_info(server):
-
-    url = "{server}rest-auth/user".format(server=server.replace("v1/", ""))
-    ruser = askanna_client.get(url)
-    if ruser.status_code == 200:
-        return ruser.json()
-    elif ruser.status_code == 401:
-        print(
-            "The provided token is not valid. Via `askanna logout` you can remove the token "
-            "and via `askanna login` you can set a new token."
-        )
-    else:
-        print("Could not connect to AskAnna at this moment")
-
-
 class CreateProject:
-    def __init__(self, name=None, user=None):
-        self.config = get_config()
-        self.api_server = self.config["askanna"]["remote"]
+    def __init__(self, name: str = None):
+        self.client = client
         self.name = name
         self.slugified_name = None
         if self.name:
             self.slugified_name = slugify(self.name)
 
-    def find_workspace(self) -> list:
-        """
-        Find all workspaces where the user is part of and enumerate them
-        """
-        workspaces = []
-        r = askanna_client.get("{}workspace/".format(self.api_server))
-
-        for workspace in r.json():
-            workspaces.append(
-                {"suuid": workspace["short_uuid"], "name": workspace["name"]}
-            )
-        return workspaces
-
-    def ask_workspace(self) -> str:
-        """
-        Ask which workspace the project will be created in.
-        """
-        workspaces = self.find_workspace()
-        if len(workspaces) > 1:
-
-            workspace_list_str = ""
-
-            for idx, workspace in enumerate(workspaces, start=1):
-                workspace_list_str += "%d. %s\n" % (idx, workspace["name"])
-
-            workspace = click.prompt(
-                "\nYou are a member of multiple workspaces. "
-                + "In which workspace do you want to create the new project?\n"
-                + workspace_list_str
-                + "\n"
-                + "Please enter the workspace number"
-            )
-            selected_workspace = workspaces[int(workspace) - 1]
-        else:
-            selected_workspace = workspaces[0]
-
-        if click.confirm(
-            "Do you want to create a project '{project}' in '{workspace}'?".format(
-                project=self.name, workspace=selected_workspace["name"]
-            ),
-            abort=True,
-        ):
-            click.echo(
-                "Thank you for the information. Anna will continue creating the project."
-            )
-
-        return selected_workspace["suuid"]
-
-    def cli(self, workspace: str = None, description: str = None):
+    def cli(self, workspace_suuid: str = None, description: str = None):
         if not self.name:
             click.echo(
                 "Hi! It is time to create a new project in AskAnna. "
-                + "We start with some information about the project."
+                "We start with some information about the project.\n"
             )
             self.name = click.prompt("Project name", type=str)
             self.slugified_name = slugify(self.name)
@@ -101,14 +39,16 @@ class CreateProject:
                     "Project description", type=str, default="", show_default=False
                 )
 
-        if not workspace:
-            workspace = self.ask_workspace()
+        if not workspace_suuid:
+            workspace = ask_which_workspace("In which workspace do you want to create the new project?")
+            workspace_suuid = workspace.short_uuid
 
-        r = askanna_client.post(
-            self.api_server + "project/",
+        url = f"{self.client.base_url}project/"
+        r = self.client.post(
+            url,
             data={
                 "name": self.name,
-                "workspace": workspace,
+                "workspace": workspace_suuid,
                 "description": description,
             },
         )
@@ -124,7 +64,6 @@ class CreateProject:
 @click.option(
     "--workspace",
     "-w",
-    envvar="WORKSPACE_SUUID",
     show_default=True,
     help="Workspace SUUID where you want to create the project",
 )
@@ -145,10 +84,10 @@ class CreateProject:
 )
 def cli(name, workspace, description, project_template, is_push):
     project_creator = CreateProject(name=name)
-    project_info = project_creator.cli(workspace, description)
+    project_info = project_creator.cli(workspace_suuid=workspace, description=description)
     project_dir = project_creator.slugified_name
     if not project_template:
-        project_template = project_creator.config["project"]["template"]
+        project_template = DEFAULT_PROJECT_TEMPLATE
 
     try:
         cookiecreator(

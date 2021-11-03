@@ -4,11 +4,7 @@ import sys
 
 from askanna import project as aa_project
 from askanna.cli.utils import ask_which_project, ask_which_workspace
-from askanna.core.config import Config
-from askanna.core.utils import extract_push_target
-
-
-config = Config()
+from askanna.config import config
 
 
 @click.group()
@@ -52,12 +48,7 @@ def list(workspace_suuid):
             )
 
 
-@click.group()
-def cli2():
-    pass
-
-
-@cli2.command(help="Change project information in AskAnna", short_help="Change project")
+@cli1.command(help="Change project information in AskAnna", short_help="Change project")
 @click.option("--id", "-i", "suuid", required=False, type=str, help="Project SUUID")
 @click.option("--name", "-n", required=False, type=str, help="New name to set")
 @click.option(
@@ -65,20 +56,12 @@ def cli2():
 )
 def change(suuid, name, description):
     if not suuid:
-        try:
-            push_target = extract_push_target(config.push_target)
-        except ValueError:
-            # the push-target is not set, so don't bother reading it
-            project_suuid = None
-        else:
-            project_suuid = push_target.get("project_suuid")
-
-        if not project_suuid:
+        suuid = config.project.project_suuid
+        if not suuid:
             workspace = ask_which_workspace(question="From which workspace do you want to change a project?")
             project = ask_which_project(question="Which project do you want to change?",
                                         workspace_suuid=workspace.short_uuid)
-            project_suuid = project.short_uuid
-        suuid = project_suuid
+            suuid = project.short_uuid
 
     if not name and not description:
         if click.confirm("\nDo you want to change the name of the project?"):
@@ -92,10 +75,7 @@ def change(suuid, name, description):
 
 
 cli = click.CommandCollection(
-    sources=[
-        cli1,
-        cli2,
-    ],
+    sources=[cli1],
     help="Manage your projects in AskAnna",
     short_help="Manage projects in AskAnna",
 )

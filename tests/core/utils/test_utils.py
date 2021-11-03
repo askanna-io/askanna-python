@@ -1,7 +1,7 @@
 import datetime
+import sys
 import unittest
 
-import numpy as np
 from askanna.core.utils import (
     prepare_and_validate_value,
     translate_dtype,
@@ -9,6 +9,9 @@ from askanna.core.utils import (
     update_available,
     validate_value,
 )
+
+if sys.version_info.minor < 10:
+    import numpy as np
 
 
 class TestValidateValue(unittest.TestCase):
@@ -25,7 +28,8 @@ class TestValidateValue(unittest.TestCase):
         self.assertTrue(validate_value(3.14))
         self.assertTrue(validate_value(5.0))
 
-        self.assertTrue(validate_value(np.float(5.21)))
+        if sys.version_info.minor < 10:
+            self.assertTrue(validate_value(np.float(5.21)))
 
         self.assertTrue(validate_value(["test", "some text"]))
         self.assertTrue(validate_value({"test": True}))
@@ -48,6 +52,7 @@ class TestPrepareAndValidateValue(unittest.TestCase):
         self.assertEqual(value, [0, 1, 2])
         self.assertTrue(valid)
 
+    @unittest.skipIf(sys.version_info.minor > 9, "Numpy doesn't work in Python 3.10")
     def test_prepare_and_validate_value_numpy_float(self):
         value, valid = prepare_and_validate_value(np.float(5.21))
         self.assertEqual(value, 5.21)
@@ -65,6 +70,7 @@ class TestTransformValue(unittest.TestCase):
         self.assertEqual(value, [0, 1, 2])
         self.assertTrue(transform)
 
+    @unittest.skipIf(sys.version_info.minor > 9, "Numpy doesn't work in Python 3.10")
     def test_transform_value_numpy_float(self):
         value, transform = transform_value(np.float(5.21))
         self.assertEqual(value, 5.21)

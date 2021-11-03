@@ -5,28 +5,22 @@ This is the class which act as gateway to the API of AskAnna
 import sys
 import click
 
-from askanna.core import client, exceptions
+from askanna.core import exceptions
+from askanna.core.apiclient import client
 from askanna.core.dataclasses import Job
 
 
 class JobGateway:
     def __init__(self, *args, **kwargs):
         self.client = client
+        self.base_url = client.base_url + "job/"
 
     def list(self, project_suuid: str = None) -> list:
         if project_suuid:
             # build url to select for project only
-            url = "{}{}/{}/{}/".format(
-                self.client.config.remote,
-                "project",
-                project_suuid,
-                "jobs"
-            )
+            url = f"{self.client.base_url}project/{project_suuid}/jobs/"
         else:
-            url = "{}{}/".format(
-                self.client.config.remote,
-                "job"
-            )
+            url = self.base_url
 
         r = self.client.get(url)
         if r.status_code != 200:
@@ -51,11 +45,7 @@ class JobGateway:
         return result
 
     def change(self, suuid: str, name: str = None, description: str = None) -> Job:
-        url = "{}{}/{}/".format(
-            self.client.config.remote,
-            "job",
-            suuid
-        )
+        url = f"{self.base_url}{suuid}/"
 
         job = {}
         if name:

@@ -5,8 +5,9 @@ import click
 import tempfile
 
 from askanna.cli.run_utils.utils import string_expand_variables
+from askanna.config import config
 from askanna.core.upload import ArtifactUpload
-from askanna.core.utils import get_config, create_zip_from_paths
+from askanna.core.utils import create_zip_from_paths
 
 
 HELP = """
@@ -18,7 +19,7 @@ SHORT_HELP = "Push artifact to AskAnna"
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
-    config = get_config()
+    project_config = config.project.config_dict
     run_suuid = os.getenv("AA_RUN_SUUID")
     job_name = os.getenv("AA_JOB_NAME")
 
@@ -34,10 +35,10 @@ def cli():
 
     # First check whether we need to create an artifact or not.
     # If output.artifact or output.paths is not specified, we skip this step and report this to the stdout.
-    paths_defined = config[job_name].get("output", {}).get("artifact", [])
+    paths_defined = project_config[job_name].get("output", {}).get("artifact", [])
 
     if not paths_defined:  # deprecated: can be removed after release of aa-core v0.5.0
-        paths_defined = config[job_name].get("output", {}).get("paths", [])
+        paths_defined = project_config[job_name].get("output", {}).get("paths", [])
         if paths_defined:
             click.echo(
                 "Deprecation warning: in a future version we remove the output/paths option. Please specify "
@@ -73,7 +74,7 @@ def cli():
     uploader = ArtifactUpload(
         run_suuid=run_suuid,
     )
-    status, msg = uploader.upload(zip_file, config, fileinfo)
+    status, msg = uploader.upload(zip_file, project_config, fileinfo)
     if status:
         click.echo(msg)
         try:

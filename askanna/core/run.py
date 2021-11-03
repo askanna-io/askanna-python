@@ -2,11 +2,10 @@
 Core functions for management of runs in AskAnna
 This is the class which act as gateway to the API of AskAnna
 """
-import click
-
 from typing import List
 
-from askanna.core import client, exceptions
+from askanna.core import exceptions
+from askanna.core.apiclient import client
 from askanna.core.dataclasses import Run, RunInfo, RunStatus
 from askanna.core.job import JobGateway
 from askanna.core.metrics import MetricGateway
@@ -18,7 +17,8 @@ class RunGateway:
         self.client = client
         self.run_suuid = None
 
-        # instantiated gateways for query metrics and variables
+        # instantiated gateways for query job, metrics and variables
+        self.job = JobGateway()
         self.metrics = MetricGateway()
         self.variables = VariableTrackedGateway()
 
@@ -30,7 +30,7 @@ class RunGateway:
         description: str = None,
     ) -> Run:
 
-        url = "{}{}/{}/".format(self.client.config.remote, "run", job_suuid)
+        url = f"{self.client.base_url}run/{job_suuid}/"
 
         r = self.client.post(
             url,
@@ -51,10 +51,7 @@ class RunGateway:
         return run
 
     def list(self, query_params: dict = None) -> List[RunInfo]:
-        url = "{}{}/".format(
-            self.client.config.remote,
-            "runinfo",
-        )
+        url = f"{self.client.base_url}runinfo/"
         r = self.client.get(url, params=query_params)
         if r.status_code != 200:
             raise exceptions.GetError(
@@ -72,8 +69,7 @@ class RunGateway:
         returns RunInfo
         """
         suuid = suuid or self.run_suuid
-
-        url = "{}{}/{}/".format(self.client.config.remote, "runinfo", suuid)
+        url = f"{self.client.base_url}runinfo/{suuid}/"
 
         r = self.client.get(url)
         if r.status_code != 200:
@@ -92,7 +88,7 @@ class RunGateway:
                 "There is no run SUUID provided. Did you start a run?"
             )
 
-        url = "{}{}/{}/".format(self.client.config.remote, "status", suuid)
+        url = f"{self.client.base_url}status/{suuid}/"
 
         r = self.client.get(url)
         if r.status_code != 200:
@@ -131,11 +127,8 @@ class RunActionGateway:
             )
         elif not job_suuid:
             if not project_suuid:
-                project_suuid = self.gateway.client.config.project_suuid
-            job_gateway = JobGateway()
-            job_suuid = job_gateway.get_job_by_name(
-                job_name=job_name, project_suuid=project_suuid
-            ).short_uuid
+                project_suuid = self.gateway.client.config.project.project_suuid
+            job_suuid = self.gateway.job.get_job_by_name(job_name=job_name, project_suuid=project_suuid).short_uuid
 
         run = self.gateway.start(
             job_suuid=job_suuid,
@@ -146,7 +139,7 @@ class RunActionGateway:
         self.run_suuid = run.short_uuid
         return run
 
-    def status(self, suuid: str = None) -> Run:
+    def status(self, suuid: str = None) -> RunStatus:
         suuid = suuid or self.run_suuid
         return self.gateway.status(suuid=suuid)
 
@@ -157,8 +150,9 @@ class RunActionGateway:
         include_variables: bool = False,
     ) -> RunInfo:
         if not run:
-            click.echo("Please specify the run SUUID to 'get' a run", err=True)
-            return
+            raise exceptions.GetError(
+                "Please specify the run SUUID to 'get' a run"
+            )
 
         runinfo = self.gateway.detail(suuid=run)
         if include_metrics:
@@ -173,6 +167,7 @@ class RunActionGateway:
             # add the metrics to the runobjects
             # run.variables
             runinfo.variables = variables
+
         return runinfo
 
 
@@ -211,14 +206,11 @@ class RunMultipleQueryGateway(RunActionGateway):
     ) -> List[RunInfo]:
         if job and job_name:
             raise exceptions.GetError(
-                "Parameters 'job' and 'job_name' are both set. Please use or 'job' or 'job_name'."
+                "Parameters 'job' and 'job_name' are both set. Please use 'job' or 'job_name'."
             )
         if job_name:
-            project_suuid = project or self.gateway.client.config.project_suuid
-            job_gateway = JobGateway()
-            job = job_gateway.get_job_by_name(
-                job_name=job_name, project_suuid=project_suuid
-            ).short_uuid
+            project_suuid = project or self.gateway.client.config.project.project_suuid
+            job = self.gateway.job.get_job_by_name(job_name=job_name, project_suuid=project_suuid).short_uuid
 
         query = self.get_query(project, job, runs)
         query.update(

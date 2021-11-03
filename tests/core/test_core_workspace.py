@@ -1,7 +1,7 @@
 import unittest
 import responses
 
-from askanna.core import client
+from askanna.core.apiclient import client
 from askanna.core.workspace import WorkspaceGateway
 
 a_sample_workspace_response = {
@@ -18,7 +18,7 @@ a_sample_workspace_response = {
 
 class SDKworkspaceTest(unittest.TestCase):
     def setUp(self):
-        self.base_url = client.config.remote
+        self.base_url = client.base_url
 
         self.responses = responses.RequestsMock()
         self.responses.start()
@@ -40,11 +40,7 @@ class SDKworkspaceTest(unittest.TestCase):
             responses.PATCH,
             url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
             json=a_sample_workspace_response,
-            match=[
-                responses.json_params_matcher(
-                    {"name": "new name", "description": "new description"}
-                )
-            ],
+            match=[responses.json_params_matcher({"name": "new name", "description": "new description"})],
         )
 
     def tearDown(self):

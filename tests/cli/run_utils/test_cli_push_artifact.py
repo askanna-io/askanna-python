@@ -1,12 +1,25 @@
 import os
 import responses
 import pytest
+import sys
 import unittest
 
 from click.testing import CliRunner
 
 from askanna.cli.run_utils.tool import cli_commands
-from askanna.core import client
+from askanna.core.apiclient import client
+
+
+def delete_modules():
+    try:
+        del sys.modules['askanna.cli.run_utils.tool']
+        del sys.modules['askanna.cli.run_utils.push_artifact']
+        del sys.modules['askanna.core.apiclient']
+        del sys.modules['askanna.config']
+        del sys.modules['askanna.config.server']
+        del sys.modules['askanna.config.project']
+    except:  # noqa
+        pass
 
 
 @pytest.fixture(autouse=True)
@@ -31,7 +44,7 @@ class TestCLIPushArtifact(unittest.TestCase):
     verb = "push-artifact"
 
     def setUp(self):
-        self.base_url = client.config.remote
+        self.base_url = client.base_url
 
         self.responses = responses.RequestsMock()
         self.responses.start()
@@ -117,6 +130,9 @@ class TestCLIPushArtifact(unittest.TestCase):
         os.environ["AA_RUN_SUUID"] = "abcd-abcd-abcd-abcd"
         os.environ["AA_JOB_NAME"] = "test_job"
 
+        delete_modules()
+        from askanna.cli.run_utils.tool import cli_commands
+
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 0
         assert (
@@ -131,6 +147,9 @@ class TestCLIPushArtifact(unittest.TestCase):
         os.environ["AA_RUN_SUUID"] = "abcd-abcd-abcd-abcd"
         os.environ["AA_JOB_NAME"] = "test_job_artifact"
 
+        delete_modules()
+        from askanna.cli.run_utils.tool import cli_commands
+
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 0
         assert "Uploading artifact to AskAnna..." in result.output
@@ -143,7 +162,11 @@ class TestCLIPushArtifact(unittest.TestCase):
         os.environ["AA_RUN_SUUID"] = "abcd-abcd-abcd-abcd"
         os.environ["AA_JOB_NAME"] = "test_job_depr_paths"
 
+        delete_modules()
+        from askanna.cli.run_utils.tool import cli_commands
+
         result = CliRunner().invoke(cli_commands, self.verb)
+
         assert result.exit_code == 0
         assert (
             "Deprecation warning: in a future version we remove the output/paths option."
@@ -159,6 +182,9 @@ class TestCLIPushArtifact(unittest.TestCase):
         os.environ["AA_RUN_SUUID"] = "abcd-abcd-abcd-abcd"
         os.environ["AA_JOB_NAME"] = "test_job_artifact_variable"
         os.environ["FILENAME"] = "result"
+
+        delete_modules()
+        from askanna.cli.run_utils.tool import cli_commands
 
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 0

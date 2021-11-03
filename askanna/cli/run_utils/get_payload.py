@@ -4,8 +4,7 @@ import sys
 
 import click
 
-from askanna.core import client as askanna_client
-from askanna.core.utils import get_config
+from askanna.core.apiclient import client
 
 
 # read defaults from the environment
@@ -24,19 +23,18 @@ SHORT_HELP = "Get payload from AskAnna"
     "--output", "-o", default=default_payload_file, show_default=True, type=click.Path()
 )
 def cli(run, payload, output):
-    config = get_config()
-    ASKANNA_API_SERVER = config["askanna"]["remote"]
+    api_server = client.base_url
 
     # we assume we can get jobrun id and the payload
     payload_url = (
         "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/payload/{PAYLOAD_SUUID}/".format(
             RUN_SUUID=run,
             PAYLOAD_SUUID=payload,
-            ASKANNA_API_SERVER=ASKANNA_API_SERVER,
+            ASKANNA_API_SERVER=api_server,
         )
     )
 
-    req = askanna_client.get(payload_url)
+    req = client.get(payload_url)
 
     if not req.status_code == 200:
         click.echo(f"Could not retrieve payload with SUUID: {payload}", err=True)
