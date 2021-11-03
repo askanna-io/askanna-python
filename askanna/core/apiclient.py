@@ -4,7 +4,7 @@ from askanna import (
     __version__ as askanna_version,
     USING_ASKANNA_CLI,
 )
-from .config import Config
+from askanna.config import config
 from .session import Session
 from .utils import json_serializer
 
@@ -15,12 +15,12 @@ class Client:
     """
 
     def __init__(self, headers=None, *args, **kwargs):
-        self.config = Config()
+        self.config = config
         self.headers = headers or self.generate_authenication_header()
         self.session = Session(headers=self.headers)
 
     def generate_authenication_header(self):
-        if not self.config.user.token:
+        if not self.config.server.is_authenticated:
             return {}
 
         askanna_agent = USING_ASKANNA_CLI and "cli" or "python-sdk"
@@ -29,8 +29,12 @@ class Client:
             "askanna-agent": askanna_agent,
             "askanna-agent-version": askanna_version,
             "user-agent": f"askanna-python/{askanna_version}",
-            "Authorization": f"Token {self.config.user.token}",
+            "Authorization": f"Token {self.config.server.token}",
         }
+
+    @property
+    def base_url(self):
+        return self.config.server.remote + "/v1/"
 
     def get(self, url, **kwargs):
         return self.session.get(url, **kwargs)
@@ -72,3 +76,6 @@ class Client:
                 json.dumps(kwargs.get("json"), default=json_serializer)
             )
         return self.session.delete(url, **kwargs)
+
+
+client = Client()

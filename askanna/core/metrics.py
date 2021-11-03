@@ -9,7 +9,8 @@ import uuid
 import click
 from dateutil import parser as dateutil_parser
 
-from askanna.core import client, exceptions
+from askanna.core import exceptions
+from askanna.core.apiclient import client
 from askanna.core.dataclasses import Metric, MetricDataPair, MetricLabel
 from askanna.core.utils import (
     create_suuid,
@@ -276,10 +277,8 @@ class MetricGateway:
         """
 
         endpoints = {
-            "job": lambda x: "{}job/{}/metrics/".format(self.client.config.remote, x),
-            "run": lambda x: "{}runinfo/{}/metrics/".format(
-                self.client.config.remote, x
-            ),
+            "job": lambda x: "{}job/{}/metrics/".format(self.client.base_url, x),
+            "run": lambda x: "{}runinfo/{}/metrics/".format(self.client.base_url, x),
         }
         if "run_suuid" in query_params.keys():
             url = endpoints.get("run")(query_params.get("run_suuid"))
@@ -291,7 +290,7 @@ class MetricGateway:
 
     def change(self, short_uuid, metrics):
         url = "{}{}/{}/{}/{}/".format(
-            self.client.config.remote, "runinfo", short_uuid, "metrics", short_uuid
+            self.client.base_url, "runinfo", short_uuid, "metrics", short_uuid
         )
 
         r = self.client.put(url, json={"metrics": metrics})

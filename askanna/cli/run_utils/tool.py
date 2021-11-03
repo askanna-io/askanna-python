@@ -5,13 +5,6 @@ import sys
 from askanna import __version__ as askanna_version
 import click
 
-try:
-    from dotenv import find_dotenv, load_dotenv
-except ImportError:
-    pass  # we only use dotenv for development
-else:
-    load_dotenv(find_dotenv())
-
 
 HELP = """
 The run util is used to support AskAnna runs

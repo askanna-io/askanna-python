@@ -5,11 +5,7 @@ import sys
 from askanna import job as aa_job
 from askanna import project as aa_project
 from askanna.cli.utils import ask_which_job, ask_which_project, ask_which_workspace
-from askanna.core.config import Config
-from askanna.core.utils import extract_push_target
-
-
-config = Config()
+from askanna.config import config
 
 
 @click.group()
@@ -53,24 +49,13 @@ def list(project_suuid):
                 job_name=job.name[:25]))
 
 
-@click.group()
-def cli2():
-    pass
-
-
-@cli2.command(help="Change job information in AskAnna", short_help="Change job")
+@cli1.command(help="Change job information in AskAnna", short_help="Change job")
 @click.option("--id", "-i", "suuid", required=False, type=str, help="Job SUUID")
 @click.option("--name", "-n", required=False, type=str, help="New name to set")
 @click.option("--description", "-d", required=False, type=str, help="New description to set")
 def change(suuid, name, description):
     if not suuid:
-        try:
-            push_target = extract_push_target(config.push_target)
-        except ValueError as e:  # noqa
-            # the push-target is not set, so don't bother reading it
-            project_suuid = None
-        else:
-            project_suuid = push_target.get("project_suuid")
+        project_suuid = config.project.project_suuid
 
         if not project_suuid:
             workspace = ask_which_workspace(question="From which workspace do you want to change a job?")
@@ -92,5 +77,8 @@ def change(suuid, name, description):
     aa_job.change(suuid=suuid, name=name, description=description)
 
 
-cli = click.CommandCollection(sources=[cli1, cli2], help="Manage your jobs in AskAnna",
-                              short_help="Manage jobs in AskAnna")
+cli = click.CommandCollection(
+    sources=[cli1],
+    help="Manage your jobs in AskAnna",
+    short_help="Manage jobs in AskAnna",
+)

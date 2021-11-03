@@ -1,7 +1,7 @@
 import unittest
 import responses
 
-from askanna.core import client
+from askanna.core.apiclient import client
 from askanna.core.run import RunGateway
 
 a_sample_run_response = {
@@ -37,7 +37,7 @@ a_sample_run_response = {
 
 class SDKRunTest(unittest.TestCase):
     def setUp(self):
-        self.base_url = client.config.remote
+        self.base_url = client.base_url
 
         self.responses = responses.RequestsMock()
         self.responses.start()

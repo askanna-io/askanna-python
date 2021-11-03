@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from askanna.cli.tool import cli_commands
-from askanna.core import client
+from askanna.core.apiclient import client
 from tests.create_fake_files import create_zip_file
 
 
@@ -28,7 +28,7 @@ class TestCLIArtifact(unittest.TestCase):
         with open(self.artifact_zip_file, "rb") as f:
             content = f.read()
 
-        self.base_url = client.config.remote
+        self.base_url = client.base_url
         url_download_file = "https://cdn-beta-api.askanna.eu/files/artifacts/65deef6cc430ab83b451e659ba4562cf/476120827b1e224d747c6e444961c9e6/afdf82c9a39161d6041d785bcbd8f0e4/artifact_2abeb6346f5a679078379d500043e41d.zip"  # noqa
 
         self.responses = responses.RequestsMock()

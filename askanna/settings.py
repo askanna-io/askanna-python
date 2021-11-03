@@ -1,9 +1,10 @@
 import os
 
 
-CONFIG_FILE_ASKANNA = os.path.expanduser("~/.askanna.yml")
-CONFIG_ASKANNA_REMOTE = {"askanna": {"remote": "https://beta-api.askanna.eu/v1/"}}
+DEFAULT_SERVER_CONFIG_PATH = os.path.expanduser('~/.askanna.yml')
+DEFAULT_SERVER_REMOTE = 'https://beta-api.askanna.eu'
+DEFAULT_SERVER_UI = 'https://beta.askanna.eu'
 
-DEFAULT_PROJECT_TEMPLATE = "https://gitlab.askanna.io/open/project-templates/blanco-template.git"
+DEFAULT_PROJECT_TEMPLATE = 'https://gitlab.com/askanna/project-templates/blanco-template.git'
 
-PYPI_PROJECT_URL = "https://pypi.org/pypi/askanna/json"
+PYPI_PROJECT_URL = 'https://pypi.org/pypi/askanna/json'

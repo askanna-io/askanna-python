@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from askanna.cli.tool import cli_commands
-from askanna.core import client
+from askanna.config import config
 from tests.create_fake_files import create_json_file
 
 
@@ -19,8 +19,9 @@ class TestCLIResult(unittest.TestCase):
 
     def setUp(self):
         self.environ_bck = dict(os.environ)
-        os.environ["AA_REMOTE"] = "https://beta-api.askanna.eu/v1/"
-        os.environ["AA_TOKEN"] = "12345678910"
+        self.base_url = "https://beta-api.askanna.eu/v1/"
+        config.server.remote = "https://beta-api.askanna.eu"
+        config.server.token = "12345678910"
 
         self.tempdir = tempfile.mkdtemp(prefix="askanna-test-cli-result")
         self.result_json_file = create_json_file(self.tempdir, 10)
@@ -28,7 +29,6 @@ class TestCLIResult(unittest.TestCase):
         with open(self.result_json_file, "rb") as f:
             content = f.read()
 
-        self.base_url = client.config.remote
         self.responses = responses.RequestsMock()
         self.responses.start()
         self.responses.add(

@@ -13,7 +13,8 @@ import uuid
 import click
 from dateutil import parser as dateutil_parser
 
-from askanna.core import client, exceptions
+from askanna.core import exceptions
+from askanna.core.apiclient import client
 from askanna.core.dataclasses import VariableTracked, VariableDataPair, VariableLabel
 from askanna.core.utils import (
     create_suuid,
@@ -80,7 +81,7 @@ class VariableTrackedGateway:
 
     def change(self, short_uuid, variables):
         url = "{}{}/{}/{}/{}/".format(
-            self.client.config.remote, "runinfo", short_uuid, "variables", short_uuid
+            self.client.base_url, "runinfo", short_uuid, "variables", short_uuid
         )
 
         r = self.client.patch(url, json={"variables": variables})
@@ -128,12 +129,8 @@ class VariableTrackedGateway:
         """
 
         endpoints = {
-            "job": lambda x: "{}job/{}/variables_tracked/".format(
-                self.client.config.remote, x
-            ),
-            "run": lambda x: "{}runinfo/{}/variables/".format(
-                self.client.config.remote, x
-            ),
+            "job": lambda x: "{}job/{}/variables_tracked/".format(self.client.base_url, x),
+            "run": lambda x: "{}runinfo/{}/variables/".format(self.client.base_url, x),
         }
         if "run_suuid" in query_params.keys():
             url = endpoints.get("run")(query_params.get("run_suuid"))

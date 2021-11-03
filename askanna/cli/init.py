@@ -1,9 +1,11 @@
-import click
 import os
 import yaml
 
-from askanna.core import client as askanna_client
-from askanna.core.utils import get_config
+import click
+
+from askanna.cli.utils import ask_which_workspace
+from askanna.core.apiclient import client
+
 
 HELP = """
 This command will allow you to create an AskAnna project in your current directory
@@ -12,87 +14,17 @@ This command will allow you to create an AskAnna project in your current directo
 SHORT_HELP = "Create a project in the current directory"
 
 
-def get_user_info(server):
-
-    url = "{server}rest-auth/user".format(server=server.replace("v1/", ""))
-    ruser = askanna_client.get(url)
-    if ruser.status_code == 200:
-        return ruser.json()
-    elif ruser.status_code == 401:
-        print(
-            "The provided token is not valid. Via `askanna logout` you can remove the token "
-            "and via `askanna login` you can set a new token."
-        )
-    else:
-        print("Could not connect to AskAnna at this moment")
-
-
 class CreateProject:
-    def __init__(self, name=None, user=None):
-        self.config = get_config()
-        self.api_server = self.config["askanna"]["remote"]
+    def __init__(self, name: str = None):
+        self.client = client
         self.name = name
-        self.user = user or get_user_info(server=self.api_server)
 
-    def find_workspace(self) -> list:
-        """
-        Find all workspaces where the user is part of and enumerate them
-        """
-        workspaces = []
-        r = askanna_client.get("{}workspace/".format(self.api_server))
-
-        for workspace in r.json():
-            workspaces.append(
-                {"suuid": workspace["short_uuid"], "name": workspace["name"]}
-            )
-        return workspaces
-
-    def ask_workspace(self) -> str:
-        """
-        Ask which workspace the project will be created in.
-        """
-        workspaces = self.find_workspace()
-        if len(workspaces) > 1:
-
-            workspace_list_str = ""
-
-            for idx, workspace in enumerate(workspaces, start=1):
-                workspace_list_str += "%d. %s\n" % (idx, workspace["name"])
-
-            workspace = click.prompt(
-                "\nYou are a member of multiple workspaces. "
-                + "In which workspace do you want to create the new project?\n"
-                + workspace_list_str
-                + "\n"
-                + "Please enter the workspace number"
-            )
-            selected_workspace = workspaces[int(workspace) - 1]
-        else:
-            selected_workspace = workspaces[0]
-
-        if click.confirm(
-            "\nDo you want to create a project '{project}' in the workspace '{workspace}'?".format(
-                project=self.name, workspace=selected_workspace["name"]
-            ),
-            abort=True,
-        ):
-            click.echo(
-                "Thank you for the information. Anna will continue creating the project."
-            )
-
-        return selected_workspace["suuid"]
-
-    def cli(self, workspace: str = None, description: str = None):
+    def cli(self, workspace_suuid: str = None, description: str = None):
         if not self.name:
-            name_user = ""
-            if self.user.get("name"):
-                name_user = " " + self.user.get("name")
-
             click.echo(
-                f"Hi{name_user}! It is time to create a new project in AskAnna. "
-                "We start with some information about the project."
+                "Hi! It is time to create a new project in AskAnna. "
+                "We start with some information about the project.\n"
             )
-            click.echo("")
             self.name = click.prompt("Project name", type=str)
 
             if not description:
@@ -100,14 +32,16 @@ class CreateProject:
                     "Project description", type=str, default="", show_default=False
                 )
 
-        if not workspace:
-            workspace = self.ask_workspace()
+        if not workspace_suuid:
+            workspace = ask_which_workspace("In which workspace do you want to create the new project?")
+            workspace_suuid = workspace.short_uuid
 
-        r = askanna_client.post(
-            self.api_server + "project/",
+        url = f"{self.client.base_url}project/"
+        r = self.client.post(
+            url,
             data={
                 "name": self.name,
-                "workspace": workspace,
+                "workspace": workspace_suuid,
                 "description": description,
             },
         )
@@ -123,7 +57,6 @@ class CreateProject:
 @click.option(
     "--workspace",
     "-w",
-    envvar="WORKSPACE_SUUID",
     show_default=True,
     help="Workspace SUUID where you want to create the project",
 )
@@ -146,7 +79,7 @@ def cli(name, workspace, description):
         click.echo("")
 
     project_creator = CreateProject(name=name)
-    project_info = project_creator.cli(workspace, description)
+    project_info = project_creator.cli(workspace_suuid=workspace, description=description)
 
     if not os.path.exists(askanna_project_file):
         with open(askanna_project_file, "w") as pf:

@@ -2,7 +2,9 @@ import logging
 import sys
 
 import click
+
 from askanna.core.push import push
+
 
 logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 

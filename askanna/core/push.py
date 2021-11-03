@@ -7,11 +7,15 @@ from zipfile import ZipFile
 import click
 import git
 
-from askanna.core.utils import validate_askanna_yml
-from askanna.core.utils import zip_files_in_dir, scan_config_in_path
-from askanna.core.utils import get_config, getProjectInfo, getProjectPackages
-from askanna.core.utils import extract_push_target, isIPAddress
+from askanna import project as aa_project
+from askanna.config import config
 from askanna.core.upload import PackageUpload
+from askanna.core.utils import (
+    getProjectPackages,
+    isIPAddress,
+    validate_askanna_yml,
+    zip_files_in_dir,
+)
 
 
 def package(src: str) -> str:
@@ -48,27 +52,24 @@ def package(src: str) -> str:
 
 
 def push(force: bool, description: str = None):
-    config = get_config()
-
-    # read and parse the push-target from askanna
-    push_target = config.get("push-target")
-
+    push_target = config.project.push_target.url
     if not push_target:
         click.echo(
-            "`push-target` is not set, please set the `push-target` in the `askanna.yml` in order to push to AskAnna",
+            "`push-target` is not set, please set the `push-target` in the `askanna.yml` in order to push to "
+            "AskAnna.\nMore information can be found in the documentation: https://docs.askanna.io/code/#push-target",
             err=True,
         )
         sys.exit(1)
 
     # read the config and parse jobs, validate the job definitions
     # then validate the job
-    if not validate_askanna_yml(config):
+    if not validate_askanna_yml(config.project.config_dict):
         sys.exit(1)
 
-    matches_dict = extract_push_target(push_target)
-    api_host = matches_dict.get("askanna_host")
-    api_server = None
-    http_scheme = matches_dict.get("http_scheme")
+    # TODO: move api_server part to askanna.config.project to have it at one central location
+    api_host = config.project.push_target.host
+    http_scheme = config.project.push_target.http_scheme
+    api_server = ''
     if api_host:
         # first also modify the first part
         if api_host.startswith("localhost") or isIPAddress(api_host.split(":")[0]):
@@ -82,17 +83,16 @@ def push(force: bool, description: str = None):
         else:
             api_host = "api." + api_host
         api_server = "{}://{}/v1/".format(http_scheme, api_host)
-    project_suuid = matches_dict.get("project_suuid")
+    project_suuid = config.project.push_target.project_suuid
 
     if project_suuid:
         # make an extra call to AskAnna to query for the full uuid for this project
-        project_info = getProjectInfo(project_suuid)
-        if project_info.uuid is None:
-            click.echo(f"Couldn't find specified project {push_target}", err=True)
+        project_info = aa_project.detail(project_suuid)
+        if project_info.short_uuid is None:
+            click.echo(f"Couldn't find specified project for push target: {push_target}", err=True)
             sys.exit(1)
-
-    if not project_suuid:
-        click.echo("Cannot upload to AskAnna without the project SUUID set", err=True)
+    else:
+        click.echo("Cannot upload to AskAnna without the project SUUID set.", err=True)
         sys.exit(1)
 
     def ask_overwrite() -> bool:
@@ -106,8 +106,7 @@ def push(force: bool, description: str = None):
         else:
             return False
 
-    askanna_config = scan_config_in_path()
-    project_folder = os.path.dirname(askanna_config)
+    project_folder = os.path.dirname(config.project.project_config_path)
 
     # check for existing package
     packages = getProjectPackages(project_info)
@@ -121,7 +120,6 @@ def push(force: bool, description: str = None):
             click.echo(
                 "We are not pushing your code to AskAnna. You choose not to replace your "
                 "existing code.",
-                err=True,
             )
             sys.exit(0)
 
