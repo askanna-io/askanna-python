@@ -4,11 +4,7 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
-from askanna import (
-    __author__ as askanna_author,
-    __email__ as askanna_email,
-    __version__ as askanna_version
-)
+from askanna import __author__ as askanna_author, __email__ as askanna_email, __version__ as askanna_version
 
 
 with open("README.md") as readme_file:
@@ -20,7 +16,7 @@ with open("CHANGELOG.md") as history_file:
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()
 
-setup_requirements = ["wheel~=0.36.2"]
+setup_requirements = ["wheel~=0.37.0"]
 
 
 setup(
