@@ -18,7 +18,8 @@ repos:
     hooks:
       - id: markdownlint
 
-  - repo: local
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.3
     hooks:
       - id: flake8
         args:
@@ -27,7 +28,12 @@ repos:
             "--ignore=W391,W503,E203",
             "--max-line-length=119",
           ]
-        name: flake8
-        entry: flake8
-        language: python
-        types: [python]
+
+  - repo: https://github.com/ambv/black
+    rev: 21.9b0
+    hooks:
+      - id: black
+        args:
+          [
+            "--line-length=119",
+          ]
