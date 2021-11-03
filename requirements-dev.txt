@@ -5,6 +5,7 @@ black~=21.9b0
 bumpversion~=0.5.3
 faker~=8.2.1         # for testing only: used to create fake files
 flake8~=3.8.3
+isort~=5.9.3
 numpy~=1.19.5        # numpy is only required during development for testing numpy support
 pre-commit~=2.12.1
 pytest~=5.4.3
