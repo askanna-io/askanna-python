@@ -37,3 +37,8 @@ repos:
           [
             "--line-length=119",
           ]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.0
+    hooks:
+        - id: bandit
