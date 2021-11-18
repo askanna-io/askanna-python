@@ -3,29 +3,24 @@ import datetime
 import ipaddress
 import mimetypes
 import os
-from typing import Any, List, Tuple, Dict
 import uuid
+from typing import Any, Dict, List, Tuple
 from zipfile import ZipFile
 
 import click
 import croniter
-from email_validator import validate_email, EmailNotValidError
 import igittigitt
 import pytz
-import tzlocal
 import requests
+import tzlocal
+from email_validator import EmailNotValidError, validate_email
 
 from askanna import __version__ as askanna_version
 from askanna.settings import PYPI_PROJECT_URL
 
+StorageUnit = collections.namedtuple("StorageUnit", ["B", "KiB", "MiB", "GiB", "TiB", "PiB"])
 
-StorageUnit = collections.namedtuple(
-    "StorageUnit", ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
-)
-
-diskunit = StorageUnit(
-    B=1, KiB=1024 ** 1, MiB=1024 ** 2, GiB=1024 ** 3, TiB=1024 ** 4, PiB=1024 ** 5
-)
+diskunit = StorageUnit(B=1, KiB=1024 ** 1, MiB=1024 ** 2, GiB=1024 ** 3, TiB=1024 ** 4, PiB=1024 ** 5)
 
 supported_data_types = {
     # primitive types
@@ -131,16 +126,13 @@ def update_available() -> bool:
     if askanna_version == pypi_info["info"]["version"]:
         return False
     else:
-        click.echo(
-            "[INFO] A newer version of AskAnna is available. Update via: pip install -U askanna"
-        )
+        click.echo("[INFO] A newer version of AskAnna is available. Update via: pip install -U askanna")
         return True
 
 
 # Zip the files that matches the filter from given directory
 def zip_files_in_dir(directory_path: str, zip_file: ZipFile, ignore_file: str = None) -> None:
     files = get_files_in_dir(directory_path=directory_path, ignore_file=ignore_file)
-
     # Iterate over all the files and zip them
     for file in sorted(files):
         zip_file.write(file)
@@ -151,7 +143,7 @@ def get_files_in_dir(directory_path: str, ignore_file: str = None) -> set:
 
     ignore_parser = igittigitt.IgnoreParser()
     if ignore_file:
-        ignore_parser.parse_rule_files(os.path.dirname(ignore_file), ignore_file)
+        ignore_parser.parse_rule_files(os.path.dirname(ignore_file), os.path.basename(ignore_file))
 
     # Iterate over all the files in directory
     for root, _, files in os.walk(directory_path):
@@ -253,8 +245,8 @@ def file_type(path):
 
 
 def getProjectPackages(project, offset=0, limit=1):
-    from askanna.core.apiclient import client
     from askanna.config import config
+    from askanna.core.apiclient import client
 
     r = client.get(
         "{api_server}/v1/project/{project_suuid}/packages/?offset={offset}&limit={limit}".format(
@@ -349,9 +341,7 @@ def validate_yml_job_names(config):
         "worker",
     )
 
-    overlapping_with_reserved_keys = list(
-        set(config.keys()).intersection(set(reserved_keys))
-    )
+    overlapping_with_reserved_keys = list(set(config.keys()).intersection(set(reserved_keys)))
     for overlap_key in overlapping_with_reserved_keys:
         is_dict = isinstance(config.get(overlap_key), dict)
         is_job = is_dict and config.get(overlap_key).get("job")
@@ -506,8 +496,7 @@ def validate_askanna_yml(config):
     if global_timezone:
         if global_timezone not in pytz.all_timezones:
             click.echo(
-                "Invalid timezone setting found in askanna.yml:\n"
-                + f"timezone: {global_timezone}",
+                "Invalid timezone setting found in askanna.yml:\n" + f"timezone: {global_timezone}",
                 err=True,
             )
             return False
@@ -550,8 +539,7 @@ def validate_askanna_yml(config):
             timezone = job.get("timezone")
             if timezone and timezone not in pytz.all_timezones:
                 click.echo(
-                    f"Invalid timezone setting found in job `{jobname}`:\n"
-                    + f"timezone: {timezone}",
+                    f"Invalid timezone setting found in job `{jobname}`:\n" + f"timezone: {timezone}",
                     err=True,
                 )
                 return False
@@ -718,9 +706,7 @@ def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List
                 if v:
                     v, valid = prepare_and_validate_value(v)
                     if valid:
-                        labels.append(
-                            labelclass(name=k, value=v, dtype=translate_dtype(v))
-                        )
+                        labels.append(labelclass(name=k, value=v, dtype=translate_dtype(v)))
                     else:
                         click.echo(
                             f"AskAnna cannot store this datatype. Label {k} with value {v} not stored.",
