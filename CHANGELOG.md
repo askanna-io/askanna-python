@@ -1,12 +1,21 @@
 # History
 
+## 0.14.0 (2021-11-22)
+
+- Refactor server & project Config. If you upgrade from a previous version `0.14.0` the AskAnna CLI will
+  automatically update your AskAnna config file to the new format.
+- We fixed a bug in [askannaignore](https://docs.askanna.io/code/#ignore-files) where in some circumstances it did not
+  read the ignore file.
+- Add [bandit](https://bandit.readthedocs.io/en/latest/), [Black](https://black.readthedocs.io/en/stable/) and
+  [isort](https://pycqa.github.io/isort/) to the pre-commit stack.
+
 ## 0.13.1 (2021-10-29)
 
-- Added `is_member` to dataclasses `Workspace` and `Project` to denote whether the user is member of the object. 
-  Users can now list public workspaces and workspaces, so this flag can indicate the membership
-- Added `permission` to dataclass `Project` to list permissions the user has for ths particular object. 
+- Added `is_member` to dataclasses `Workspace` and `Project` to denote whether the user is member of the object.
+  Users can now list public workspaces and workspaces, so this flag can indicate the membership.
+- Added `permission` to dataclass `Project` to list permissions the user has for ths particular object.
 - Added `visibility` to dataclasses `Workspace` and `Project` to indicate whether this is a `PUBLIC` or `PRIVATE`
- workspace or project.
+  workspace or project.
 
 ## 0.13.0 (2021-07-29)
 

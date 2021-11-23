@@ -4,11 +4,10 @@
 
 __author__ = "AskAnna Team"
 __email__ = "devops@askanna.io"
-__version__ = "0.13.1"
+__version__ = "0.14.0"
 
 import re
 import sys
-
 
 # Determine whether we are in the CLI or using the SDK
 # we only check for the `askanna` executable
