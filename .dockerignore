@@ -22,7 +22,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-**/requirements_dev.txt
+**/requirements-dev.txt
 **/.gitlab-ci.yml
 **/setup.cfg
 **/tox.ini

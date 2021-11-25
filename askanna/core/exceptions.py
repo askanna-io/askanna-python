@@ -2,6 +2,18 @@ class Error(Exception):
     pass
 
 
+class CreateError(Error):
+    pass
+
+
+class ConnectionError(Error):
+    pass
+
+
+class DeleteError(Error):
+    pass
+
+
 class GetError(Error):
     pass
 

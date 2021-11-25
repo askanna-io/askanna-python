@@ -4,11 +4,7 @@ import sys
 
 from askanna import workspace as aa_workspace
 from askanna.cli.utils import ask_which_workspace
-from askanna.core.config import Config
-from askanna.core.utils import extract_push_target
-
-
-config = Config()
+from askanna.config import config
 
 
 @click.group()
@@ -36,12 +32,7 @@ def list():
         )
 
 
-@click.group()
-def cli2():
-    pass
-
-
-@cli2.command(
+@cli1.command(
     help="Change workspace information in AskAnna", short_help="Change workspace"
 )
 @click.option("--id", "-i", "suuid", required=False, type=str, help="Workspace SUUID")
@@ -51,20 +42,12 @@ def cli2():
 )
 def change(suuid, name, description):
     if not suuid:
-        try:
-            push_target = extract_push_target(config.push_target)
-        except ValueError:
-            # the push-target is not set, so don't bother reading it
-            workspace_suuid = None
-        else:
-            workspace_suuid = push_target.get("workspace_suuid")
-
-        if not workspace_suuid:
+        suuid = config.project.workspace_suuid
+        if not suuid:
             workspace = ask_which_workspace(
                 question="Which workspace do you want to change?"
             )
-            workspace_suuid = workspace.short_uuid
-        suuid = workspace_suuid
+            suuid = workspace.short_uuid
 
     if not name and not description:
         if click.confirm("\nDo you want to change the name of the workspace?"):
@@ -78,10 +61,7 @@ def change(suuid, name, description):
 
 
 cli = click.CommandCollection(
-    sources=[
-        cli1,
-        cli2,
-    ],
+    sources=[cli1],
     help="Manage your workspaces in AskAnna",
     short_help="Manage workspaces in AskAnna",
 )

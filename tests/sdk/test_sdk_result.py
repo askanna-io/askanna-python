@@ -6,7 +6,8 @@ import unittest
 import tempfile
 
 from askanna import result as askanna_result
-from askanna.core import client as askanna_client, exceptions
+from askanna.core import exceptions
+from askanna.core.apiclient import client
 from tests.create_fake_files import create_json_file
 
 
@@ -23,7 +24,7 @@ class TestSDKResult(unittest.TestCase):
         with open(self.result_json_file, "rb") as f:
             self.content = f.read()
 
-        self.base_url = askanna_client.config.remote
+        self.base_url = client.base_url
         self.responses = responses.RequestsMock()
         self.responses.start()
         self.responses.add(

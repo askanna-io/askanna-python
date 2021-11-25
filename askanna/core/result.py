@@ -2,15 +2,17 @@
 import sys
 import click
 
-from askanna.core import client as askanna_client, exceptions
+from askanna.core import exceptions
+from askanna.core.apiclient import client
 
 
 class ResultGateway:
     def __init__(self, *args, **kwargs):
-        self.client = askanna_client
+        self.client = client
+        self.base_url = self.client.base_url + "result/"
 
     def get(self, run_suuid: str):
-        result_url = f"{self.client.config.remote}result/{run_suuid}/"
+        result_url = f"{self.base_url}{run_suuid}/"
 
         try:
             result = self.client.get(result_url)
@@ -26,7 +28,7 @@ class ResultGateway:
         return result.content
 
     def get_content_type(self, run_suuid: str) -> str:
-        result_url = f"{self.client.config.remote}result/{run_suuid}/"
+        result_url = f"{self.base_url}{run_suuid}/"
         result_header = self.client.head(result_url)
 
         if result_header.status_code != 200:

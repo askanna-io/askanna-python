@@ -10,9 +10,9 @@ from zipfile import ZipFile
 from askanna.core.utils import (
     create_suuid,
     create_zip_from_paths,
-    get_config,
     zip_files_in_dir,
 )
+from askanna.config.utils import read_config
 
 
 # Delete files created by the test function
@@ -61,7 +61,7 @@ def change_dir_cleanup_files(monkeypatch):
 
 
 def get_paths_from_config(job_name: str) -> list:
-    config = get_config(check_config=False)
+    config = read_config('askanna.yml')
     paths = config[job_name].get("output", {}).get("artifact", [])
 
     if isinstance(paths, str):

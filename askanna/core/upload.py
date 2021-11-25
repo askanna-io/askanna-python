@@ -5,8 +5,8 @@ import sys
 import click
 import resumable
 
-from . import client as askanna_client
-from askanna.core.utils import _file_type, diskunit
+from askanna.core.apiclient import client
+from askanna.core.utils import file_type, diskunit
 
 
 class Upload:
@@ -21,7 +21,7 @@ class Upload:
     tpl_upload_fail = "Upload failed"
 
     def __init__(self, api_server: str = None, *args, **kwargs):
-        self.ASKANNA_API_SERVER = api_server or askanna_client.config.remote
+        self.ASKANNA_API_SERVER = api_server or client.base_url
         self.suuid = None
         self.resumable_file = None
         self.kwargs = kwargs
@@ -31,7 +31,7 @@ class Upload:
         return {
             "resumableChunkSize": self.resumable_file.chunk_size,
             "resumableTotalSize": self.resumable_file.size,
-            "resumableType": _file_type(self.resumable_file.path),
+            "resumableType": file_type(self.resumable_file.path),
             "resumableIdentifier": str(self.resumable_file.unique_identifier),
             "resumableFilename": os.path.basename(self.resumable_file.path),
             "resumableRelativePath": self.resumable_file.path,
@@ -84,7 +84,7 @@ class Upload:
         info_dict.update(**self.create_entry_extrafields())
 
         # the request to AskAnna API
-        req = askanna_client.post(self.register_upload_url, json=info_dict)
+        req = client.post(self.register_upload_url, json=info_dict)
         if req.status_code != 201:
             click.echo(
                 "In the AskAnna platform something went wrong with creating the upload entry.",
@@ -110,7 +110,7 @@ class Upload:
         )
 
         # request chunk id from API
-        req_chunk = askanna_client.post(self.register_chunk_url, json=config)
+        req_chunk = client.post(self.register_chunk_url, json=config)
         chunk_uuid = req_chunk.json().get("uuid")
 
         files = {"file": io.BytesIO(chunk.read())}
@@ -122,7 +122,7 @@ class Upload:
             }
         )
 
-        specific_chunk_req = askanna_client.post(
+        specific_chunk_req = client.post(
             self.upload_chunk_url(chunk_uuid=chunk_uuid), data=data, files=files
         )
         assert specific_chunk_req.status_code == 200, "File could not be uploaded"
@@ -149,7 +149,7 @@ class Upload:
         # Do final call when all chunks are uploaded
         final_call_dict = self.chunk_baseinfo
 
-        final_call_req = askanna_client.post(
+        final_call_req = client.post(
             self.final_upload_url, data=final_call_dict
         )
 

@@ -4,8 +4,8 @@ import sys
 import click
 from zipfile import ZipFile
 
-from askanna.core import client as askanna_client
-from askanna.core.utils import get_config
+from askanna.core.apiclient import client
+
 
 HELP = """
 Package downloader, intended for use with runner and unpacks code to /code
@@ -16,8 +16,7 @@ SHORT_HELP = "Download package code for AskAnna"
 
 @click.command(help=HELP, short_help=SHORT_HELP)
 def cli():
-    config = get_config()
-    api_server = config["askanna"]["remote"]
+    api_server = client.base_url
     project_suuid = os.getenv("AA_PROJECT_SUUID")
     package_suuid = os.getenv("AA_PACKAGE_SUUID")
 
@@ -33,10 +32,10 @@ def cli():
     )
     download_url = api_server + download_url
 
-    r = askanna_client.get(download_url)
+    r = client.get(download_url)
     res = r.json()
 
-    r = askanna_client.get(res["target"])
+    r = client.get(res["target"])
     with open("/tmp/code.zip", "wb") as f:
         f.write(r.content)
 

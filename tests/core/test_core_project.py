@@ -1,7 +1,7 @@
 import unittest
 import responses
 
-from askanna.core import client
+from askanna.core.apiclient import client
 from askanna.core.project import ProjectGateway
 
 a_sample_project_response = {
@@ -37,7 +37,7 @@ a_sample_project_response = {
 
 class SDKProjectTest(unittest.TestCase):
     def setUp(self):
-        self.base_url = client.config.remote
+        self.base_url = client.base_url
 
         self.responses = responses.RequestsMock()
         self.responses.start()
@@ -59,11 +59,7 @@ class SDKProjectTest(unittest.TestCase):
             responses.PATCH,
             url=self.base_url + "project/abcd-abcd-abcd-abcd/",
             json=a_sample_project_response,
-            match=[
-                responses.json_params_matcher(
-                    {"name": "new name", "description": "new description"}
-                )
-            ],
+            match=[responses.json_params_matcher({"name": "new name", "description": "new description"})],
         )
 
     def test_change_project_name(self):

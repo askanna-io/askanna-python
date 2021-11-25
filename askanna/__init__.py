@@ -4,7 +4,7 @@
 
 __author__ = "AskAnna Team"
 __email__ = "devops@askanna.io"
-__version__ = "0.13.1"
+__version__ = "0.14.0"
 
 import re
 import sys
@@ -19,4 +19,11 @@ except Exception as e:
     # We are propably within an installation
     print(e)
 else:
+    try:
+        from dotenv import find_dotenv, load_dotenv
+    except ImportError:
+        pass  # we only use dotenv for development
+    else:
+        load_dotenv(find_dotenv())
+
     from .init import *  # noqa

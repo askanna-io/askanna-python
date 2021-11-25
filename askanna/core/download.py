@@ -5,7 +5,7 @@ import sys
 
 import click
 
-from askanna.core import client as askanna_client
+from askanna.core.apiclient import client
 from askanna.core.utils import diskunit
 
 
@@ -22,7 +22,7 @@ class ChunkedDownload:
         self.size = 0
         self.accept_ranges = "none"
 
-        self.client = askanna_client
+        self.client = client
         self.perform_preflight(url=url)
 
     @property
