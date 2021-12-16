@@ -1,5 +1,5 @@
 -r requirements.txt
-bandit~=1.7.0
+bandit~=1.7.1
 black~=21.9b0
 bumpversion~=0.6.0
 faker~=9.3.1                            # for testing only: used to create fake files
