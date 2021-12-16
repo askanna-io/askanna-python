@@ -1,21 +1,20 @@
 import os
-import pytest
 import shutil
 import tempfile
-from typing import Dict
 import unittest
+from typing import Dict
 
+import pytest
 from faker import Faker
 from faker.providers import file
 
+from askanna.config.server import DEFAULT_SERVER_CONFIG
 from askanna.config.utils import (
     contains_configfile,
     read_config,
     scan_config_in_path,
     store_config,
 )
-from askanna.config.server import DEFAULT_SERVER_CONFIG
-
 
 fake = Faker()
 fake.add_provider(file)
@@ -30,20 +29,20 @@ def change_dir():
 
 class TestReadConfig(unittest.TestCase):
     def setUp(self):
-        self.tempdir = tempfile.mkdtemp(prefix='askanna-test-core-utils-config')
+        self.tempdir = tempfile.mkdtemp(prefix="askanna-test-core-utils-config")
 
     def tearDown(self):
         shutil.rmtree(self.tempdir, ignore_errors=True)
 
     def test_read_valid_config(self):
-        expected_result = {'askanna': {'remote': 'https://beta-api.askanna.dev/v1/'}}
+        expected_result = {"askanna": {"remote": "https://beta-api.askanna.dev"}}
 
         file_content = """askanna:
-  remote: https://beta-api.askanna.dev/v1/
+  remote: https://beta-api.askanna.dev
         """
 
-        config_file = f'{self.tempdir}/askanna_valid.yml'
-        with open(config_file, 'w') as f:
+        config_file = f"{self.tempdir}/askanna_valid.yml"
+        with open(config_file, "w") as f:
             f.write(file_content)
 
         result = read_config(config_file)
@@ -51,7 +50,7 @@ class TestReadConfig(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     def test_read_non_existing_file(self):
-        config_file = f'{self.tempdir}/askanna_config_not_exist.yml'
+        config_file = f"{self.tempdir}/askanna_config_not_exist.yml"
 
         with self.assertRaises(SystemExit) as cm:
             read_config(config_file)
@@ -60,11 +59,11 @@ class TestReadConfig(unittest.TestCase):
 
     def test_read_invalid_config(self):
         file_content = """askanna
-remote: https://beta-api.askanna.dev/v1/
+remote: https://beta-api.askanna.dev
         """
 
-        config_file = f'{self.tempdir}/askanna_invalid.yml'
-        with open(config_file, 'w') as f:
+        config_file = f"{self.tempdir}/askanna_invalid.yml"
+        with open(config_file, "w") as f:
             f.write(file_content)
 
         with self.assertRaises(SystemExit) as cm:
@@ -81,7 +80,7 @@ remote: https://beta-api.askanna.dev/v1/
 
 class TestStoreConfig(unittest.TestCase):
     def setUp(self):
-        self.tempdir = tempfile.mkdtemp(prefix='askanna-test-core-utils-config')
+        self.tempdir = tempfile.mkdtemp(prefix="askanna-test-core-utils-config")
 
     def tearDown(self):
         shutil.rmtree(self.tempdir, ignore_errors=True)
@@ -104,8 +103,8 @@ class TestStoreConfig(unittest.TestCase):
 
     def test_store_overwrite(self):
         path = f'{self.tempdir}/{fake.file_name(extension="yml")}'
-        config_1 = {'askanna': {'remote': 'https://beta-api.askanna.eu/v1/'}}
-        config_2 = {'config': 'something'}
+        config_1 = {"askanna": {"remote": "https://beta-api.askanna.eu"}}
+        config_2 = {"config": "something"}
 
         store_config(path, config_1)
         config_read_1 = read_config(path)
@@ -120,39 +119,39 @@ class TestStoreConfig(unittest.TestCase):
 
 class TestContainsConfigFile(unittest.TestCase):
     def test_contains_configfile_true(self):
-        dir = 'tests/resources/projects/project-003-subdirectories'
+        dir = "tests/resources/projects/project-003-subdirectories"
         self.assertTrue(contains_configfile(dir))
 
     def test_contains_configfile_false(self):
-        dir = 'tests/resources/projects/project-003-subdirectories/src'
+        dir = "tests/resources/projects/project-003-subdirectories/src"
         self.assertFalse(contains_configfile(dir))
 
     def test_contains_configfile_filename_true(self):
-        dir = 'tests/resources/projects/project-003-subdirectories'
-        filename = 'README.md'
+        dir = "tests/resources/projects/project-003-subdirectories"
+        filename = "README.md"
         self.assertTrue(contains_configfile(dir, filename))
 
     def test_contains_configfile_filename_false(self):
-        dir = 'tests/resources/projects/project-003-subdirectories'
-        filename = 'doesnotexist.txt'
+        dir = "tests/resources/projects/project-003-subdirectories"
+        filename = "doesnotexist.txt"
         self.assertFalse(contains_configfile(dir, filename))
 
 
 class TestScanConfigInPath(unittest.TestCase):
     def test_scan_config_in_path_exist(self):
-        dir = 'tests/resources/projects/project-003-subdirectories'
+        dir = "tests/resources/projects/project-003-subdirectories"
         os.chdir(dir)
         result = scan_config_in_path(os.getcwd())
-        self.assertIsNot(result, '')
+        self.assertIsNot(result, "")
 
     def test_scan_config_in_subdirectory_exist(self):
-        dir = 'tests/resources/projects/project-003-subdirectories/src'
+        dir = "tests/resources/projects/project-003-subdirectories/src"
         os.chdir(dir)
         result = scan_config_in_path(os.getcwd())
-        self.assertIsNot(result, '')
+        self.assertIsNot(result, "")
 
     def test_scan_config_in_path_not_exist(self):
-        dir = 'tests/resources/projects/'
+        dir = "tests/resources/projects/"
         os.chdir(dir)
         result = scan_config_in_path(os.getcwd())
-        self.assertIs(result, '')
+        self.assertIs(result, "")

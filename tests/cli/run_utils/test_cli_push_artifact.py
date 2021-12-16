@@ -1,9 +1,9 @@
 import os
-import responses
-import pytest
 import sys
 import unittest
 
+import pytest
+import responses
 from click.testing import CliRunner
 
 from askanna.cli.run_utils.tool import cli_commands
@@ -11,13 +11,13 @@ from askanna.core.apiclient import client
 
 
 def delete_modules():
-    try:
-        del sys.modules['askanna.cli.run_utils.tool']
-        del sys.modules['askanna.cli.run_utils.push_artifact']
-        del sys.modules['askanna.core.apiclient']
-        del sys.modules['askanna.config']
-        del sys.modules['askanna.config.server']
-        del sys.modules['askanna.config.project']
+    try:  # nosec
+        del sys.modules["askanna.cli.run_utils.tool"]
+        del sys.modules["askanna.cli.run_utils.push_artifact"]
+        del sys.modules["askanna.core.apiclient"]
+        del sys.modules["askanna.config"]
+        del sys.modules["askanna.config.server"]
+        del sys.modules["askanna.config.project"]
     except:  # noqa
         pass
 
@@ -26,8 +26,8 @@ def delete_modules():
 def test_setup_and_teardown(monkeypatch):
     cwd = os.getcwd()
     environ_bck = dict(os.environ)
-    os.environ["AA_REMOTE"] = "https://beta-api.askanna.eu/v1/"
-    os.environ["AA_TOKEN"] = "12345678910"
+    os.environ["AA_REMOTE"] = "https://beta-api.askanna.eu"
+    os.environ["AA_TOKEN"] = "12345678910"  # nosec
 
     yield
 
@@ -58,8 +58,7 @@ class TestCLIPushArtifact(unittest.TestCase):
 
         self.responses.add(
             responses.POST,
-            url=self.base_url
-            + "runinfo/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/artifactchunk/",
+            url=self.base_url + "runinfo/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/artifactchunk/",
             json={"uuid": "ab12-ab12-ab12-ab12"},
             status=201,
         )
@@ -73,8 +72,7 @@ class TestCLIPushArtifact(unittest.TestCase):
 
         self.responses.add(
             responses.POST,
-            url=self.base_url
-            + "runinfo/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/finish_upload/",
+            url=self.base_url + "runinfo/abcd-abcd-abcd-abcd/artifact/1234-1234-1234-1234/finish_upload/",
             status=200,
         )
 
@@ -118,10 +116,7 @@ class TestCLIPushArtifact(unittest.TestCase):
         os.environ["AA_RUN_SUUID"] = "abcd-abcd-abcd-abcd"
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 1
-        assert (
-            "The job name is not set. We cannot push artifact to AskAnna."
-            in result.output
-        )
+        assert "The job name is not set. We cannot push artifact to AskAnna." in result.output
 
     def test_command_push_artifact_config_ok_no_artifact(self):
         project_dir = "tests/resources/projects/project-001-simple"
@@ -135,10 +130,7 @@ class TestCLIPushArtifact(unittest.TestCase):
 
         result = CliRunner().invoke(cli_commands, self.verb)
         assert result.exit_code == 0
-        assert (
-            "Artifact creation aborted, no `output/artifact` defined for this job in `askanna.yml`"
-            in result.output
-        )
+        assert "Artifact creation aborted, no `output/artifact` defined for this job in `askanna.yml`" in result.output
 
     def test_command_push_artifact_config_ok_job_with_artifact(self):
         project_dir = "tests/resources/projects/project-001-simple"
@@ -168,10 +160,7 @@ class TestCLIPushArtifact(unittest.TestCase):
         result = CliRunner().invoke(cli_commands, self.verb)
 
         assert result.exit_code == 0
-        assert (
-            "Deprecation warning: in a future version we remove the output/paths option."
-            in result.output
-        )
+        assert "Deprecation warning: in a future version we remove the output/paths option." in result.output
         assert "Uploading artifact to AskAnna..." in result.output
         assert "Artifact is uploaded" in result.output
 
