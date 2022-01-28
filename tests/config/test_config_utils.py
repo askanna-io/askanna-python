@@ -1,23 +1,28 @@
+import io
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 from typing import Dict
 
 import pytest
+import responses
 from faker import Faker
-from faker.providers import file
+from faker.providers import file, internet
 
 from askanna.config.server import DEFAULT_SERVER_CONFIG
 from askanna.config.utils import (
     contains_configfile,
     read_config,
+    read_config_from_url,
     scan_config_in_path,
     store_config,
 )
 
 fake = Faker()
 fake.add_provider(file)
+fake.add_provider(internet)
 
 
 @pytest.fixture(autouse=True)
@@ -76,6 +81,82 @@ remote: https://beta-api.askanna.dev
             read_config(123)
 
         self.assertEqual(cm.exception.code, 1)
+
+
+class TestReadConfigFromURL(unittest.TestCase):
+    def setUp(self):
+        self.config_url = "https://" + fake.hostname() + "/test-config.yml"
+        self.config_url_fail = "https://" + fake.hostname()
+        self.invalid_config_url = "https://" + fake.hostname() + "/test-config.yml"
+        self.remote_url = "https://" + fake.hostname()
+        self.responses = responses.RequestsMock()
+        self.responses.start()
+        self.responses.add(
+            responses.GET,
+            url=self.config_url,
+            stream=True,
+            content_type="application/octet-stream",
+            status=200,
+            body=f"askanna-remote: {self.remote_url}\n",
+        )
+        self.responses.add(
+            responses.GET,
+            url=self.config_url_fail,
+            content_type="text/html",
+            status=200,
+        )
+        self.responses.add(
+            responses.GET,
+            url=self.invalid_config_url,
+            stream=True,
+            content_type="application/octet-stream",
+            status=200,
+            body=f"invalid: {self.remote_url}\n  config: file",
+        )
+
+    def tearDown(self):
+        self.responses.stop
+        self.responses.reset
+
+    def test_read_config_from_url(self):
+        config = read_config_from_url(self.config_url)
+        remote = config["askanna-remote"]
+        self.assertEqual(remote, self.remote_url)
+
+    def test_read_config_from_url_fail(self):
+        with pytest.raises(SystemExit) as cm:
+            read_config_from_url(self.config_url_fail)
+
+        self.assertEqual(cm.type, SystemExit)
+        self.assertEqual(cm.value.code, 1)
+
+    def test_read_config_from_url_invalid_config(self):
+        capture_output = io.StringIO()
+        sys.stderr = capture_output
+
+        with pytest.raises(SystemExit) as cm:
+            read_config_from_url(self.invalid_config_url)
+
+        self.assertEqual(cm.type, SystemExit)
+        self.assertEqual(cm.value.code, 1)
+
+        output_value = "Error reading YAML content due to:"
+        self.assertIn(output_value, capture_output.getvalue())
+
+    def test_read_config_from_url_connection_error(self):
+        url = "https://" + fake.hostname()
+
+        capture_output = io.StringIO()
+        sys.stderr = capture_output
+
+        with pytest.raises(SystemExit) as cm:
+            read_config_from_url(url)
+
+        self.assertEqual(cm.type, SystemExit)
+        self.assertEqual(cm.value.code, 1)
+
+        output_value = f"Cannot open URL: {url}"
+        self.assertIn(output_value, capture_output.getvalue())
 
 
 class TestStoreConfig(unittest.TestCase):
