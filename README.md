@@ -45,7 +45,7 @@ When used in a CI, one can configure authentication by setting an environment
 variable:
 
 ```bash
-export AA_REMOTE=https://beta-api.askanna.eu/v1/
+export AA_REMOTE=https://beta-api.askanna.eu
 export AA_TOKEN={{ API TOKEN }}
 ```
 

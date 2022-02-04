@@ -1,9 +1,10 @@
-from click.testing import CliRunner
 import os
-import responses
 import shutil
 import tempfile
 import unittest
+
+import responses
+from click.testing import CliRunner
 
 from askanna.cli.tool import cli_commands
 from askanna.core.apiclient import client
@@ -19,8 +20,8 @@ class TestCLIArtifact(unittest.TestCase):
 
     def setUp(self):
         self.environ_bck = dict(os.environ)
-        os.environ["AA_REMOTE"] = "https://beta-api.askanna.eu/v1/"
-        os.environ["AA_TOKEN"] = "12345678910"
+        os.environ["AA_REMOTE"] = "https://beta-api.askanna.eu"
+        os.environ["AA_TOKEN"] = "12345678910"  # nosec
 
         self.tempdir = tempfile.mkdtemp(prefix="askanna-test-cli-artifact")
         self.artifact_zip_file = create_zip_file(self.tempdir, 10)
@@ -36,7 +37,7 @@ class TestCLIArtifact(unittest.TestCase):
         self.responses.add(
             responses.HEAD,
             url=self.base_url + "artifact/abcd-abcd-abcd-abcd/",
-            headers={'Location': f'{url_download_file}'},
+            headers={"Location": f"{url_download_file}"},
             status=302,
         )
         self.responses.add(
@@ -47,7 +48,7 @@ class TestCLIArtifact(unittest.TestCase):
         self.responses.add(
             responses.HEAD,
             url=url_download_file,
-            headers={'Content-Length': str(os.path.getsize(self.artifact_zip_file)), 'Accept-Ranges': 'bytes'},
+            headers={"Content-Length": str(os.path.getsize(self.artifact_zip_file)), "Accept-Ranges": "bytes"},
             content_type="application/zip",
             status=200,
         )
@@ -58,7 +59,7 @@ class TestCLIArtifact(unittest.TestCase):
             stream=True,
             content_type="application/zip",
             status=206,
-            body=content
+            body=content,
         )
 
     def tearDown(self):

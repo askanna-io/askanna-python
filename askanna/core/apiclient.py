@@ -1,10 +1,9 @@
 import json
 
-from askanna import (
-    __version__ as askanna_version,
-    USING_ASKANNA_CLI,
-)
+from askanna import USING_ASKANNA_CLI
+from askanna import __version__ as askanna_version
 from askanna.config import config
+
 from .session import Session
 from .utils import json_serializer
 
@@ -32,6 +31,10 @@ class Client:
             "Authorization": f"Token {self.config.server.token}",
         }
 
+    def update_session(self, headers=None):
+        self.headers = headers or self.generate_authenication_header()
+        self.session = Session(headers=self.headers)
+
     @property
     def base_url(self):
         return self.config.server.remote + "/v1/"
@@ -44,37 +47,27 @@ class Client:
 
     def patch(self, url, **kwargs):
         if kwargs.get("json"):
-            kwargs["json"] = json.loads(
-                json.dumps(kwargs.get("json"), default=json_serializer)
-            )
+            kwargs["json"] = json.loads(json.dumps(kwargs.get("json"), default=json_serializer))
         return self.session.patch(url, **kwargs)
 
     def put(self, url, **kwargs):
         if kwargs.get("json"):
-            kwargs["json"] = json.loads(
-                json.dumps(kwargs.get("json"), default=json_serializer)
-            )
+            kwargs["json"] = json.loads(json.dumps(kwargs.get("json"), default=json_serializer))
         return self.session.put(url, **kwargs)
 
     def post(self, url, **kwargs):
         if kwargs.get("json"):
-            kwargs["json"] = json.loads(
-                json.dumps(kwargs.get("json"), default=json_serializer)
-            )
+            kwargs["json"] = json.loads(json.dumps(kwargs.get("json"), default=json_serializer))
         return self.session.post(url, **kwargs)
 
     def create(self, url, **kwargs):
         if kwargs.get("json"):
-            kwargs["json"] = json.loads(
-                json.dumps(kwargs.get("json"), default=json_serializer)
-            )
+            kwargs["json"] = json.loads(json.dumps(kwargs.get("json"), default=json_serializer))
         return self.session.create(url, **kwargs)
 
     def delete(self, url, **kwargs):
         if kwargs.get("json"):
-            kwargs["json"] = json.loads(
-                json.dumps(kwargs.get("json"), default=json_serializer)
-            )
+            kwargs["json"] = json.loads(json.dumps(kwargs.get("json"), default=json_serializer))
         return self.session.delete(url, **kwargs)
 
 
