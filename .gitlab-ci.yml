@@ -269,3 +269,33 @@ publish_to_docker:
   only:
     refs:
       - master
+
+publish_to_public_repos:
+  stage: publish
+  tags:
+    - kubernetes
+  allow_failure: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      variables:
+        TARGET: HEAD:master
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+      variables:
+        TARGET: refs/tags/$CI_COMMIT_TAG
+  before_script:
+    - apt-get update -y && apt-get install openssh-client git curl -y
+    - eval $(ssh-agent -s)
+    - echo "${SSH_PRIVATE_KEY_GITLAB_COM}" | tr -d '\r' | ssh-add - > /dev/null
+    - echo "${SSH_PRIVATE_KEY_GITHUB_COM}" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+    - ssh-keyscan github.com >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - git config --global user.email "hello@askanna.io"
+    - git config --global user.name "AskAnna Robot"
+  script:
+    - git remote add gitlab git@gitlab.com:askanna/askanna-python.git
+    - git remote add github git@github.com:askanna-io/askanna-python.git
+    - git push gitlab $TARGET
+    - git push github $TARGET
