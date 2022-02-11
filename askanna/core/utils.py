@@ -12,15 +12,15 @@ import croniter
 import igittigitt
 import pytz
 import requests
-import tzlocal
 from email_validator import EmailNotValidError, validate_email
+from tzlocal import get_localzone
 
 from askanna import __version__ as askanna_version
 from askanna.settings import PYPI_PROJECT_URL
 
 StorageUnit = collections.namedtuple("StorageUnit", ["B", "KiB", "MiB", "GiB", "TiB", "PiB"])
 
-diskunit = StorageUnit(B=1, KiB=1024 ** 1, MiB=1024 ** 2, GiB=1024 ** 3, TiB=1024 ** 4, PiB=1024 ** 5)
+diskunit = StorageUnit(B=1, KiB=1024**1, MiB=1024**2, GiB=1024**3, TiB=1024**4, PiB=1024**5)
 
 supported_data_types = {
     # primitive types
@@ -556,7 +556,7 @@ def validate_askanna_yml(config):
                         return False
 
                 if not timezone and not global_timezone and not timezone_checked:
-                    timezone_local = getLocalTimezone()
+                    timezone_local = get_localzone()
                     if timezone_local != "UTC":
                         click.echo(  # noqa
                             f"""
@@ -721,13 +721,6 @@ def isIPAddress(ip: str) -> bool:
     except ValueError:
         return False
     return True
-
-
-def getLocalTimezone() -> str:
-    """
-    Determine the local timezone name
-    """
-    return tzlocal.get_localzone().zone
 
 
 def content_type_file_extension(content_type: str) -> str:

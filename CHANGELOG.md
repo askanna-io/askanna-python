@@ -1,12 +1,18 @@
 # History
 
+## 0.15.0 (2022-02-11)
+
+- Make the requirements less strict, so it's easier to integrate AskAnna in your existing Python environment.
+- Let tzlocal work with newer version of the tzlocal package
+- Add job to publish master and version tags to public repos
+
 ## 0.14.1 (2022-02-04)
 
 - Added login argument 'url' making it possible to log in on different AskAnna environments using the web URL
 - Fix: after successful login, you now get a success message i.s.o. a fail message
 - Updated AA_REMOTE and tests to align with new config setup
 
-## 0.14.0 (2021-11-22)
+## 0.14.0 (2021-11-25)
 
 - Refactor server & project Config. If you upgrade from a previous version `0.14.0` the AskAnna CLI will
   automatically update your AskAnna config file to the new format.
