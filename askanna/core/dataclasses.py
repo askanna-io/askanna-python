@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
 import datetime
-from typing import Any, List, Dict
 import uuid
+from dataclasses import dataclass, field
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -140,14 +140,17 @@ class Variable:
 
 @dataclass
 class Workspace:
-    name: str
-    description: str
     uuid: uuid.UUID
     short_uuid: str
+    name: str
+    description: str
     visibility: str
+    created_by: dict
+    permission: dict
     is_member: bool
     created: datetime.datetime
     modified: datetime.datetime
+    url: str
 
     def __str__(self):
         return f"{self.name} {self.short_uuid}"
