@@ -1,6 +1,6 @@
 # History
 
-## 0.16.0 (2022-04-09)
+## 0.16.0 (2022-05-09)
 
 - Add create and remove workspace to SDK and CLI
 - Add delete to project SDK
