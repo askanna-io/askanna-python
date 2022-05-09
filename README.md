@@ -6,7 +6,7 @@ simplifies the communication with the AskAnna platform and provides facilities
 for supporting every part of a data science project.
 
 [![PyPi](https://img.shields.io/pypi/v/askanna.svg)](https://pypi.org/project/askanna/)
-[![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://gitlab.askanna.io/askanna/askanna-cli/-/blob/release/0.6.2/LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://gitlab.com/askanna/askanna-python/-/blob/master/LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-latest-success.svg)](https://docs.askanna.io/)
 [![Downloads](https://pepy.tech/badge/askanna)](https://pepy.tech/project/askanna)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
