@@ -1,5 +1,7 @@
 import unittest
+
 import responses
+from responses.matchers import json_params_matcher
 
 from askanna.core.apiclient import client
 from askanna.core.project import ProjectGateway
@@ -46,20 +48,39 @@ class SDKProjectTest(unittest.TestCase):
             responses.PATCH,
             url=self.base_url + "project/abcd-abcd-abcd-abcd/",
             json=a_sample_project_response,
-            match=[responses.json_params_matcher({"name": "new name"})],
+            match=[json_params_matcher({"name": "new name"})],
         )
 
         self.responses.add(
             responses.PATCH,
             url=self.base_url + "project/abcd-abcd-abcd-abcd/",
             json=a_sample_project_response,
-            match=[responses.json_params_matcher({"description": "new description"})],
+            match=[json_params_matcher({"description": "new description"})],
         )
         self.responses.add(
             responses.PATCH,
             url=self.base_url + "project/abcd-abcd-abcd-abcd/",
             json=a_sample_project_response,
-            match=[responses.json_params_matcher({"name": "new name", "description": "new description"})],
+            match=[json_params_matcher({"visibility": "PUBLIC"})],
+        )
+        self.responses.add(
+            responses.PATCH,
+            url=self.base_url + "project/abcd-abcd-abcd-abcd/",
+            json=a_sample_project_response,
+            match=[json_params_matcher({"name": "new name", "description": "new description"})],
+        )
+        self.responses.add(
+            responses.PATCH,
+            url=self.base_url + "project/abcd-abcd-abcd-abcd/",
+            json=a_sample_project_response,
+            match=[
+                json_params_matcher({"name": "new name", "description": "new description", "visibility": "PUBLIC"})
+            ],
+        )
+        self.responses.add(
+            responses.DELETE,
+            url=self.base_url + "project/abcd-abcd-abcd-abcd/",
+            status=204,
         )
 
     def test_change_project_name(self):
@@ -70,6 +91,15 @@ class SDKProjectTest(unittest.TestCase):
         pgw = ProjectGateway()
         pgw.change("abcd-abcd-abcd-abcd", description="new description")
 
+    def test_change_project_visibility(self):
+        pgw = ProjectGateway()
+        pgw.change("abcd-abcd-abcd-abcd", visibility="PUBLIC")
+
+    def test_change_project_visibility_value_error(self):
+        pgw = ProjectGateway()
+        with self.assertRaises(ValueError):
+            pgw.change("abcd-abcd-abcd-abcd", visibility="public")
+
     def test_change_project_name_description(self):
         pgw = ProjectGateway()
         pgw.change(
@@ -78,8 +108,21 @@ class SDKProjectTest(unittest.TestCase):
             description="new description",
         )
 
+    def test_change_project_name_description_visibility(self):
+        pgw = ProjectGateway()
+        pgw.change("abcd-abcd-abcd-abcd", name="new name", description="new description", visibility="PUBLIC")
+
+    def test_change_project_name_description_visibility_value_error(self):
+        pgw = ProjectGateway()
+        with self.assertRaises(ValueError):
+            pgw.change("abcd-abcd-abcd-abcd", name="new name", description="new description", visibility="public")
+
     def test_change_project_all_empty(self):
         pgw = ProjectGateway()
         with self.assertRaises(SystemExit) as cm:
             pgw.change("abcd-abcd-abcd-abcd")
         self.assertEqual(cm.exception.code, 1)
+
+    def test_delete_project(self):
+        pgw = ProjectGateway()
+        self.assertTrue(pgw.delete("abcd-abcd-abcd-abcd"))

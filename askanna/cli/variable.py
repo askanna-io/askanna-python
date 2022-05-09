@@ -1,7 +1,9 @@
 import sys
+
 import click
 
-from askanna import project as aa_project, variable as aa_variable
+from askanna import project as aa_project
+from askanna import variable as aa_variable
 from askanna.cli.utils import ask_which_project, ask_which_workspace
 from askanna.config import config
 
@@ -12,8 +14,9 @@ def cli1():
 
 
 @cli1.command(help="List variables in AskAnna", short_help="List variables")
-@click.option("--project", "-p", "project_suuid", required=False, type=str,
-              help="Project SUUID to list variables for a project")
+@click.option(
+    "--project", "-p", "project_suuid", required=False, type=str, help="Project SUUID to list variables for a project"
+)
 def list(project_suuid):
     """
     List variables
@@ -24,28 +27,23 @@ def list(project_suuid):
         click.echo("Based on the information provided, we cannot find any variables.")
         sys.exit(0)
     if project_suuid:
-        click.echo("The variables for project \"{}\" are:\n".format(variables[0].project['name']))
+        click.echo('The variables for project "{}" are:\n'.format(variables[0].project["name"]))
         click.echo("VARIABLE SUUID         VARIABLE NAME")
         click.echo("-------------------    -------------------------")
     else:
         click.echo("PROJECT SUUID          PROJECT NAME            VARIABLE SUUID         VARIABLE NAME")
         click.echo("-------------------    --------------------    -------------------    -------------------------")
 
-    for var in sorted(variables, key=lambda x: (x.project['name'], x.name)):
+    for var in sorted(variables, key=lambda x: (x.project["name"], x.name)):
         if project_suuid:
-            click.echo(
-                "{suuid}    {variable_name}".format(
-                    suuid=var.short_uuid,
-                    variable_name=var.name[:25]
-                )
-            )
+            click.echo("{suuid}    {variable_name}".format(suuid=var.short_uuid, variable_name=var.name[:25]))
         else:
             click.echo(
                 "{project_suuid}    {project_name}    {variable_suuid}    {variable_name}".format(
-                    project_suuid=var.project['short_uuid'],
-                    project_name="{:20}".format(var.project['name'])[:20],
+                    project_suuid=var.project["short_uuid"],
+                    project_name="{:20}".format(var.project["name"])[:20],
                     variable_suuid=var.short_uuid,
-                    variable_name=var.name[:25]
+                    variable_name=var.name[:25],
                 )
             )
 
@@ -63,12 +61,18 @@ def change(suuid, name, value, masked):
     variable = aa_variable.detail(suuid=suuid)
 
     if not any([name, value]):
-        click.echo("We did not change anything because you did not request to change a name or value.\n"
-                   "Please add additional input to the command to change the name or value of the variable.", err=True)
+        click.echo(
+            "We did not change anything because you did not request to change a name or value.\n"
+            "Please add additional input to the command to change the name or value of the variable.",
+            err=True,
+        )
         sys.exit(0)
     if masked and variable.is_masked:
-        click.echo("This variable is currently masked. It is not possible to unmask a masked variable."
-                   "We skip the option to change the mask status of the variable.", err=True)
+        click.echo(
+            "This variable is currently masked. It is not possible to unmask a masked variable."
+            "We skip the option to change the mask status of the variable.",
+            err=True,
+        )
         sys.exit(0)
 
     # commit the change of the variable to AskAnna
@@ -85,28 +89,11 @@ def delete(suuid, force):
     try:
         variable = aa_variable.detail(suuid=suuid)
     except TypeError:
-        click.echo(
-            "It seems that a variable {id} doesn't exist.".format(id=id),
-            err=True
-        )
+        click.echo(f"It seems that a variable {suuid} doesn't exist.", err=True)
         sys.exit(1)
 
-    def ask_confirmation() -> bool:
-        confirm = input("Are you sure to delete variable {suuid} with name \"{name}\"? [y/n]: ".format(
-            suuid=suuid, name=variable.name
-        ))
-        answer = confirm.strip()
-        if answer not in ['n', 'y']:
-            click.echo("Invalid option selected, choose from y or n")
-            return ask_confirmation()
-        if confirm == 'y':
-            return True
-        else:
-            return False
-
     if not force:
-        confirmation = ask_confirmation()
-        if not confirmation:
+        if not click.confirm(f'Are you sure to delete variable {suuid} with name "{variable.name}"?'):
             click.echo("Understood. We are not deleting the variable.")
             sys.exit(0)
 
@@ -120,10 +107,22 @@ def delete(suuid, force):
 @cli1.command(help="Add a variable to a project in AskAnna", short_help="Add variable")
 @click.option("--name", "-n", required=False, type=str, help="Name of the variable")
 @click.option("--value", "-v", required=False, type=str, help="Value of the variable")
-@click.option("--masked/--not-masked", "-m", "masked", default=False, show_default=False,
-              help="Set value to masked (default is not-masked)")
-@click.option("--project", "-p", "project_suuid", type=str, required=False,
-              help="Project SUUID where this variable will be created")
+@click.option(
+    "--masked/--not-masked",
+    "-m",
+    "masked",
+    default=False,
+    show_default=False,
+    help="Set value to masked (default is not-masked)",
+)
+@click.option(
+    "--project",
+    "-p",
+    "project_suuid",
+    type=str,
+    required=False,
+    help="Project SUUID where this variable will be created",
+)
 def add(name, value, masked, project_suuid):
     """
     Add a variable to a project
@@ -134,15 +133,14 @@ def add(name, value, masked, project_suuid):
         click.echo(f"Selected project: {project.name}")
     elif config.project.project_suuid:
         project = aa_project.detail(config.project.project_suuid)
-        if click.confirm(f"\nDo you want to create a variable for project \"{project.name}\"?"):
+        if click.confirm(f'\nDo you want to create a variable for project "{project.name}"?'):
             project_suuid = project.short_uuid
             click.echo(f"Selected project: {project.name}")
 
     if not project_suuid:
         workspace = ask_which_workspace(question="In which workspace do you want to add a variable?")
         project = ask_which_project(
-            question="In which project do you want to add a variable?",
-            workspace_suuid=workspace.short_uuid
+            question="In which project do you want to add a variable?", workspace_suuid=workspace.short_uuid
         )
 
     confirm = False
@@ -158,12 +156,14 @@ def add(name, value, masked, project_suuid):
             masked = click.prompt("Should the value be masked in logs and the web interface? [y/N]", type=bool)
 
     if confirm:
-        click.confirm(f"\nDo you want to create the variable \"{name}\" in project \"{project.name}\"?", abort=True)
+        click.confirm(f'\nDo you want to create the variable "{name}" in project "{project.name}"?', abort=True)
 
     variable, created = aa_variable.create(name=name, value=value, is_masked=masked, project_suuid=project.short_uuid)
     if created:
-        click.echo(f"\nYou created variable \"{variable.name}\" with SUUID {variable.short_uuid} in project "
-                   f"\"{project.name}\"")
+        click.echo(
+            f'\nYou created variable "{variable.name}" with SUUID {variable.short_uuid} in project '
+            f'"{project.name}"'
+        )
         sys.exit(0)
     else:
         click.echo("Something went wrong in creating the variable.", err=True)
