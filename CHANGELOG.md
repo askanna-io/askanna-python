@@ -1,5 +1,12 @@
 # History
 
+## 0.16.0 (2022-04-09)
+
+- Add create and remove workspace to SDK and CLI
+- Add delete to project SDK
+- Change project & workspace now also supports changing visibility via SDK and CLI
+- Change dataclass Workspace to support the changed response of AskAnna Backend
+
 ## 0.15.0 (2022-02-11)
 
 - Make the requirements less strict, so it's easier to integrate AskAnna in your existing Python environment.

@@ -30,8 +30,7 @@ class ProjectGateway:
         r = self.client.get(url)
         if r.status_code != 200:
             raise exceptions.GetError(
-                "{} - Something went wrong while retrieving "
-                "projects: {}".format(r.status_code, r.json())
+                "{} - Something went wrong while retrieving projects: {}".format(r.status_code, r.json())
             )
 
         return [Project(**project) for project in r.json()]
@@ -42,27 +41,29 @@ class ProjectGateway:
 
         if r.status_code != 200:
             raise exceptions.GetError(
-                "{} - Something went wrong while retrieving "
-                "project info: {}".format(r.status_code, r.json())
+                "{} - Something went wrong while retrieving project info: {}".format(r.status_code, r.json())
             )
 
         return Project(**r.json())
 
-    def change(self, suuid: str, name: str = None, description: str = None) -> Project:
+    def change(self, suuid: str, name: str = None, description: str = None, visibility: str = None) -> Project:
         """
         Change the project information
         """
         url = f"{self.base_url}{suuid}/"
 
+        if visibility and visibility not in ["PRIVATE", "PUBLIC"]:
+            raise ValueError("Visibility must be either PRIVATE or PUBLIC")
+
         changes = [
             ["name", name],
             ["description", description],
+            ["visibility", visibility],
         ]
-        # filterout None's
         changes = list(filter(lambda x: x[1] is not None, changes))
         if len(changes) == 0:
             click.echo(
-                "Nothing to change for this project. You did not provide a name or description.",
+                "Nothing to change for this project. You did not provide name, description or visibility.",
                 err=True,
             )
             sys.exit(1)
@@ -77,3 +78,8 @@ class ProjectGateway:
                 "{} - Something went wrong while updating the project information: "
                 "{}".format(r.status_code, r.json())
             )
+
+    def delete(self, suuid: str) -> bool:
+        url = f"{self.base_url}{suuid}/"
+        r = self.client.delete(url)
+        return r.status_code == 204
