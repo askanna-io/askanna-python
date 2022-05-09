@@ -1,6 +1,7 @@
 import unittest
 
 import responses
+from responses.matchers import json_params_matcher
 
 from askanna.core.apiclient import client
 from askanna.core.workspace import WorkspaceGateway
@@ -69,28 +70,95 @@ class SDKworkspaceTest(unittest.TestCase):
         self.responses.start()
 
         self.responses.add(
-            responses.PATCH,
+            responses.POST,
+            url=self.base_url + "workspace/",
+            json=a_sample_workspace_response,
+            match=[json_params_matcher({"name": "AskAnna", "description": "", "visibility": "PRIVATE"})],
+        )
+        self.responses.add(
+            responses.POST,
+            url=self.base_url + "workspace/",
+            json=a_sample_workspace_response,
+            match=[json_params_matcher({"name": "AskAnna", "description": "A description", "visibility": "PRIVATE"})],
+        )
+        self.responses.add(
+            responses.POST,
+            url=self.base_url + "workspace/",
+            json=a_sample_workspace_response,
+            match=[json_params_matcher({"name": "AskAnna", "description": "", "visibility": "PUBLIC"})],
+        )
+        self.responses.add(
+            responses.GET,
             url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
             json=a_sample_workspace_response,
-            match=[responses.json_params_matcher({"name": "new name"})],
         )
-
         self.responses.add(
             responses.PATCH,
             url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
             json=a_sample_workspace_response,
-            match=[responses.json_params_matcher({"description": "new description"})],
+            match=[json_params_matcher({"name": "new name"})],
         )
         self.responses.add(
             responses.PATCH,
             url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
             json=a_sample_workspace_response,
-            match=[responses.json_params_matcher({"name": "new name", "description": "new description"})],
+            match=[json_params_matcher({"description": "new description"})],
+        )
+        self.responses.add(
+            responses.PATCH,
+            url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
+            json=a_sample_workspace_response,
+            match=[json_params_matcher({"visibility": "PUBLIC"})],
+        )
+        self.responses.add(
+            responses.PATCH,
+            url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
+            json=a_sample_workspace_response,
+            match=[json_params_matcher({"name": "new name", "description": "new description"})],
+        )
+        self.responses.add(
+            responses.PATCH,
+            url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
+            json=a_sample_workspace_response,
+            match=[
+                json_params_matcher({"name": "new name", "description": "new description", "visibility": "PUBLIC"})
+            ],
+        )
+        self.responses.add(
+            responses.DELETE,
+            url=self.base_url + "workspace/abcd-abcd-abcd-abcd/",
+            status=204,
         )
 
     def tearDown(self):
         self.responses.stop
         self.responses.reset
+
+    def test_create_workspace_name(self):
+        wgw = WorkspaceGateway()
+        wgw.create(name="AskAnna")
+
+    def test_create_workspace_description(self):
+        wgw = WorkspaceGateway()
+        wgw.create(name="AskAnna", description="A description")
+
+    def test_create_workspace_no_name(self):
+        wgw = WorkspaceGateway()
+        with self.assertRaises(TypeError):
+            wgw.create(description="A description")
+
+    def test_create_workspace_visibility(self):
+        wgw = WorkspaceGateway()
+        wgw.create(name="AskAnna", visibility="PUBLIC")
+
+    def test_create_workspace_visibility_value_error(self):
+        wgw = WorkspaceGateway()
+        with self.assertRaises(ValueError):
+            wgw.create(name="AskAnna", visibility="public")
+
+    def test_get_workspace(self):
+        wgw = WorkspaceGateway()
+        wgw.detail("abcd-abcd-abcd-abcd")
 
     def test_change_workspace_name(self):
         wgw = WorkspaceGateway()
@@ -100,6 +168,15 @@ class SDKworkspaceTest(unittest.TestCase):
         wgw = WorkspaceGateway()
         wgw.change("abcd-abcd-abcd-abcd", description="new description")
 
+    def test_change_workspace_visibility(self):
+        wgw = WorkspaceGateway()
+        wgw.change("abcd-abcd-abcd-abcd", visibility="PUBLIC")
+
+    def test_change_workspace_visibility_value_error(self):
+        wgw = WorkspaceGateway()
+        with self.assertRaises(ValueError):
+            wgw.change("abcd-abcd-abcd-abcd", visibility="public")
+
     def test_change_workspace_name_description(self):
         wgw = WorkspaceGateway()
         wgw.change(
@@ -108,8 +185,21 @@ class SDKworkspaceTest(unittest.TestCase):
             description="new description",
         )
 
+    def test_change_workspace_name_description_visibility(self):
+        wgw = WorkspaceGateway()
+        wgw.change("abcd-abcd-abcd-abcd", name="new name", description="new description", visibility="PUBLIC")
+
+    def test_change_workspace_name_description_visibility_value_error(self):
+        wgw = WorkspaceGateway()
+        with self.assertRaises(ValueError):
+            wgw.change("abcd-abcd-abcd-abcd", name="new name", description="new description", visibility="public")
+
     def test_change_workspace_all_empty(self):
         wgw = WorkspaceGateway()
         with self.assertRaises(SystemExit) as cm:
             wgw.change("abcd-abcd-abcd-abcd")
         self.assertEqual(cm.exception.code, 1)
+
+    def test_delete_workspace(self):
+        wgw = WorkspaceGateway()
+        self.assertTrue(wgw.delete("abcd-abcd-abcd-abcd"))

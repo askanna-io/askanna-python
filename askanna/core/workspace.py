@@ -3,6 +3,7 @@ Management of workspaces in AskAnna
 This is the class which act as gateway to the API of AskAnna
 """
 import sys
+from typing import Tuple, Union
 
 import click
 
@@ -21,25 +22,50 @@ class WorkspaceGateway:
 
         if r.status_code != 200:
             raise exceptions.GetError(
-                "{} - Something went wrong while retrieving "
-                "workspaces: {}".format(r.status_code, r.json())
+                "{} - Something went wrong while retrieving workspaces: {}".format(r.status_code, r.json())
             )
 
         return [Workspace(**workspace) for workspace in r.json()]
 
-    def change(
-        self, suuid: str, name: str = None, description: str = None
-    ) -> Workspace:
+    def detail(self, suuid: str) -> Workspace:
+        url = f"{self.base_url}{suuid}/"
+        r = self.client.get(url)
+        return Workspace(**r.json())
+
+    def create(
+        self, name: str, description: str = "", visibility: str = "PRIVATE"
+    ) -> Tuple[Union[Workspace, None], bool]:
+        url = self.base_url
+
+        if visibility and visibility not in ["PRIVATE", "PUBLIC"]:
+            raise ValueError("Visibility must be either PRIVATE or PUBLIC")
+
+        r = self.client.create(
+            url,
+            json={
+                "name": name,
+                "description": description,
+                "visibility": visibility,
+            },
+        )
+        if r.status_code == 201:
+            return Workspace(**r.json()), True
+        return None, False
+
+    def change(self, suuid: str, name: str = None, description: str = None, visibility: str = None) -> Workspace:
         """
         Change the workspace information
         """
         url = f"{self.base_url}{suuid}/"
 
+        if visibility and visibility not in ["PRIVATE", "PUBLIC"]:
+            raise ValueError("Visibility must be either PRIVATE or PUBLIC")
+
         changes = [
             ["name", name],
             ["description", description],
+            ["visibility", visibility],
         ]
-        # filterout None's
         changes = list(filter(lambda x: x[1] is not None, changes))
         if len(changes) == 0:
             click.echo(
@@ -58,3 +84,8 @@ class WorkspaceGateway:
                 "{} - Something went wrong while updating the workspace information: "
                 "{}".format(r.status_code, r.json())
             )
+
+    def delete(self, suuid: str) -> bool:
+        url = f"{self.base_url}{suuid}/"
+        r = self.client.delete(url)
+        return r.status_code == 204
