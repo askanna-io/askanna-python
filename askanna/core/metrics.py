@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 import json
 import os
 import sys
 import tempfile
-from typing import Any, List
 import uuid
+from dataclasses import dataclass
+from typing import Any, List, Union
 
 import click
 from dateutil import parser as dateutil_parser
@@ -18,9 +18,15 @@ from askanna.core.utils import (
     labels_to_type,
     prepare_and_validate_value,
     translate_dtype,
+    value_not_empty,
 )
 
-__all__ = ["track_metric", "track_metrics", "MetricCollector", "MetricGateway"]
+__all__ = [
+    "track_metric",
+    "track_metrics",
+    "MetricCollector",
+    "MetricGateway",
+]
 
 """
 How to use metrics module:
@@ -58,18 +64,15 @@ class MetricsQuerySet:
             return ret[0]
         elif len(ret) > 1:
             click.echo(
-                f"Found more metrics matching name '{name}',"
-                f" use .filter(name='{name}') to get all matches.",
+                f'Found more metrics matching name "{name}", use .filter(name="{name}") to get all matches.',
                 err=True,
             )
             return ret[0]
         else:
-            click.echo(f"A metric with name '{name}' is not found")
+            click.echo(f'A metric with name "{name}" is not found')
 
     def filter(self, name, **kwargs):
-        ret = list(
-            filter(lambda x: x.get("metric", {}).get("name") == name, self.metrics)
-        )
+        ret = list(filter(lambda x: x.get("metric", {}).get("name") == name, self.metrics))
         return ret
 
     def to_json(self) -> str:
@@ -111,18 +114,12 @@ class MetricCollector:
         return os.path.join(tmpdir, "askanna", "run", self.get_suuid())
 
     def metric_to_type(self, metric: dict = None) -> MetricDataPair:
-        return MetricDataPair(
-            name=metric["name"], value=metric["value"], dtype=metric["type"]
-        )
+        return MetricDataPair(name=metric["name"], value=metric["value"], dtype=metric["type"])
 
     def label_to_type(self, label_list: list = None) -> list:
         _ret = []
         for label in label_list:
-            _ret.append(
-                MetricLabel(
-                    name=label["name"], value=label["value"], dtype=label["type"]
-                )
-            )
+            _ret.append(MetricLabel(name=label["name"], value=label["value"], dtype=label["type"]))
         return _ret
 
     def restore_session(self):
@@ -142,9 +139,7 @@ class MetricCollector:
                             metric=self.metric_to_type(stored_metric.get("metric")),
                             label=self.label_to_type(stored_metric.get("label")),
                             run_suuid=stored_metric.get("run_suuid"),
-                            created=dateutil_parser.isoparse(
-                                stored_metric.get("created")
-                            ),
+                            created=dateutil_parser.isoparse(stored_metric.get("created")),
                         )
                     )
 
@@ -188,13 +183,10 @@ class MetricCollector:
             return
         if len(self.to_dict()) and not run_suuid and not self.run_suuid:
             click.echo(
-                "The run SUUID is not set for this session.\n"
-                + "AskAnna cannot submit the metrics to the platform.",
+                "The run SUUID is not set for this session.\n AskAnna cannot submit the metrics to the platform.",
                 err=True,
             )
-            click.echo(
-                f"Your metrics are saved locally in:\n{self.metrics_file}", err=True
-            )
+            click.echo(f"Your metrics are saved locally in:\n{self.metrics_file}", err=True)
             sys.exit(1)
         self.save_session()
         mgw = MetricGateway()
@@ -207,18 +199,17 @@ class MetricCollector:
 mc = MetricCollector(run_suuid=os.getenv("AA_RUN_SUUID"))
 
 
-def track_metric(name: str, value: Any, label: dict = None) -> None:
-    # store the metric
-    if value:
+def track_metric(name: str, value: Any = None, label: Union[str, list, dict] = "") -> None:
+    # Store the metric
+    if value_not_empty(value):
         value, valid = prepare_and_validate_value(value)
         if not valid:
             click.echo(
-                f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}.",
-                err=True
+                f"AskAnna cannot store this datatype. Metric not stored for {name}, {value}, {label}.", err=True
             )
             return
-    # add value to track queue
-    if value:
+    # Add value to track queue
+    if value_not_empty(value):
         datapair = MetricDataPair(name=name, value=value, dtype=translate_dtype(value))
     else:
         datapair = MetricDataPair(name=name, value=None, dtype="tag")
@@ -228,9 +219,9 @@ def track_metric(name: str, value: Any, label: dict = None) -> None:
     mc.add(metric)
 
 
-def track_metrics(metrics: dict, label: dict = None) -> None:
+def track_metrics(metrics: dict, label: Union[str, list, dict] = "") -> None:
     """
-    Transform many metrics to internal format
+    Transform many metrics to individual metrics using track_metric
     """
     for name, value in metrics.items():
         track_metric(name, value, label)
@@ -255,18 +246,14 @@ class MetricGateway:
                 # RUN_SUUID is set but we don't have metrics
                 return MetricsQuerySet(metrics=[])
             else:
-                click.echo(
-                    "We cannot find a run metric file for the active run.", err=True
-                )
+                click.echo("We cannot find a run metric file for the active run.", err=True)
         else:
             pre_query_params = {
                 "run_suuid": run,
                 "job_suuid": job,
             }
             # filter out the none's:
-            query_params = dict(
-                filter(lambda x: x[1] is not None, pre_query_params.items())
-            )
+            query_params = dict(filter(lambda x: x[1] is not None, pre_query_params.items()))
             return self.list(query_params=query_params)
 
     def list(self, query_params: dict = None) -> MetricsQuerySet:
@@ -289,20 +276,15 @@ class MetricGateway:
         return MetricsQuerySet(metrics=r.json())
 
     def change(self, short_uuid, metrics):
-        url = "{}{}/{}/{}/{}/".format(
-            self.client.base_url, "runinfo", short_uuid, "metrics", short_uuid
-        )
+        url = "{}{}/{}/{}/{}/".format(self.client.base_url, "runinfo", short_uuid, "metrics", short_uuid)
 
         r = self.client.put(url, json={"metrics": metrics})
 
         if r.status_code != 200:
-            raise exceptions.GetError(
-                "{} - Something went wrong while updating metrics "
-                ": {}".format(r.status_code, r.json())
-            )
+            raise exceptions.GetError(f"{r.status_code} - Something went wrong while updating metrics: {r.json()}")
 
 
-# code for exiting in ipython from https://stackoverflow.com/a/40222538
+# code for exiting in iPython from https://stackoverflow.com/a/40222538
 # exit_register runs at the end of ipython %run or the end of the python interpreter
 try:
 

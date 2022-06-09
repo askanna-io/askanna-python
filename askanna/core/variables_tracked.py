@@ -2,26 +2,27 @@
 Management of tracking variables in AskAnna
 This is the class which act as gateway to the API of AskAnna
 """
-from dataclasses import dataclass
 import json
 import os
 import sys
 import tempfile
-from typing import Any, List
 import uuid
+from dataclasses import dataclass
+from typing import Any, List, Union
 
 import click
 from dateutil import parser as dateutil_parser
 
 from askanna.core import exceptions
 from askanna.core.apiclient import client
-from askanna.core.dataclasses import VariableTracked, VariableDataPair, VariableLabel
+from askanna.core.dataclasses import VariableDataPair, VariableLabel, VariableTracked
 from askanna.core.utils import (
     create_suuid,
     json_serializer,
     labels_to_type,
-    translate_dtype,
     prepare_and_validate_value,
+    translate_dtype,
+    value_not_empty,
 )
 
 __all__ = [
@@ -54,18 +55,15 @@ class VariablesQuerySet:
             return ret[0]
         elif len(ret) > 1:
             click.echo(
-                f"Found more variables matching name '{name}',"
-                f" use .filter(name='{name}') to get all matches.",
+                f'Found more variables matching name "{name}", use .filter(name="{name}") to get all matches.',
                 err=True,
             )
             return ret[0]
         else:
-            click.echo(f"A variable with name '{name}' is not found")
+            click.echo(f'A variable with name "{name}" is not found')
 
     def filter(self, name, **kwargs):
-        ret = list(
-            filter(lambda x: x.get("variable", {}).get("name") == name, self.variables)
-        )
+        ret = list(filter(lambda x: x.get("variable", {}).get("name") == name, self.variables))
         return ret
 
     def to_json(self) -> str:
@@ -80,17 +78,12 @@ class VariableTrackedGateway:
         self.client = client
 
     def change(self, short_uuid, variables):
-        url = "{}{}/{}/{}/{}/".format(
-            self.client.base_url, "runinfo", short_uuid, "variables", short_uuid
-        )
+        url = "{}{}/{}/{}/{}/".format(self.client.base_url, "runinfo", short_uuid, "variables", short_uuid)
 
         r = self.client.patch(url, json={"variables": variables})
 
         if r.status_code != 200:
-            raise exceptions.GetError(
-                "{} - Something went wrong while updating variables "
-                ": {}".format(r.status_code, r.json())
-            )
+            raise exceptions.GetError(f"{r.status_code} - Something went wrong while updating variables: {r.json()}")
 
     def get(self, run: str = None, job: str = None) -> VariablesQuerySet:
         """
@@ -107,18 +100,14 @@ class VariableTrackedGateway:
                 # RUN_SUUID is set but we don't have variables
                 return VariablesQuerySet(variables=[])
             else:
-                click.echo(
-                    "We cannot find a run variables file for the active run.", err=True
-                )
+                click.echo("We cannot find a run variables file for the active run.", err=True)
         else:
             pre_query_params = {
                 "run_suuid": run,
                 "job_suuid": job,
             }
             # filter out the none's:
-            query_params = dict(
-                filter(lambda x: x[1] is not None, pre_query_params.items())
-            )
+            query_params = dict(filter(lambda x: x[1] is not None, pre_query_params.items()))
             return self.list(query_params=query_params)
 
     def list(self, query_params: dict = None) -> VariablesQuerySet:
@@ -141,14 +130,13 @@ class VariableTrackedGateway:
         return VariablesQuerySet(variables=r.json())
 
 
-def track_variable(name: str, value: Any, label: dict = None) -> None:
+def track_variable(name: str, value: Any = None, label: Union[str, list, dict] = "") -> None:
     # store the variable
-    if value:
+    if value_not_empty(value):
         value, valid = prepare_and_validate_value(value)
         if not valid:
             click.echo(
-                f"AskAnna cannot store this datatype. Variable not stored for {name}, {value}, {label}.",
-                err=True
+                f"AskAnna cannot store this datatype. Variable not stored for {name}, {value}, {label}.", err=True
             )
             return
 
@@ -166,26 +154,24 @@ def track_variable(name: str, value: Any, label: dict = None) -> None:
         value = "***masked***"
 
     # add value to track queue
-    if value:
+    if value_not_empty(value):
         datapair = VariableDataPair(name=name, value=value, dtype=translate_dtype(value))
     else:
         datapair = VariableDataPair(name=name, value=None, dtype="tag")
-    labels = [
-        VariableLabel(name="source", value="run", dtype="string")
-    ] + labels_to_type(label, labelclass=VariableLabel)
+    labels = [VariableLabel(name="source", value="run", dtype="string")] + labels_to_type(
+        label, labelclass=VariableLabel
+    )
 
     if is_masked:
-        labels.append(
-            VariableLabel(**{"name": "is_masked", "value": None, "dtype": "tag"})
-        )
+        labels.append(VariableLabel(**{"name": "is_masked", "value": None, "dtype": "tag"}))
 
     variable = VariableTracked(variable=datapair, label=labels)
     vc.add(variable)
 
 
-def track_variables(variables: dict, label: dict = None) -> None:
+def track_variables(variables: dict, label: Union[str, list, dict] = "") -> None:
     """
-    Transform many variables to internal format
+    Transform many variables to individual variables using track_variable
     """
     for name, value in variables.items():
         track_variable(name, value, label)
@@ -223,18 +209,12 @@ class VariableCollector:
         return os.path.join(tmpdir, "askanna", "run", self.get_suuid())
 
     def variable_to_type(self, variable: dict = None) -> VariableDataPair:
-        return VariableDataPair(
-            name=variable["name"], value=variable["value"], dtype=variable["type"]
-        )
+        return VariableDataPair(name=variable["name"], value=variable["value"], dtype=variable["type"])
 
     def label_to_type(self, label_list: list = None) -> list:
         _ret = []
         for label in label_list:
-            _ret.append(
-                VariableLabel(
-                    name=label["name"], value=label["value"], dtype=label["type"]
-                )
-            )
+            _ret.append(VariableLabel(name=label["name"], value=label["value"], dtype=label["type"]))
         return _ret
 
     def restore_session(self):
@@ -251,14 +231,10 @@ class VariableCollector:
                 for stored_variable in stored_variables:
                     restored_variables.append(
                         VariableTracked(
-                            variable=self.variable_to_type(
-                                stored_variable.get("variable")
-                            ),
+                            variable=self.variable_to_type(stored_variable.get("variable")),
                             label=self.label_to_type(stored_variable.get("label")),
                             run_suuid=stored_variable.get("run_suuid"),
-                            created=dateutil_parser.isoparse(
-                                stored_variable.get("created")
-                            ),
+                            created=dateutil_parser.isoparse(stored_variable.get("created")),
                         )
                     )
 
@@ -306,9 +282,7 @@ class VariableCollector:
                 + "AskAnna cannot submit the variables to the platform.",
                 err=True,
             )
-            click.echo(
-                f"Your variables are saved locally in:\n{self.variables_file}", err=True
-            )
+            click.echo(f"Your variables are saved locally in:\n{self.variables_file}", err=True)
             sys.exit(1)
         self.save_session()
         mgw = VariableTrackedGateway()
