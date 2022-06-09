@@ -4,7 +4,7 @@ import ipaddress
 import mimetypes
 import os
 import uuid
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 from zipfile import ZipFile
 
 import click
@@ -44,10 +44,11 @@ except ImportError:
     numpy_available = False
 else:
     numpy_available = True
-    # list taken from https://numpy.org/doc/stable/user/basics.types.html
+    # Source Numpy documentation, a.o. https://numpy.org/doc/stable/user/basics.types.html
     numpy_types = {
         "numpy.bool_": "boolean",
         "numpy.intc": "integer",
+        "numpy.int": "integer",
         "numpy.int_": "integer",
         "numpy.uint": "integer",
         "numpy.short": "integer",
@@ -62,7 +63,14 @@ else:
         "numpy.csingle": "float",
         "numpy.cdouble": "float",
         "numpy.clongdouble": "float",
-        # more platform specific types
+        "numpy.str": "string",
+        "numpy.str_": "string",
+        # List type
+        "numpy.array": "list",
+        "numpy.ndarray": "list",
+        # C-derived names and more "complex" types
+        # Source: https://numpy.org/doc/stable/reference/arrays.scalars.html#sized-aliases
+        "numpy.bool8": "boolean",
         "numpy.int8": "integer",
         "numpy.int16": "integer",
         "numpy.int32": "integer",
@@ -76,12 +84,17 @@ else:
         "numpy.float32": "float",
         "numpy.float64": "float",
         "numpy.float_": "float",
-        # python equivalant of Decimal, convert to float now
         "numpy.complex64": "float",
         "numpy.complex128": "float",
+        "numpy.complex192": "float",
+        "numpy.complex256": "float",
         "numpy.complex_": "float",
-        # list type
-        "numpy.array": "list",
+        "numpy.longfloat": "float",
+        "numpy.singlecomplex": "float",
+        "numpy.cfloat": "float",
+        "numpy.longcomplex": "float",
+        "numpy.clongfloat": "float",
+        "numpy.unicode_": "string",
     }
     supported_data_types.update(**numpy_types)
 
@@ -651,8 +664,37 @@ def translate_dtype(value: Any) -> str:
     Return the full name of the type, if not listed, return the typename from the input
     """
     typename = object_fullname(value)
+    dtype = supported_data_types.get(typename, typename)
 
-    return supported_data_types.get(typename, typename)
+    if typename in ("numpy.array", "numpy.ndarray"):
+        dtype_list = supported_data_types.get("numpy." + value.dtype.name)
+        if dtype_list:
+            dtype = "list_" + dtype_list
+    elif typename == "list":
+        dtype_list = None
+        for val in value:
+            if type(val) == bool and dtype_list in (None, "boolean"):
+                dtype_list = "boolean"
+            elif type(val) == int and dtype_list in (None, "integer"):
+                dtype_list = "integer"
+            elif type(val) in (int, float) and dtype_list in (None, "integer", "float"):
+                dtype_list = "float"
+            elif type(val) == str and dtype_list in (None, "string"):
+                dtype_list = "string"
+            elif type(val) == datetime.datetime and dtype_list in (None, "datetime"):
+                dtype_list = "datetime"
+            elif type(val) == datetime.time and dtype_list in (None, "time"):
+                dtype_list = "time"
+            elif type(val) == datetime.date and dtype_list in (None, "date"):
+                dtype_list = "date"
+            else:
+                dtype_list = "mixed"
+                break
+
+        if dtype_list and dtype_list != "mixed":
+            dtype = "list_" + dtype_list
+
+    return dtype
 
 
 def validate_value(value: Any) -> bool:
@@ -688,9 +730,12 @@ def prepare_and_validate_value(value: Any) -> Tuple[Any, bool]:
     return value, False
 
 
-def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List:
+def labels_to_type(label: Union[str, list, dict] = "", labelclass=collections.namedtuple) -> List:
     # process labels
     labels = []
+
+    if not label:
+        return labels
 
     # test label type, if it is a string, then convert it to tag
     if isinstance(label, str):
@@ -698,7 +743,7 @@ def labels_to_type(label: Any = None, labelclass=collections.namedtuple) -> List
     elif isinstance(label, list):
         for name in label:
             labels.append(labelclass(name=name, value=None, dtype="tag"))
-    elif label:
+    elif isinstance(label, dict):
         for k, v in label.items():
             if v is None:
                 labels.append(labelclass(name=k, value=None, dtype="tag"))
@@ -740,3 +785,18 @@ def content_type_file_extension(content_type: str) -> str:
     file_extension = content_type_file_extension_mapping.get(content_type, ".unknown")
 
     return file_extension
+
+
+def value_not_empty(value: Any) -> bool:
+    """
+    Check if the value is not empty
+    """
+    if value.__class__.__module__ == "numpy":
+        try:
+            if value.any() or isinstance(value, np.bool_):
+                return True
+        except np.core._exceptions.UFuncTypeError:
+            pass
+    if value or isinstance(value, bool):
+        return True
+    return False
