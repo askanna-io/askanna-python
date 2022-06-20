@@ -4,7 +4,7 @@
 
 __author__ = "AskAnna Team"
 __email__ = "devops@askanna.io"
-__version__ = "0.16.0"
+__version__ = "0.17.0"
 
 import re
 import sys

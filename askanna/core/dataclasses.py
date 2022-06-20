@@ -101,8 +101,8 @@ class RunInfo:
     jobdef: dict
     environment: dict
 
-    metricsmeta: dict
-    variablesmeta: dict
+    metrics_meta: dict
+    variables_meta: dict
 
     created: datetime.datetime
     modified: datetime.datetime

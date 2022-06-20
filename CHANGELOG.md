@@ -1,6 +1,13 @@
 # History
 
-## 0.16.0 (2022-04-09)
+## 0.17.0 (2022-06-20)
+
+- For tracking metrics & variables detect type of list and store the specific list type (`list_integer`,
+  `list_string`, etc.)
+- Extend support for tracking metrics & variables with data type Numpy
+- Fixed a bug that Numpy array could not be stored as a metric/variable
+
+## 0.16.0 (2022-05-09)
 
 - Add create and remove workspace to SDK and CLI
 - Add delete to project SDK
