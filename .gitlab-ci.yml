@@ -54,12 +54,6 @@ python 3:
   script:
     - tox -e py3
 
-python 3.6:
-  <<: *test_template
-  image: python:3.6-slim
-  script:
-    - tox -e py36
-
 python 3.7:
   <<: *test_template
   image: python:3.7-slim
@@ -96,7 +90,7 @@ python 3.10:
   rules:
     - if: ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger")
       when: never
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       variables:
         DESTINATION: ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
@@ -113,12 +107,6 @@ python 3.10:
 image python 3:
   <<: *build_docker_image_template
   needs: [python 3]
-
-image python 3.6:
-  <<: *build_docker_image_template
-  needs: [python 3.6]
-  variables:
-    PY_VERSION: "3.6-slim"
 
 image python 3.7:
   <<: *build_docker_image_template
@@ -151,7 +139,7 @@ image python 3.10:
   rules:
     - if: ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger")
       when: never
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       variables:
         DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
@@ -174,12 +162,6 @@ image python 3.10:
 verify image python 3:
   <<: *verify_docker_build_template
   needs: [image python 3]
-
-verify image python 3.6:
-  <<: *verify_docker_build_template
-  needs: [image python 3.6]
-  variables:
-    PY_VERSION: "3.6-slim"
 
 verify image python 3.7:
   <<: *verify_docker_build_template
@@ -218,7 +200,7 @@ publish_to_pypi:
     - twine upload --verbose --non-interactive --config-file ~/.pypirc -r pypi dist/*
   only:
     refs:
-      - master
+      - main
 
 publish_to_testpypi:
   stage: publish
@@ -235,7 +217,7 @@ publish_to_testpypi:
   when: manual
   except:
     refs:
-      - master
+      - main
 
 publish_to_docker:
   stage: publish
@@ -250,16 +232,14 @@ publish_to_docker:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
   script:
     - docker pull gitlab.askanna.io:4567/askanna/askanna-cli --all-tags
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-master askanna/python:3
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-master askanna/python:latest
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.6-slim-master askanna/python:3.6
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.7-slim-master askanna/python:3.7
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.8-slim-master askanna/python:3.8
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.9-slim-master askanna/python:3.9
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.10-slim-master askanna/python:3.10
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-main askanna/python:3
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-main askanna/python:latest
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.7-slim-main askanna/python:3.7
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.8-slim-main askanna/python:3.8
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.9-slim-main askanna/python:3.9
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.10-slim-main askanna/python:3.10
     - docker push askanna/python:latest
     - docker push askanna/python:3
-    - docker push askanna/python:3.6
     - docker push askanna/python:3.7
     - docker push askanna/python:3.8
     - docker push askanna/python:3.9
@@ -268,7 +248,7 @@ publish_to_docker:
     - docker logout
   only:
     refs:
-      - master
+      - main
 
 publish_to_public_repos:
   stage: publish
@@ -276,9 +256,9 @@ publish_to_public_repos:
     - kubernetes
   allow_failure: true
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       variables:
-        TARGET: HEAD:master
+        TARGET: HEAD:main
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
       variables:
         TARGET: refs/tags/$CI_COMMIT_TAG

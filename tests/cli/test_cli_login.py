@@ -39,19 +39,19 @@ class TestCliLogin(unittest.TestCase):
 
         config.server.server_config_path = self.tempdir + "/.askanna.yml"
         config.server.remote = self.remote_url
-        config.server.token = ""
+        config.server.token = ""  # nosec B105
 
         self.responses = responses.RequestsMock()
         self.responses.start()
         self.responses.add(
             responses.POST,
-            url=self.remote_url + "/rest-auth/login/",
+            url=self.remote_url + "/v1/auth/login/",
             status=200,
             json={"key": self.token_value},
         )
         self.responses.add(
             responses.GET,
-            url=self.remote_url + "/rest-auth/user/",
+            url=self.remote_url + "/v1/auth/user/",
             status=200,
             json={
                 "name": fake.name(),
@@ -77,6 +77,25 @@ class TestCliLogin(unittest.TestCase):
             content_type="application/octet-stream",
             status=200,
             body=f"no-remote: {self.remote_url}\n",
+        )
+        self.responses.add(
+            responses.POST,
+            url="https://beta-api.askanna.eu/v1/auth/login/",
+            status=200,
+            json={"key": self.token_value},
+        )
+        self.responses.add(
+            responses.GET,
+            url="https://beta-api.askanna.eu/v1/auth/user/",
+            status=200,
+            json={
+                "name": fake.name(),
+                "email": self.email,
+                "short_uuid": fake.uuid4(),
+                "is_active": True,
+                "date_joined": fake.iso8601(),
+                "last_login": fake.iso8601(),
+            },
         )
 
     def tearDown(self):
@@ -111,6 +130,18 @@ class TestCliLogin(unittest.TestCase):
         assert self.password not in result.output
         assert self.token_value not in result.output
 
+    def test_command_login_set_beta_ui_url(self):
+        result = CliRunner().invoke(
+            cli_commands, f"login --email {self.email} --password {self.password} --remote https://beta-api.askanna.eu"
+        )
+
+        assert not result.exception
+        assert result.exit_code == 0
+        assert self.email in result.output
+        assert self.password not in result.output
+        assert self.token_value not in result.output
+        assert "https://beta.askanna.eu" in config.server.ui
+
     def test_command_login_url_with_slash(self):
         result = CliRunner().invoke(
             cli_commands, f"login --email {self.email} --password {self.password} --url {self.ui_url_with_slash}"
@@ -142,6 +173,47 @@ class TestCliLogin(unittest.TestCase):
         assert self.email in result.output
         assert self.password not in result.output
         assert self.token_value not in result.output
+        assert f"You are logged in with email '{self.email}'" in result.output
+
+    def test_command_login_remote_with_slash(self):
+        remote_with_slash = self.remote_url + "/"
+        result = CliRunner().invoke(
+            cli_commands, f"login --email {self.email} --password {self.password} --remote {remote_with_slash}"
+        )
+
+        assert not result.exception
+        assert result.exit_code == 0
+        assert self.email in result.output
+        assert self.password not in result.output
+        assert self.token_value not in result.output
+        assert f"You are logged in with email '{self.email}'" in result.output
+
+    def test_command_login_remote_with_v1(self):
+        remote_with_v1 = self.remote_url + "/v1/"
+        print(remote_with_v1)
+        result = CliRunner().invoke(
+            cli_commands, f"login --email {self.email} --password {self.password} --remote {remote_with_v1}"
+        )
+
+        assert not result.exception
+        assert result.exit_code == 0
+        assert self.email in result.output
+        assert self.password not in result.output
+        assert self.token_value not in result.output
+        assert f"You are logged in with email '{self.email}'" in result.output
+
+    def test_command_login_remote_with_v1_part_2(self):
+        remote_with_v1 = self.remote_url + "/v1"
+        result = CliRunner().invoke(
+            cli_commands, f"login --email {self.email} --password {self.password} --remote {remote_with_v1}"
+        )
+
+        assert not result.exception
+        assert result.exit_code == 0
+        assert self.email in result.output
+        assert self.password not in result.output
+        assert self.token_value not in result.output
+        assert f"You are logged in with email '{self.email}'" in result.output
 
     def test_command_login_url_and_remote(self):
         result = CliRunner().invoke(
@@ -167,21 +239,45 @@ class TestCliLogin(unittest.TestCase):
         assert self.password not in result.output
         assert self.token_value not in result.output
 
-    def test_command_login_double(self):
+    def test_command_login_double_login_again(self):
         CliRunner().invoke(
             cli_commands, f"login --email {self.email} --password {self.password} --remote {self.remote_url}"
         )
         result = CliRunner().invoke(
-            cli_commands, f"login --email {self.email} --password {self.password} --remote {self.remote_url}"
+            cli_commands,
+            f"login --email {self.email} --password {self.password} --remote {self.remote_url}",
+            input="y",
         )
 
         assert not result.exception
         assert result.exit_code == 0
-        assert "already logged in" in result.output
+        assert "You are already logged in with email" in result.output
         assert self.email in result.output
-        assert "askanna logout" in result.output
+        assert "Do you want to log out email" in result.output
         assert self.password not in result.output
         assert self.token_value not in result.output
+        assert "Login with a new account aborted." not in result.output
+        assert f"You are logged in with email '{self.email}'" in result.output
+
+    def test_command_login_double_abort(self):
+        CliRunner().invoke(
+            cli_commands, f"login --email {self.email} --password {self.password} --remote {self.remote_url}"
+        )
+        result = CliRunner().invoke(
+            cli_commands,
+            f"login --email {self.email} --password {self.password} --remote {self.remote_url}",
+            input="n",
+        )
+
+        assert not result.exception
+        assert result.exit_code == 0
+        assert f"You are already logged in with email '{self.email}'." in result.output
+        assert self.email in result.output
+        assert "Do you want to log out email" in result.output
+        assert self.password not in result.output
+        assert self.token_value not in result.output
+        assert "Login with a new account aborted." in result.output
+        assert f"You are logged in with email '{self.email}'" not in result.output
 
     def test_command_ask_credentials(self):
         remote_url = "https://" + fake.hostname()
@@ -191,13 +287,13 @@ class TestCliLogin(unittest.TestCase):
 
         self.responses.add(
             responses.POST,
-            url=remote_url + "/rest-auth/login/",
+            url=remote_url + "/v1/auth/login/",
             status=200,
             json={"key": token},
         )
         self.responses.add(
             responses.GET,
-            url=remote_url + "/rest-auth/user/",
+            url=remote_url + "/v1/auth/user/",
             status=200,
             json={
                 "name": "",
@@ -224,13 +320,13 @@ class TestCliLogin(unittest.TestCase):
 
         self.responses.add(
             responses.POST,
-            url=remote_url + "/rest-auth/login/",
+            url=remote_url + "/v1/auth/login/",
             status=200,
             json={"key": token},
         )
         self.responses.add(
             responses.GET,
-            url=remote_url + "/rest-auth/user/",
+            url=remote_url + "/v1/auth/user/",
             status=200,
             json={
                 "name": "",
@@ -257,13 +353,13 @@ class TestCliLogin(unittest.TestCase):
 
         self.responses.add(
             responses.POST,
-            url=remote_url + "/rest-auth/login/",
+            url=remote_url + "/v1/auth/login/",
             status=200,
             json={"key": token},
         )
         self.responses.add(
             responses.GET,
-            url=remote_url + "/rest-auth/user/",
+            url=remote_url + "/v1/auth/user/",
             status=200,
             json={
                 "name": "",

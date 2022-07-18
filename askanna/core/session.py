@@ -11,8 +11,8 @@ class Session:
             self.session.headers.update(headers)
 
     def _connection_error_message(self, url, error):
-        connection_error_message_base = 'Something went wrong. Please check whether the URL is an AskAnna backend.'
-        return f'{connection_error_message_base}\n    URL:    {url}\n    Error: {error}'
+        connection_error_message_base = "Something went wrong. Please check whether the URL is an AskAnna Backend."
+        return f"{connection_error_message_base}\n    URL:    {url}\n    Error: {error}"
 
     def get(self, url, **kwargs):
         try:
