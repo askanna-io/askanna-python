@@ -88,7 +88,7 @@ def add_or_update_server_in_config_dict(
 def update_to_new_config(config_dict : Dict, server_config_path : str, server : str):
     """
     Updates the config file because the AskAnna team changed the config file setup
-    This function can be removed in the future.
+    This function will be removed in the future.
     """
 
     remote = config_dict['askanna'].get('remote', '')
@@ -126,7 +126,7 @@ def load_config(server_config_path : str = SERVER_CONFIG_PATH, server : str = SE
         config_dict.update(local_config)
 
         # Automatically updates the config file because of new config setup
-        # Next section can be removed in a future version
+        # Next section will be be removed in a future version
         if config_dict.get('askanna'):
             config_dict = update_to_new_config(config_dict, server_config_path, server)
 

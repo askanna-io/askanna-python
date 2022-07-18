@@ -10,7 +10,7 @@ class AuthGateway:
     """
 
     def __init__(self):
-        self.base_url = client.base_url.replace("/v1/", "")
+        self.base_url = client.base_url
 
     def login(
         self,
@@ -39,23 +39,25 @@ class AuthGateway:
             remote_url = ui_remote_url
 
         if remote_url:
-            self.base_url = remote_url.replace("/v1/", "")
-            client.config.server.remote = self.base_url
+            if remote_url[-1] == "/":
+                remote_url = remote_url[:-1]
+            if remote_url[-3:] == "/v1":
+                remote_url = remote_url[:-3]
+            self.base_url = remote_url + "/v1/"
+            client.config.server.remote = remote_url
 
         if self.base_url == "https://beta-api.askanna.eu" and not ui_url:
             client.config.server.ui = "https://beta.askanna.eu"
 
-        url = f"{self.base_url}/rest-auth/login/"
+        url = f"{self.base_url}auth/login/"
         r = client.post(url, json={"username": email.strip(), "password": password.strip()})
 
         if r.status_code == 400:
-            raise PostError("{} - We could not log you in. Please check your credentials.".format(r.status_code))
+            raise PostError(f"{r.status_code} - We could not log you in. Please check your credentials.")
         if r.status_code == 404:
-            raise PostError(
-                "{} - We could not log you in. Please check the url or remote you provided.".format(r.status_code)
-            )
+            raise PostError(f"{r.status_code} - We could not log you in. Please check the url or remote you provided.")
         if r.status_code != 200:
-            raise PostError("{} - We could not log you in: {}".format(r.status_code, r.reason))
+            raise PostError(f"{r.status_code} - We could not log you in: {r.reason}")
 
         client.config.server.token = str(r.json().get("key"))
         client.update_session()
@@ -64,7 +66,7 @@ class AuthGateway:
             client.config.server.save_server_to_config_file()
 
     def get_user_info(self) -> User:
-        url = f"{self.base_url}/rest-auth/user/"
+        url = f"{self.base_url}auth/user/"
         r = client.get(url)
 
         if r.status_code == 200:
