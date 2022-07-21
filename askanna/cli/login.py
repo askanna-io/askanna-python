@@ -6,9 +6,8 @@ from askanna.config import config
 from askanna.core.auth import AuthGateway
 
 HELP = """
-Add your AskAnna API key to your global configuration file
-(~/.askanna.yml). This is necessary to gain access to projects associated with
-your AskAnna account.
+Add your AskAnna API key to your global configuration file (~/.askanna.yml). This is necessary to gain access to
+projects associated with your AskAnna account.
 """
 
 SHORT_HELP = "Login and save your AskAnna API token"
@@ -25,9 +24,14 @@ def cli(email: str, password: str, url: str, remote: str):
     if config.server.is_authenticated:
         # Showcase with this token, who we are and provide info what do to if you want to use another account
         user = auth.get_user_info()
-        click.echo("You are already logged in with email '{}'".format(user.email))
-        click.echo("If you want to log in with another account, please first log out: `askanna logout`")
-        sys.exit(0)
+        click.echo(f"You are already logged in with email '{user.email}'.")
+
+        logout = click.confirm(f"Do you want to log out email '{user.email}' and log in with another account?")
+        if logout:
+            config.server.logout_and_remove_token()
+        else:
+            click.echo("Login with a new account aborted.")
+            sys.exit(0)
 
     if email and password:
         pass
@@ -41,4 +45,4 @@ def cli(email: str, password: str, url: str, remote: str):
     # Do the actual login and update the config file with the token
     auth.login(email=email, password=password, remote_url=remote, ui_url=url, update_config_file=True)
     user = auth.get_user_info()
-    click.echo("You are logged in with email '{}'.".format(user.email))
+    click.echo(f"You are logged in with email '{user.email}'.")

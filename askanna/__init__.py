@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-
 """Top-level package for askanna"""
 
 __author__ = "AskAnna Team"
 __email__ = "devops@askanna.io"
-__version__ = "0.17.0"
+__version__ = "0.18.0"
 
 import re
 import sys
