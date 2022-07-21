@@ -1,5 +1,11 @@
 # History
 
+## 0.18.0 (2022-07-21)
+
+- Implement new rest auth URLs
+- Simplify login in case you're already signed in
+- Add experimental GitPod config
+
 ## 0.17.0 (2022-06-20)
 
 - For tracking metrics & variables detect type of list and store the specific list type (`list_integer`,
