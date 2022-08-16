@@ -30,7 +30,7 @@ class TestCLIArtifact(unittest.TestCase):
             content = f.read()
 
         self.base_url = client.base_url
-        url_download_file = "https://cdn-beta-api.askanna.eu/files/artifacts/65deef6cc430ab83b451e659ba4562cf/476120827b1e224d747c6e444961c9e6/afdf82c9a39161d6041d785bcbd8f0e4/artifact_2abeb6346f5a679078379d500043e41d.zip"  # noqa
+        url_download_file = "https://test/files/artifacts/artifact.zip"
 
         self.responses = responses.RequestsMock()
         self.responses.start()

@@ -1,3 +1,7 @@
+from click.testing import CliRunner
+
+from askanna.cli.tool import cli_commands
+
 from .base import BaseCLItest
 
 
@@ -7,9 +11,11 @@ class TestCliPush(BaseCLItest):
 
     We expect to initiate a push action of our code to the AskAnna server
     """
+
     verb = "push"
 
     def test_command_push_base(self):
-        assert "push" in self.result.output
-        self.assertIn("push", self.result.output)
-        self.assertNotIn("noop", self.result.output)
+        result = CliRunner().invoke(cli_commands, "push --help")
+
+        self.assertIn("push", result.output)
+        self.assertNotIn("noop", result.output)
