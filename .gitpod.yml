@@ -4,6 +4,7 @@ tasks:
       source .venv/bin/activate
       pip install --upgrade pip
       pip install -r requirements-dev.txt
+      pip install --editable .
       mkdir .vscode && ln -n .gitpod-vscode-settings.json .vscode/settings.json
     command: |
       source .venv/bin/activate
@@ -21,3 +22,4 @@ vscode:
     - jeff-hykin.better-dockerfile-syntax
     - timonwong.shellcheck
     - ZainChen.json
+    - ms-vscode.makefile-tools
