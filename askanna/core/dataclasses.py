@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 
 @dataclass
@@ -35,7 +35,7 @@ class Project:
     modified: datetime.datetime
     workspace: dict
     is_member: bool
-    url: str = None
+    url: Union[str, None] = None
 
     def __str__(self):
         return f"{self.name} {self.short_uuid}"
@@ -58,7 +58,7 @@ class Run:
     project: dict
     created: datetime.datetime
     updated: datetime.datetime
-    finished: datetime.datetime = None
+    finished: Union[datetime.datetime, None] = None
     duration: int = 0
 
 
@@ -80,37 +80,40 @@ class RunStatus:
     environment: dict
     created: datetime.datetime
     updated: datetime.datetime
-    finished: datetime.datetime = None
+    finished: Union[datetime.datetime, None] = None
     duration: int = 0
 
 
 @dataclass
 class RunInfo:
-    name: str
-    description: str
-    status: str
     uuid: uuid.UUID
     short_uuid: str
+    name: str
+    description: str
 
-    project: dict
-    artifact: dict
-    package: dict
-    owner: dict
+    status: str
+    duration: int
+
     trigger: dict
-    payload: dict
-    jobdef: dict
-    environment: dict
+    created_by: dict
 
+    package: dict
+    payload: dict
+    result: dict
+    artifact: dict
     metrics_meta: dict
     variables_meta: dict
+    log: dict
+    environment: dict
+
+    job: dict
+    project: dict
+    workspace: dict
 
     created: datetime.datetime
     modified: datetime.datetime
-    duration: int
-
-    result: dict = None
-    started: datetime.datetime = None
-    finished: datetime.datetime = None
+    started: Union[datetime.datetime, None] = None
+    finished: Union[datetime.datetime, None] = None
 
     metrics = []
     variables = []
@@ -180,8 +183,8 @@ class MetricLabel:
 class Metric:
     metric: MetricDataPair
     label: List[MetricLabel] = field(default_factory=list)
-    run_suuid: str = None
-    created: datetime.datetime = None
+    run_suuid: Union[str, None] = None
+    created: Union[datetime.datetime, None] = None
 
     def __post_init__(self):
         if not self.created:
@@ -223,8 +226,8 @@ class VariableLabel:
 class VariableTracked:
     variable: VariableDataPair
     label: List[VariableLabel] = field(default_factory=list)
-    run_suuid: str = None
-    created: datetime.datetime = None
+    run_suuid: Union[str, None] = None
+    created: Union[datetime.datetime, None] = None
 
     def __post_init__(self):
         if not self.created:

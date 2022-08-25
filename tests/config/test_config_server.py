@@ -1,17 +1,16 @@
 import io
 import os
-import pytest
 import shutil
 import sys
 import tempfile
 import unittest
 
+import pytest
 from faker import Faker
-from faker.providers import internet, file, misc
+from faker.providers import file, internet, misc
 
-from askanna.config.server import load_config, add_or_update_server_in_config_dict
-from askanna.config.utils import read_config, store_config
-
+from askanna.config.server import add_or_update_server_in_config_dict, load_config
+from askanna.config.utils import store_config
 
 fake = Faker()
 fake.add_provider(internet)
@@ -22,7 +21,7 @@ fake.add_provider(file)
 class TestServerConfigPath(unittest.TestCase):
     def setUp(self):
         self.environ_bck = dict(os.environ)
-        self.default_config_path = os.path.expanduser('~/.askanna.yml')
+        self.default_config_path = os.path.expanduser("~/.askanna.yml")
 
     def tearDown(self):
         os.environ.clear()
@@ -30,20 +29,20 @@ class TestServerConfigPath(unittest.TestCase):
 
     def test_config_default_path(self):
         try:
-            del sys.modules['askanna.config.server']
-        except:  # noqa
+            del sys.modules["askanna.config.server"]
+        except:  # noqa # nosec
             pass
         from askanna.config.server import SERVER_CONFIG_PATH
 
         self.assertEqual(SERVER_CONFIG_PATH, self.default_config_path)
 
     def test_config_path_environment_variable(self):
-        config_file = fake.file_path(extension='yml', depth=fake.random_int(min=0, max=10))
-        os.environ['AA_SERVER_CONFIG_FILE'] = config_file
+        config_file = fake.file_path(extension="yml", depth=fake.random_int(min=0, max=10))
+        os.environ["AA_SERVER_CONFIG_FILE"] = config_file
 
         try:
-            del sys.modules['askanna.config.server']
-        except:  # noqa
+            del sys.modules["askanna.config.server"]
+        except:  # noqa # nosec
             pass
         from askanna.config.server import SERVER_CONFIG_PATH
 
@@ -54,8 +53,8 @@ class TestServerConfigPath(unittest.TestCase):
 class TestServerName(unittest.TestCase):
     def setUp(self):
         self.environ_bck = dict(os.environ)
-        self.tempdir = tempfile.mkdtemp(prefix='askanna-test-core-config-server')
-        self.default_server_name = 'default'
+        self.tempdir = tempfile.mkdtemp(prefix="askanna-test-core-config-server")
+        self.default_server_name = "default"
 
     def tearDown(self):
         os.environ.clear()
@@ -64,8 +63,8 @@ class TestServerName(unittest.TestCase):
 
     def test_config_default_path(self):
         try:
-            del sys.modules['askanna.config.server']
-        except:  # noqa
+            del sys.modules["askanna.config.server"]
+        except:  # noqa # nosec
             pass
         from askanna.config.server import SERVER
 
@@ -73,25 +72,24 @@ class TestServerName(unittest.TestCase):
 
     def test_server_config_environment_variable(self):
         server_name = fake.name()
-        os.environ['AA_SERVER'] = server_name
+        os.environ["AA_SERVER"] = server_name
 
         path = f'{self.tempdir}/{fake.file_name(extension="yml")}'
         config_dict = {
-            'server': {
-                server_name:
-                    {
-                        'remote': 'localhost',
-                        'ui': 'localhost',
-                        'token': 'localhost',
-                    }
+            "server": {
+                server_name: {
+                    "remote": "localhost",
+                    "ui": "localhost",
+                    "token": "localhost",
+                }
             }
         }
-        os.environ['AA_SERVER_CONFIG_FILE'] = path
+        os.environ["AA_SERVER_CONFIG_FILE"] = path
         store_config(path, config_dict)
 
         try:
-            del sys.modules['askanna.config.server']
-        except:  # noqa
+            del sys.modules["askanna.config.server"]
+        except:  # noqa # nosec
             pass
         from askanna.config.server import SERVER
 
@@ -102,7 +100,7 @@ class TestServerName(unittest.TestCase):
 class TestLoadConfig(unittest.TestCase):
     def setUp(self):
         self.environ_bck = dict(os.environ)
-        self.tempdir = tempfile.mkdtemp(prefix='askanna-test-core-config-server')
+        self.tempdir = tempfile.mkdtemp(prefix="askanna-test-core-config-server")
 
     def tearDown(self):
         os.environ.clear()
@@ -119,131 +117,28 @@ class TestLoadConfig(unittest.TestCase):
         ui_value = fake.hostname()
         token_value = fake.password(length=40)
         server_dict = {
-            'remote': f'{remote_value}',
-            'ui': f'{ui_value}',
-            'token': f'{token_value}',
+            "remote": f"{remote_value}",
+            "ui": f"{ui_value}",
+            "token": f"{token_value}",
         }
         config_value = {
-            'server': {
-                'default': server_dict
-            },
+            "server": {"default": server_dict},
         }
 
         store_config(path, config_value)
         config = load_config(path)
 
-        self.assertEqual(config.server, 'default')
-        self.assertEqual(config.remote, remote_value)
-        self.assertEqual(config.ui, ui_value)
-        self.assertEqual(config.token, token_value)
+        self.assertEqual(config.server, "default")
+        self.assertEqual(config.remote, os.getenv("AA_REMOTE", remote_value))
+        self.assertEqual(config.ui, os.getenv("AA_UI", ui_value))
+        self.assertEqual(config.token, os.getenv("AA_TOKEN", token_value))
         self.assertTrue(config.is_authenticated)
-        self.assertEqual(config.config_dict['server']['default'], server_dict)
+        self.assertEqual(config.config_dict["server"]["default"], server_dict)
 
     def test_load_isnotfile(self):
-        path = fake.file_path(extension='yml', depth=fake.random_int(min=0, max=10))
+        path = fake.file_path(extension="yml", depth=fake.random_int(min=0, max=10))
         config = load_config(path)
         self.assertIsNotNone(config.remote)
-
-    def test_load_old_config(self):
-        path = f'{self.tempdir}/{fake.file_name(extension="yml")}'
-        remote_value = fake.hostname()
-        token_value = fake.password(length=40)
-        config_value = {
-            'askanna': {
-                'remote': f'{remote_value}'
-            },
-            'auth': {
-                'token': f'{token_value}'
-            }
-        }
-
-        store_config(path, config_value)
-
-        config_dict_before = read_config(path)
-        self.assertIsNotNone(config_dict_before.get('askanna'))
-        self.assertIsNotNone(config_dict_before.get('auth'))
-
-        capture_output = io.StringIO()
-        sys.stdout = capture_output
-        config = load_config(path)
-
-        output_value = '[INFO] We updated your AskAnna config file to support the latest features'
-        self.assertIn(output_value, capture_output.getvalue())
-
-        self.assertEqual(config.server, 'default')
-        self.assertEqual(config.remote, remote_value)
-        self.assertIs(config.ui, '')
-        self.assertEqual(config.token, token_value)
-        self.assertTrue(config.is_authenticated)
-
-        config_dict_after = read_config(path)
-        self.assertIsNone(config_dict_after.get('askanna'))
-        self.assertIsNone(config_dict_after.get('auth'))
-
-    def test_load_old_beta_api_config(self):
-        path = f'{self.tempdir}/{fake.file_name(extension="yml")}'
-        remote_value = 'https://beta-api.askanna.eu/v1/'
-        config_value = {
-            'askanna': {
-                'remote': f'{remote_value}'
-            },
-            'auth': {}
-        }
-
-        store_config(path, config_value)
-
-        config_dict_before = read_config(path)
-        self.assertIsNotNone(config_dict_before.get('askanna'))
-        self.assertIsNotNone(config_dict_before.get('auth'))
-
-        capture_output = io.StringIO()
-        sys.stdout = capture_output
-        config = load_config(path)
-
-        output_value = '[INFO] We updated your AskAnna config file to support the latest features'
-        self.assertIn(output_value, capture_output.getvalue())
-
-        self.assertEqual(config.server, 'default')
-        self.assertEqual(config.remote, 'https://beta-api.askanna.eu')
-        self.assertEqual(config.ui, 'https://beta.askanna.eu')
-        self.assertIs(config.token, '')
-        self.assertFalse(config.is_authenticated)
-
-        config_dict_after = read_config(path)
-        self.assertIsNone(config_dict_after.get('askanna'))
-        self.assertIsNone(config_dict_after.get('auth'))
-
-    def test_load_old_config_no_auth(self):
-        path = f'{self.tempdir}/{fake.file_name(extension="yml")}'
-        remote_value = fake.hostname()
-        config_value = {
-            'askanna': {
-                'remote': f'{remote_value}'
-            }
-        }
-
-        store_config(path, config_value)
-
-        config_dict_before = read_config(path)
-        self.assertIsNotNone(config_dict_before.get('askanna'))
-        self.assertIsNone(config_dict_before.get('auth'))
-
-        capture_output = io.StringIO()
-        sys.stdout = capture_output
-        config = load_config(path)
-
-        output_value = '[INFO] We updated your AskAnna config file to support the latest features'
-        self.assertIn(output_value, capture_output.getvalue())
-
-        self.assertEqual(config.server, 'default')
-        self.assertEqual(config.remote, remote_value)
-        self.assertIs(config.ui, '')
-        self.assertIs(config.token, '')
-        self.assertFalse(config.is_authenticated)
-
-        config_dict_after = read_config(path)
-        self.assertIsNone(config_dict_after.get('askanna'))
-        self.assertIsNone(config_dict_after.get('auth'))
 
     def test_load_random_config(self):
         path = f'{self.tempdir}/{fake.file_name(extension="yml",)}'
@@ -251,12 +146,12 @@ class TestLoadConfig(unittest.TestCase):
         ui_value = fake.hostname()
         token_value = fake.password(length=40)
         config_value = {
-            f'{fake.name()}': {
-                'remote': f'{remote_value}',
-                'ui': f'{ui_value}',
+            f"{fake.name()}": {
+                "remote": f"{remote_value}",
+                "ui": f"{ui_value}",
             },
-            f'{fake.name()}': {
-                'token': f'{token_value}',
+            f"{fake.name()}": {
+                "token": f"{token_value}",
             },
         }
 
@@ -266,11 +161,11 @@ class TestLoadConfig(unittest.TestCase):
         sys.stdout = capture_output
         config = load_config(path)
 
-        output_value = '[INFO] We updated your AskAnna config file to support the latest features'
+        output_value = "[INFO] We updated your AskAnna config file to support the latest features"
         self.assertNotIn(output_value, capture_output.getvalue())
 
         self.assertIsNotNone(config.remote)
-        self.assertEqual(config.server, 'default')
+        self.assertEqual(config.server, "default")
         self.assertNotEqual(config.remote, remote_value)
         self.assertNotEqual(config.ui, ui_value)
         self.assertNotEqual(config.token, token_value)
@@ -288,19 +183,18 @@ class TestLoadConfig(unittest.TestCase):
         ui_value = fake.hostname()
         token_value = fake.password(length=40)
         server_dict = {
-            'remote': f'{remote_value}',
-            'ui': f'{ui_value}',
-            'token': f'{token_value}',
+            "remote": f"{remote_value}",
+            "ui": f"{ui_value}",
+            "token": f"{token_value}",
         }
 
         config_value = {
-            'server': {
-                'default':
-                    {
-                        'remote': f'{remote_value_default}',
-                        'ui': f'{ui_value_default}',
-                        'token': f'{token_value_default}',
-                    },
+            "server": {
+                "default": {
+                    "remote": f"{remote_value_default}",
+                    "ui": f"{ui_value_default}",
+                    "token": f"{token_value_default}",
+                },
                 server_name: server_dict,
             },
         }
@@ -309,15 +203,15 @@ class TestLoadConfig(unittest.TestCase):
         config = load_config(path, server_name)
 
         self.assertEqual(config.server, server_name)
-        self.assertNotEqual(config.server, 'default')
-        self.assertEqual(config.remote, remote_value)
+        self.assertNotEqual(config.server, "default")
+        self.assertEqual(config.remote, os.getenv("AA_REMOTE", remote_value))
         self.assertNotEqual(config.remote, remote_value_default)
-        self.assertEqual(config.ui, ui_value)
+        self.assertEqual(config.ui, os.getenv("AA_UI", ui_value))
         self.assertNotEqual(config.ui, ui_value_default)
-        self.assertEqual(config.token, token_value)
+        self.assertEqual(config.token, os.getenv("AA_TOKEN", token_value))
         self.assertNotEqual(config.token, token_value_default)
         self.assertTrue(config.is_authenticated)
-        self.assertEqual(config.config_dict['server'][server_name], server_dict)
+        self.assertEqual(config.config_dict["server"][server_name], server_dict)
 
     def test_load_non_existing_server(self):
         path = f'{self.tempdir}/{fake.file_name(extension="yml")}'
@@ -332,19 +226,18 @@ class TestLoadConfig(unittest.TestCase):
         ui_value = fake.hostname()
         token_value = fake.password(length=40)
         server_dict = {
-            'remote': f'{remote_value}',
-            'ui': f'{ui_value}',
-            'token': f'{token_value}',
+            "remote": f"{remote_value}",
+            "ui": f"{ui_value}",
+            "token": f"{token_value}",
         }
 
         config_value = {
-            'server': {
-                'default':
-                    {
-                        'remote': f'{remote_value_default}',
-                        'ui': f'{ui_value_default}',
-                        'token': f'{token_value_default}',
-                    },
+            "server": {
+                "default": {
+                    "remote": f"{remote_value_default}",
+                    "ui": f"{ui_value_default}",
+                    "token": f"{token_value_default}",
+                },
                 server_name: server_dict,
             },
         }
@@ -357,8 +250,10 @@ class TestLoadConfig(unittest.TestCase):
         with pytest.raises(SystemExit):
             load_config(path, not_existing_server)
 
-        output_value = f"Server settings for '{not_existing_server}' not found. Please try again with a valid " \
-                       "server, or add this server."
+        output_value = (
+            f"Server settings for '{not_existing_server}' not found. Please try again with a valid "
+            "server, or add this server."
+        )
         self.assertIn(output_value, capture_error.getvalue())
 
     def test_config_remote_environ(self):
@@ -410,11 +305,11 @@ class TestAddOrUpdateServerInConfigDict(unittest.TestCase):
         self.token_value_before_update = fake.password(length=40)
 
         self.config_dict_before_update = {
-            'server': {
+            "server": {
                 self.server_name: {
-                    'remote': self.remote_value_before_update,
-                    'ui': self.ui_value_before_update,
-                    'token': self.token_value_before_update,
+                    "remote": self.remote_value_before_update,
+                    "ui": self.ui_value_before_update,
+                    "token": self.token_value_before_update,
                 }
             }
         }
@@ -428,11 +323,11 @@ class TestAddOrUpdateServerInConfigDict(unittest.TestCase):
         token_value_after_update = fake.password(length=40)
 
         config_dict_after_update = {
-            'server': {
+            "server": {
                 self.server_name: {
-                    'remote': remote_value_after_update,
-                    'ui': ui_value_after_update,
-                    'token': token_value_after_update,
+                    "remote": remote_value_after_update,
+                    "ui": ui_value_after_update,
+                    "token": token_value_after_update,
                 }
             }
         }
@@ -453,20 +348,20 @@ class TestAddOrUpdateServerInConfigDict(unittest.TestCase):
         server_name_new = fake.name()
         remote_value_new = fake.hostname()
         ui_value_new = fake.hostname()
-        token_value_new = ''
+        token_value_new = ""  # nosec
 
         config_dict_after_update = {
-            'server': {
+            "server": {
                 self.server_name: {
-                    'remote': self.remote_value_before_update,
-                    'ui': self.ui_value_before_update,
-                    'token': self.token_value_before_update,
+                    "remote": self.remote_value_before_update,
+                    "ui": self.ui_value_before_update,
+                    "token": self.token_value_before_update,
                 },
                 server_name_new: {
-                    'remote': remote_value_new,
-                    'ui': ui_value_new,
-                    'token': token_value_new,
-                }
+                    "remote": remote_value_new,
+                    "ui": ui_value_new,
+                    "token": token_value_new,
+                },
             }
         }
 
@@ -488,11 +383,11 @@ class TestAddOrUpdateServerInConfigDict(unittest.TestCase):
         token_value_after_update = fake.password(length=40)
 
         config_dict_after_update = {
-            'server': {
+            "server": {
                 self.server_name: {
-                    'remote': remote_value_after_update,
-                    'ui': ui_value_after_update,
-                    'token': token_value_after_update,
+                    "remote": remote_value_after_update,
+                    "ui": ui_value_after_update,
+                    "token": token_value_after_update,
                 }
             }
         }
@@ -512,22 +407,20 @@ class TestAddOrUpdateServerInConfigDict(unittest.TestCase):
 class TestServerConfigFunctions(unittest.TestCase):
     def setUp(self):
         self.environ_bck = dict(os.environ)
-        self.tempdir = tempfile.mkdtemp(prefix='askanna-test-core-config-server')
+        self.tempdir = tempfile.mkdtemp(prefix="askanna-test-core-config-server")
         self.path = f'{self.tempdir}/{fake.file_name(extension="yml")}'
 
         self.server_name_setup = fake.name()
-        self.remote_value_setup = fake.hostname()
-        self.ui_value_setup = fake.hostname()
-        self.token_value_setup = fake.password(length=40)
+        self.remote_value_setup = os.getenv("AA_REMOTE", fake.hostname())
+        self.ui_value_setup = os.getenv("AA_UI", fake.hostname())
+        self.token_value_setup = os.getenv("AA_TOKEN", fake.password(length=40))
         server_dict = {
-            'remote': f'{self.remote_value_setup}',
-            'ui': f'{self.ui_value_setup}',
-            'token': f'{self.token_value_setup}',
+            "remote": f"{self.remote_value_setup}",
+            "ui": f"{self.ui_value_setup}",
+            "token": f"{self.token_value_setup}",
         }
         self.config_value_setup = {
-            'server': {
-                self.server_name_setup: server_dict
-            },
+            "server": {self.server_name_setup: server_dict},
         }
 
         store_config(self.path, self.config_value_setup)
@@ -548,14 +441,12 @@ class TestServerConfigFunctions(unittest.TestCase):
         config.ui = fake.hostname()
         config.token = fake.password(length=40)
         server_dict = {
-            'remote': f'{config.remote}',
-            'ui': f'{config.ui}',
-            'token': f'{config.token}',
+            "remote": f"{config.remote}",
+            "ui": f"{config.ui}",
+            "token": f"{config.token}",
         }
         config_dict_new = {
-            'server': {
-                self.server_name_setup: server_dict
-            },
+            "server": {self.server_name_setup: server_dict},
         }
         config.config_dict = config_dict_new
 
@@ -565,9 +456,9 @@ class TestServerConfigFunctions(unittest.TestCase):
         config_new = load_config(self.path, self.server_name_setup)
 
         self.assertEqual(config_new.server, config.server)
-        self.assertEqual(config_new.remote, config.remote)
-        self.assertEqual(config_new.ui, config.ui)
-        self.assertEqual(config_new.token, config.token)
+        self.assertEqual(config_new.remote, os.getenv("AA_REMOTE", config.remote))
+        self.assertEqual(config_new.ui, os.getenv("AA_UI", config.ui))
+        self.assertEqual(config_new.token, os.getenv("AA_TOKEN", config.token))
 
     def test_logout_and_remove_token(self):
         config = load_config(self.path, self.server_name_setup)
@@ -576,15 +467,15 @@ class TestServerConfigFunctions(unittest.TestCase):
         self.assertEqual(config.ui, self.ui_value_setup)
         self.assertEqual(config.token, self.token_value_setup)
 
-        self.assertIsNot(config.token, '')
+        self.assertIsNot(config.token, "")
 
         config.logout_and_remove_token()
 
-        self.assertIs(config.token, '')
+        self.assertIs(config.token, "")
 
         config_new = load_config(self.path, self.server_name_setup)
 
         self.assertEqual(config_new.server, config.server)
         self.assertEqual(config_new.remote, config.remote)
         self.assertEqual(config_new.ui, config.ui)
-        self.assertIs(config_new.token, '')
+        self.assertIs(config_new.token, os.getenv("AA_TOKEN", ""))

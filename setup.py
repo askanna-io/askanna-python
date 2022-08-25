@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""The setup script."""
-
 from setuptools import find_packages, setup
 
 from askanna import __author__ as askanna_author
@@ -26,10 +21,12 @@ setup(
     version=askanna_version,
     author=askanna_author,
     author_email=askanna_email,
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
@@ -39,6 +36,8 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     entry_points={
         "console_scripts": [
@@ -46,8 +45,8 @@ setup(
             "askanna-run-utils=askanna.cli.run_utils.tool:cli",
         ],
     },
-    description="AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects",
-    long_description=readme + "\n\n" + history,
+    description="The AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects",
+    long_description=readme,
     long_description_content_type="text/markdown",
     include_package_data=True,
     keywords="askanna ml ai data datascience versioncontrol",
@@ -60,9 +59,9 @@ setup(
         "Documentation Python SDK": "https://docs.askanna.io/python-sdk/",
         "Documentation CLI": "https://docs.askanna.io/cli/",
         "Documentation AskAnna": "https://docs.askanna.io/",
-        "Release notes": "https://gitlab.com/askanna/askanna-python/-/blob/master/CHANGELOG.md",
+        "Changelog": "https://gitlab.com/askanna/askanna-python/-/blob/master/CHANGELOG.md",
         "Issue tracker": "https://gitlab.com/askanna/askanna-python/issues",
-        "Source code": "https://gitlab.com/askanna/askanna-python",
+        "Source": "https://gitlab.com/askanna/askanna-python",
     },
     zip_safe=False,
 )

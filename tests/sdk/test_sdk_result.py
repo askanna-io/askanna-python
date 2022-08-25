@@ -15,8 +15,8 @@ from tests.create_fake_files import create_json_file
 class TestSDKResult(unittest.TestCase):
     def setUp(self):
         self.environ_bck = dict(os.environ)
-        os.environ["AA_REMOTE"] = "https://beta-api.askanna.eu"
-        os.environ["AA_TOKEN"] = "12345678910"  # nosec
+        os.environ["AA_REMOTE"] = os.getenv("AA_REMOTE", "https://beta-api.askanna.eu")
+        os.environ["AA_TOKEN"] = os.getenv("AA_TOKEN", "12345678910")  # nosec
 
         self.tempdir = tempfile.mkdtemp(prefix="askanna-test-cli-result")
         self.result_json_file = create_json_file(self.tempdir, 10)

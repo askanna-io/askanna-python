@@ -1,4 +1,9 @@
-# History
+# Changelog
+
+## 0.19.0 (2022-08-25)
+
+- Update runinfo dataclass to support AskAnna Backend v0.17.0
+- Cleanup code & files
 
 ## 0.18.0 (2022-07-21)
 
