@@ -1,8 +1,8 @@
 """Top-level package for askanna"""
 
 __author__ = "AskAnna Team"
-__email__ = "devops@askanna.io"
-__version__ = "0.18.0"
+__email__ = "support@askanna.io"
+__version__ = "0.19.0"
 
 import re
 import sys

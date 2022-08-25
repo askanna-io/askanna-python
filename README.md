@@ -1,9 +1,8 @@
 # AskAnna CLI & Python SDK
 
-The AskAnna CLI offers a command-line interface to the AskAnna platform. With the Python SDK
-you can run AskAnna functions directly from your Python script. The CLI & Python SDK
-simplifies the communication with the AskAnna platform and provides facilities
-for supporting every part of a data science project.
+The AskAnna CLI offers a command-line interface to the AskAnna platform. With the Python SDK you can run AskAnna
+functions directly from your Python script. The CLI & Python SDK simplifies the communication with the AskAnna
+platform and provides facilities for supporting every part of a data science project.
 
 [![PyPi](https://img.shields.io/pypi/v/askanna.svg)](https://pypi.org/project/askanna/)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-brightgreen.svg)](https://gitlab.com/askanna/askanna-python/-/blob/master/LICENSE)
@@ -13,10 +12,10 @@ for supporting every part of a data science project.
 
 ## Documentation
 
-For the latest version check the
-[AskAnna Documentation](https://docs.askanna.io/). Or open directly the documentation for:
+For the latest information check the [AskAnna Documentation](https://docs.askanna.io/). Or open directly the
+documentation for:
 
-* [Command-line (CLI)](https://docs.askanna.io/cli/)
+* [Command line (CLI)](https://docs.askanna.io/cli/)
 * [Python SDK](https://docs.askanna.io/python-sdk/)
 
 ## Quickstart
@@ -41,32 +40,39 @@ askanna login
 
 This will create a `.askanna.yml` in your home folder.
 
-When used in a CI, one can configure authentication by setting an environment
-variable:
+
+### Authorization token
+
+When the AskAnna CLI & Python SDK is used in for example a CI/CD, one can configure authentication by setting an
+environment variable:
 
 ```bash
 export AA_REMOTE=https://beta-api.askanna.eu
 export AA_TOKEN={{ API TOKEN }}
 ```
 
-The API token can be found in the created `.askanna.yml` file or in the
-curl information on a job run page in the AskAnna platform.
+The API token can be found in the created `~/.askanna.yml` file after you logged in with `askanna login`.
 
-### How to push your code to AskAnna
-
-First add a `askanna.yml` file to the main directory of your project. In
-AskAnna create a project, copy the push-target and add it to the `askanna.yml`
-file.
-
-Next run `askanna push` and your code will be uploaded to the project in
-AskAnna.
-
-You can also push code from a CI environment. This requires the following
-environment variables to be set:
+### How to push code to AskAnna
 
 ```bash
-export AA_TOKEN={{ API TOKEN }}
+askanna init
 ```
+
+Run this command on the main directory of your project. The command will create a new project on AskAnna and will
+add a `askanna.yml` file to your local project directory.
+
+```bash
+askanna create
+```
+
+If you want to start a project from scratch (or a template), you can run this command.
+
+```bash
+askanna push
+```
+
+Run `askanna push` and your code will be uploaded to the project in AskAnna.
 
 ## Credits
 
