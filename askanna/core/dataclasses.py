@@ -20,6 +20,24 @@ class Job:
 
 
 @dataclass
+class Package:
+    filename: str
+    name: Union[str, None]
+    description: str
+    uuid: uuid.UUID
+    short_uuid: str
+    project: dict
+    size: int
+    original_filename: str
+    created_by: dict
+    member: uuid.UUID
+    created: datetime.datetime
+    modified: datetime.datetime
+    deleted: Union[datetime.datetime, None] = None
+    finished: Union[datetime.datetime, None] = None
+
+
+@dataclass
 class Project:
     name: str
     description: str

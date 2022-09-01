@@ -1,8 +1,6 @@
-import logging
 import click
-from askanna.core.metrics import mc
 
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+from askanna.core.metrics import mc
 
 HELP = """
 Retrieve metrics generated with track_metric and push metrics to AskAnna

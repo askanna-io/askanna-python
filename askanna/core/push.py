@@ -2,24 +2,19 @@ import os
 import sys
 import tempfile
 import uuid
+from typing import Union
 from zipfile import ZipFile
 
 import click
 import git
 
-from askanna import project as aa_project
+from askanna import project
 from askanna.config import config
 from askanna.core.upload import PackageUpload
-from askanna.core.utils import (
-    getProjectPackages,
-    isIPAddress,
-    validate_askanna_yml,
-    zip_files_in_dir,
-)
+from askanna.core.utils import validate_askanna_yml, zip_files_in_dir
 
 
 def package(src: str) -> str:
-
     pwd_dir_name = os.path.basename(src)
     random_suffix = uuid.uuid4().hex
 
@@ -28,9 +23,7 @@ def package(src: str) -> str:
 
     zip_file = os.path.join(
         tmpdir,
-        "{pwd_dir_name}_{random_suffix}.zip".format(
-            pwd_dir_name=pwd_dir_name, random_suffix=random_suffix
-        ),
+        f"{pwd_dir_name}_{random_suffix}.zip",
     )
 
     if os.path.isfile(os.path.join(src, "askannaignore")):
@@ -51,83 +44,47 @@ def package(src: str) -> str:
     return zip_file
 
 
-def push(force: bool, description: str = None):
-    push_target = config.project.push_target.url
-    if not push_target:
+def is_project_config_push_ready() -> bool:
+    if not config.project.project_config_path:
         click.echo(
-            "`push-target` is not set, please set the `push-target` in the `askanna.yml` in order to push to "
-            "AskAnna.\nMore information can be found in the documentation: https://docs.askanna.io/code/#push-target",
+            "We cannot upload without a project config path.\n\nThe project path is set by adding an `askanna.yml` "
+            "file to your project root directory.\nIf you have an `askanna.yml` file, please check if your working "
+            "directory is set to a project (sub)directory with the `askanna.yml` file.",
             err=True,
         )
+        return False
+
+    if not config.project.project_suuid:
+        click.echo("We cannot upload to AskAnna without the project SUUID set.", err=True)
+        return False
+
+    return True
+
+
+def push(overwrite: bool = False, description: Union[str, None] = None) -> bool:
+
+    if not is_project_config_push_ready():
         sys.exit(1)
 
-    # read the config and parse jobs, validate the job definitions
-    # then validate the job
     if not validate_askanna_yml(config.project.config_dict):
         sys.exit(1)
 
-    # TODO: move api_server part to askanna.config.project to have it at one central location
-    api_host = config.project.push_target.host
-    http_scheme = config.project.push_target.http_scheme
-    api_server = ''
-    if api_host:
-        # first also modify the first part
-        if api_host.startswith("localhost") or isIPAddress(api_host.split(":")[0]):
-            api_host = api_host
-        elif api_host not in ["askanna.eu"]:
-            # only append the -api suffix if the subdomain is not having this
-            first_part = api_host.split(".")[0]
-            last_part = api_host.split(".")[1:]
-            if "-api" not in first_part:
-                api_host = ".".join([first_part + "-api"] + last_part)
-        else:
-            api_host = "api." + api_host
-        api_server = "{}://{}/v1/".format(http_scheme, api_host)
-    project_suuid = config.project.push_target.project_suuid
-
-    if project_suuid:
-        # make an extra call to AskAnna to query for the full uuid for this project
-        project_info = aa_project.detail(project_suuid)
-        if project_info.short_uuid is None:
-            click.echo(f"Couldn't find specified project for push target: {push_target}", err=True)
-            sys.exit(1)
-    else:
-        click.echo("Cannot upload to AskAnna without the project SUUID set.", err=True)
-        sys.exit(1)
-
-    def ask_overwrite() -> bool:
-        confirm = input("Do you want to replace the current code on AskAnna? [y/n]: ")
-        answer = confirm.strip()
-        if answer not in ["n", "y"]:
-            print("Invalid option selected, choose from: y or n")
-            return ask_overwrite()
-        if confirm == "y":
-            return True
-        else:
-            return False
-
-    project_folder = os.path.dirname(config.project.project_config_path)
-
-    # check for existing package
-    packages = getProjectPackages(project_info)
-    if packages["count"] > 0:
-        # ask for confirmation if `-f` flag is not set
-        overwrite = force
-        if not force:
-            overwrite = ask_overwrite()
-
-        if not overwrite:
+    if not overwrite:
+        # If a package for the project exists, we will not push a new version.
+        packages = project.packages(config.project.project_suuid, offset=0, limit=1)
+        if packages:
             click.echo(
-                "We are not pushing your code to AskAnna. You choose not to replace your "
-                "existing code.",
+                "We are not pushing your code to AskAnna because this project already has a code package and "
+                "overwrite is set to `False`."
             )
             sys.exit(0)
 
+    project_folder = os.path.dirname(config.project.project_config_path)
     package_archive = package(project_folder)
 
-    # attach the description to this package upload
+    # Attach the description to this package upload
     if not description:
-        # try git
+        # Try git and use last commit message
         try:
             repo = git.Repo(".")
         except Exception as e:
@@ -136,22 +93,17 @@ def push(force: bool, description: str = None):
             commit = repo.head.commit
             description = commit.message
 
-    # if there is still no description set then use the zipfilename
-    if not description:
-        description = os.path.basename(package_archive)
-
-    click.echo("Uploading '{}' to AskAnna...".format(project_folder))
+    click.echo(f"Uploading '{project_folder}' to AskAnna...")
 
     fileinfo = {
         "filename": os.path.basename(package_archive),
         "size": os.stat(package_archive).st_size,
     }
     uploader = PackageUpload(
-        api_server=api_server,
-        project_suuid=project_suuid,
+        project_suuid=config.project.project_suuid,
         description=description,
     )
-    status, msg = uploader.upload(package_archive, config, fileinfo)
+    status, _ = uploader.upload(package_archive, config, fileinfo)
     if status:
         # remove temporary zip-file from the system including the parent temporary folder
         try:
@@ -167,5 +119,7 @@ def push(force: bool, description: str = None):
             click.echo(f"The error: {e.strerror}", err=True)
             click.echo(f"You can manually delete the file: {package_archive}", err=True)
     else:
-        click.echo(msg, err=True)
+        click.echo("Pushing your code failed.", err=True)
         sys.exit(1)
+
+    return status

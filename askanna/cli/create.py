@@ -1,14 +1,14 @@
-import click
-from cookiecutter.main import cookiecutter as cookiecreator
-from cookiecutter.exceptions import OutputDirExistsException
 import os
+
+import click
+from cookiecutter.exceptions import OutputDirExistsException
+from cookiecutter.main import cookiecutter as cookiecreator
 from slugify import slugify
 
 from askanna.cli.utils import ask_which_workspace
 from askanna.core.apiclient import client
 from askanna.core.push import push
 from askanna.settings import DEFAULT_PROJECT_TEMPLATE
-
 
 HELP = """
 This command will allow you to create an AskAnna project in a new directory
@@ -18,14 +18,12 @@ SHORT_HELP = "Create a project in a new directory"
 
 
 class CreateProject:
-    def __init__(self, name: str = None):
-        self.client = client
+    def __init__(self, name: str = ""):
         self.name = name
-        self.slugified_name = None
         if self.name:
             self.slugified_name = slugify(self.name)
 
-    def cli(self, workspace_suuid: str = None, description: str = None):
+    def cli(self, workspace_suuid: str = "", description: str = ""):
         if not self.name:
             click.echo(
                 "Hi! It is time to create a new project in AskAnna. "
@@ -35,16 +33,14 @@ class CreateProject:
             self.slugified_name = slugify(self.name)
 
             if not description:
-                description = click.prompt(
-                    "Project description", type=str, default="", show_default=False
-                )
+                description = click.prompt("Project description", type=str, default="", show_default=False)
 
         if not workspace_suuid:
             workspace = ask_which_workspace("In which workspace do you want to create the new project?")
             workspace_suuid = workspace.short_uuid
 
-        url = f"{self.client.base_url}project/"
-        r = self.client.post(
+        url = f"{client.base_url}project/"
+        r = client.post(
             url,
             data={
                 "name": self.name,
@@ -86,12 +82,10 @@ def cli(name, workspace, description, project_template, is_push):
     project_creator = CreateProject(name=name)
     project_info = project_creator.cli(workspace_suuid=workspace, description=description)
     project_dir = project_creator.slugified_name
-    if not project_template:
-        project_template = DEFAULT_PROJECT_TEMPLATE
 
     try:
         cookiecreator(
-            project_template,
+            project_template or DEFAULT_PROJECT_TEMPLATE,
             no_input=True,
             overwrite_if_exists=False,
             extra_context={
@@ -110,15 +104,11 @@ def cli(name, workspace, description, project_template, is_push):
         click.echo(f"Open your new local project directory: 'cd {project_dir}'")
 
         if is_push:
-            click.echo("")  # print an empty line
+            # Also push the new directory to AskAnna
+            click.echo("")
+            client.config.project.reload_config(os.path.join(os.getcwd(), project_dir, "askanna.yml"))
+            push(description="Initial push")
 
-            # also push the new directory to AskAnna
-            os.chdir(project_dir)
-            push(force=True, description="Initial push")
-
-    # finish
-    click.echo(
-        "\nWe have setup the new project. You can check your project in AskAnna at:"
-    )
+    click.echo("\nWe have setup the new project. You can open your project at:")
     click.echo(project_info["url"])
     click.echo("\nSuccess with your project!")
