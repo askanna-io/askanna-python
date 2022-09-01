@@ -16,6 +16,7 @@ vscode:
     - eamodio.gitlens
     - GitLab.gitlab-workflow
     - ms-python.python
+    - njpwerner.autodocstring
     - yzhang.markdown-all-in-one
     - TakumiI.markdowntable
     - ms-azuretools.vscode-docker

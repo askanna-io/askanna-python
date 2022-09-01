@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from typing import Dict
 
 from askanna.config.utils import read_config, scan_config_in_path
@@ -7,20 +7,31 @@ from askanna.config.utils import read_config, scan_config_in_path
 
 @dataclass
 class PushTarget:
-    url: str = ''
-    http_scheme: str = ''
-    host: str = ''
-    project_suuid: str = ''
-    workspace_suuid: str = ''
+    url: str = ""
+    http_scheme: str = ""
+    host: str = ""
+    project_suuid: str = ""
+    workspace_suuid: str = ""
 
 
 @dataclass
 class ProjectConfig:
+    """Project configuration specifiction"""
+
     config_dict: Dict
-    project_config_path: str = ''
+    project_config_path: str = ""
     push_target: PushTarget = PushTarget()
-    project_suuid: str = ''
-    workspace_suuid: str = ''
+    project_suuid: str = ""
+    workspace_suuid: str = ""
+
+    def reload_config(self, project_config_path: str = ""):
+        new_config = load_config(project_config_path)
+
+        self.config_dict = new_config.config_dict
+        self.project_config_path = new_config.project_config_path
+        self.push_target = new_config.push_target
+        self.project_suuid = new_config.project_suuid
+        self.workspace_suuid = new_config.workspace_suuid
 
 
 def extract_push_target(push_target: str) -> PushTarget:
@@ -36,33 +47,35 @@ def extract_push_target(push_target: str) -> PushTarget:
     matches = match_pattern.match(push_target)
 
     if not matches:
-        raise ValueError(f"The push target '{push_target}' is not valid. Please check the documentation to read "
-                         "more about the push target: https://docs.askanna.io/code/#push-target")
+        raise ValueError(
+            f"The push target '{push_target}' is not valid. Please check the documentation to read more about the "
+            "push target: https://docs.askanna.io/code/#push-target"
+        )
 
     matches_dict = matches.groupdict()
 
     return PushTarget(
         url=push_target,
-        http_scheme=matches_dict['http_scheme'],
-        host=matches_dict['askanna_host'],
-        workspace_suuid=matches_dict['workspace_suuid'],
-        project_suuid=matches_dict['project_suuid'],
+        http_scheme=matches_dict["http_scheme"],
+        host=matches_dict["askanna_host"],
+        workspace_suuid=matches_dict["workspace_suuid"],
+        project_suuid=matches_dict["project_suuid"],
     )
 
 
-def load_config(project_config_path: str = '') -> ProjectConfig:
+def load_config(project_config_path: str = "") -> ProjectConfig:
     if not project_config_path:
         project_config_path = scan_config_in_path()
 
     project_config = {}
     push_target = PushTarget()
-    workspace_suuid = ''
-    project_suuid = ''
+    workspace_suuid = ""
+    project_suuid = ""
 
     if project_config_path:
         project_config = read_config(project_config_path)
 
-    push_target_str = project_config.get('push-target')
+    push_target_str = project_config.get("push-target")
     if push_target_str:
         push_target = extract_push_target(push_target_str)
         workspace_suuid = push_target.workspace_suuid

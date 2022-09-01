@@ -1,26 +1,25 @@
 import io
 import os
 import sys
+from typing import Union
 
 import click
 import resumable
 
 from askanna.core.apiclient import client
-from askanna.core.utils import file_type, diskunit
+from askanna.core.utils import diskunit, file_type
 
 
 class Upload:
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
-    tpl_upload_chunk_url = (
-        "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
-    )
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
-    tpl_upload_pass = "File is uploaded"
+    tpl_upload_pass = "File is uploaded"  # nosec: B105
     tpl_upload_fail = "Upload failed"
 
-    def __init__(self, api_server: str = None, *args, **kwargs):
+    def __init__(self, api_server: Union[str, None] = None, *args, **kwargs):
         self.ASKANNA_API_SERVER = api_server or client.base_url
         self.suuid = None
         self.resumable_file = None
@@ -75,7 +74,7 @@ class Upload:
     def create_entry_extrafields(self):
         return {}
 
-    def create_entry(self, config: dict = None, fileinfo: dict = {}) -> str:
+    def create_entry(self, config: Union[dict, None] = None, fileinfo: dict = {}) -> str:
         info_dict = {
             "filename": fileinfo.get("filename"),
             "size": fileinfo.get("size"),
@@ -122,9 +121,7 @@ class Upload:
             }
         )
 
-        specific_chunk_req = client.post(
-            self.upload_chunk_url(chunk_uuid=chunk_uuid), data=data, files=files
-        )
+        specific_chunk_req = client.post(self.upload_chunk_url(chunk_uuid=chunk_uuid), data=data, files=files)
         assert specific_chunk_req.status_code == 200, "File could not be uploaded"
 
     def chunk_dict_template(self):
@@ -149,9 +146,7 @@ class Upload:
         # Do final call when all chunks are uploaded
         final_call_dict = self.chunk_baseinfo
 
-        final_call_req = client.post(
-            self.final_upload_url, data=final_call_dict
-        )
+        final_call_req = client.post(self.final_upload_url, data=final_call_dict)
 
         if final_call_req.status_code == 200:
             return True, self.tpl_upload_pass
@@ -162,12 +157,10 @@ class Upload:
 class PackageUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
-    tpl_upload_chunk_url = (
-        "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
-    )
+    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
     tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
 
-    tpl_upload_pass = "Package is uploaded"
+    tpl_upload_pass = "Package is uploaded"  # nosec: B105
     tpl_upload_fail = "Package upload failed"
 
     def create_entry_extrafields(self):
@@ -180,10 +173,12 @@ class PackageUpload(Upload):
 class ArtifactUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/"
     tpl_register_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
+    tpl_upload_chunk_url = (
+        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
+    )
     tpl_final_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
 
-    tpl_upload_pass = "Artifact is uploaded"
+    tpl_upload_pass = "Artifact is uploaded"  # nosec: B105
     tpl_upload_fail = "Artifact upload failed"
 
     def url_template_arguments(self):
@@ -200,15 +195,13 @@ class ArtifactUpload(Upload):
 
 class ResultUpload(Upload):
     tpl_register_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/"
-    tpl_register_chunk_url = (
-        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
+    tpl_register_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
+    tpl_upload_chunk_url = (
+        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
     )
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
-    tpl_final_upload_url = (
-        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
-    )
+    tpl_final_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
 
-    tpl_upload_pass = "Result is uploaded"
+    tpl_upload_pass = "Result is uploaded"  # nosec: B105
     tpl_upload_fail = "Result upload failed"
 
     def url_template_arguments(self):
