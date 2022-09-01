@@ -27,9 +27,7 @@ DEFAULT_SERVER_CONFIG = {
 
 @dataclass
 class ServerConfig:
-    """
-    Server configuration specification
-    """
+    """Server configuration specification"""
 
     remote: str
     config_dict: Dict = None

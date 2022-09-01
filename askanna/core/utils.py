@@ -1,6 +1,5 @@
 import collections
 import datetime
-import ipaddress
 import mimetypes
 import os
 import uuid
@@ -144,14 +143,14 @@ def update_available() -> bool:
 
 
 # Zip the files that matches the filter from given directory
-def zip_files_in_dir(directory_path: str, zip_file: ZipFile, ignore_file: str = None) -> None:
+def zip_files_in_dir(directory_path: str, zip_file: ZipFile, ignore_file: Union[str, None] = None) -> None:
     files = get_files_in_dir(directory_path=directory_path, ignore_file=ignore_file)
     # Iterate over all the files and zip them
     for file in sorted(files):
         zip_file.write(file)
 
 
-def get_files_in_dir(directory_path: str, ignore_file: str = None) -> set:
+def get_files_in_dir(directory_path: str, ignore_file: Union[str, None] = None) -> set:
     file_list = set()
 
     ignore_parser = igittigitt.IgnoreParser()
@@ -257,24 +256,6 @@ def file_type(path):
     return "" if type_ is None else type_
 
 
-def getProjectPackages(project, offset=0, limit=1):
-    from askanna.config import config
-    from askanna.core.apiclient import client
-
-    r = client.get(
-        "{api_server}/v1/project/{project_suuid}/packages/?offset={offset}&limit={limit}".format(
-            api_server=config.server.remote,
-            project_suuid=project.short_uuid,
-            offset=offset,
-            limit=limit,
-        )
-    )
-    if not r.status_code == 200:
-        return []
-
-    return r.json()
-
-
 def validate_cron_line(cron_line: str) -> bool:
     """
     We validate the cron expression with croniter
@@ -306,7 +287,7 @@ def parse_cron_line(cron_line: str) -> str:
     elif isinstance(cron_line, dict):
         # we deal with dictionary
         # first check whether we have valid keys, if one invalid key is found, return None
-        valid_keys = set(["minute", "hour", "day", "month", "weekday"])
+        valid_keys = {"minute", "hour", "day", "month", "weekday"}
         invalid_keys = set(cron_line.keys()) - valid_keys
         if len(invalid_keys):
             return None
@@ -758,14 +739,6 @@ def labels_to_type(label: Union[str, list, dict] = "", labelclass=collections.na
                             err=True,
                         )
     return labels
-
-
-def isIPAddress(ip: str) -> bool:
-    try:
-        ipaddress.ip_address(ip)
-    except ValueError:
-        return False
-    return True
 
 
 def content_type_file_extension(content_type: str) -> str:

@@ -6,7 +6,7 @@ faker~=9.3.1
 flake8~=3.9.2
 isort~=5.10.1
 numpy~=1.19.5; python_version < '3.8'   # numpy is only required during development for testing numpy support
-numpy~=1.22.0; python_version >= '3.8'  # numpy is only required during development for testing numpy support
+numpy~=1.22; python_version >= '3.8'  # numpy is only required during development for testing numpy support
 pre-commit~=2.20.0
 pytest~=6.2.5
 pytest-cov~=3.0.0

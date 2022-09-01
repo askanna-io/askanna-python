@@ -1,11 +1,10 @@
 import os
-import yaml
 
 import click
+import yaml
 
 from askanna.cli.utils import ask_which_workspace
 from askanna.core.apiclient import client
-
 
 HELP = """
 This command will allow you to create an AskAnna project in your current directory
@@ -28,9 +27,7 @@ class CreateProject:
             self.name = click.prompt("Project name", type=str)
 
             if not description:
-                description = click.prompt(
-                    "Project description", type=str, default="", show_default=False
-                )
+                description = click.prompt("Project description", type=str, default="", show_default=False)
 
         if not workspace_suuid:
             workspace = ask_which_workspace("In which workspace do you want to create the new project?")
@@ -73,9 +70,7 @@ def cli(name, workspace, description):
             "But, we will not update your 'askanna.yml' file with the push-target of the "
             "new project. If you continue, you need to add the push-target yourself.\n"
         )
-        click.confirm(
-            "Do you want to continue without updating the 'askanna.yml'?", abort=True
-        )
+        click.confirm("Do you want to continue without updating the 'askanna.yml'?", abort=True)
         click.echo("")
 
     project_creator = CreateProject(name=name)
@@ -91,9 +86,8 @@ def cli(name, workspace, description):
         )
         click.echo("push-target: {}".format(project_info["url"]))
 
-    # finish
-    click.echo("\nCheck your project in AskAnna at:")
-    click.echo("{project_url}".format(project_url=project_info["url"]))
+    click.echo("\nWe have setup the new project. You can open your project at:")
+    click.echo(project_info["url"])
     click.echo(
         "\nAs a first step you can configure your first job for this project in the `askanna.yml` file. "
         "Ones you are done, you can easily push your code to AskAnna via:\n"

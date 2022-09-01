@@ -1,8 +1,6 @@
-import logging
 import click
-from askanna.core.variables_tracked import vc
 
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+from askanna.core.variables_tracked import vc
 
 HELP = """
 Retrieve variables generated with track_variable(s) and push variables to AskAnna
