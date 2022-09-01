@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.1 (2022-09-01)
+
+- Extend ProjectGateway with `packages` method to get a list of project packages
+- Fix `askanna push` with the push-target set to an AskAnna Frontend URL
+- Fix `askanna create --push` so that after creating a new project you automatically push an initial version
+
 ## 0.19.0 (2022-08-25)
 
 - Update runinfo dataclass to support AskAnna Backend v0.17.0
