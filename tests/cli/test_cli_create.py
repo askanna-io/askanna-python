@@ -43,7 +43,6 @@ class TestCliPush(unittest.TestCase):
                 "package": {"uuid": None, "short_uuid": None, "name": None},
                 "notifications": {},
                 "permission": {},
-                "template": None,
                 "is_member": True,
                 "created_by": {
                     "uuid": "726f6262-6572-7440-6173-6b616e6e6121",
