@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.2 (2022-09-10)
+
+- Update dataclass for projects
+
 ## 0.19.1 (2022-09-01)
 
 - Extend ProjectGateway with `packages` method to get a list of project packages

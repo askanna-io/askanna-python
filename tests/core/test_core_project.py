@@ -33,7 +33,6 @@ a_sample_project_response = {
     "description": None,
     "short_uuid": "7Lif-Rhcn-IRvS-Wv7J",
     "name": "AskAnna Core",
-    "template": None,
 }
 
 

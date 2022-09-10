@@ -46,7 +46,6 @@ class Project:
     created_by: dict
     package: dict
     notifications: dict
-    template: str
     permission: dict
     visibility: str
     created: datetime.datetime
