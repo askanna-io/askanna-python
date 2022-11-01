@@ -1,6 +1,6 @@
 import click
 
-from askanna.core.variables_tracked import vc
+from askanna.sdk.track import variable_collector
 
 HELP = """
 Retrieve variables generated with track_variable(s) and push variables to AskAnna
@@ -12,5 +12,5 @@ SHORT_HELP = "Push variables to AskAnna"
 @click.command(help=HELP, short_help=SHORT_HELP)
 @click.option("--force", "-f", is_flag=True, help="Force push variables")
 def cli(force):
-    if vc.has_variables() or force:
-        vc.save(force=True)
+    if len(variable_collector) > 0 or force:
+        variable_collector.save(force=True)

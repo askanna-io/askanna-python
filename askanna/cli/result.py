@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-import os
 import sys
+from pathlib import Path
+
 import click
 
-from askanna.core.apiclient import client
-from askanna.core.download import ChunkedDownload
-from askanna.core.utils import content_type_file_extension
+from askanna import result
 
 
 @click.group()
@@ -13,42 +11,33 @@ def cli1():
     pass
 
 
-@cli1.command(
-    help="Download a result of a run", short_help="Download a run result"
-)
-@click.option("--id", "-i", "suuid", prompt='Run SUUID', required=True, type=str, help="Run SUUID")
-@click.option("--output", "-o", "output_path", show_default=True, type=click.Path(), help="File name to save result")
-def get(suuid, output_path):
+@cli1.command(help="Download a result of a run", short_help="Download a run result")
+@click.option("--id", "-i", "run_suuid", prompt="Run SUUID", required=True, type=str, help="Run SUUID")
+@click.option("--output", "-o", "output_path", type=click.Path(path_type=Path), help="Filename for the result")
+def get(run_suuid, output_path):
     """
     Download a result of a run
     """
-    result_url = f"{client.base_url}result/{suuid}/"
-    stable_download = ChunkedDownload(result_url)
-
-    if stable_download.status_code != 200:
-        click.echo(f"{stable_download.status_code} - We cannot find this result for you", err=True)
-        sys.exit(1)
-
     if not output_path:
-        file_extension = content_type_file_extension(str(stable_download.content_type))
-        output_path = f"result_{suuid}{file_extension}"
+        filename = result.get_filename(run_suuid)
+        output_path = Path(f"result_{run_suuid}_{filename}")
 
-    if os.path.isdir(output_path):
-        click.echo(
-            "The output argument is a directory. Please provide a file name for the output.",
-            err=True
-        )
+    if output_path.is_dir():
+        click.echo("The output argument is a directory. Please provide a filename for the output.", err=True)
         sys.exit(1)
 
-    if os.path.exists(output_path):
-        click.echo(
-            "The output file already exists. We will not overwrite the existing file.",
-            err=True
-        )
+    if output_path.exists():
+        click.echo(f"The file '{output_path}' already exists. We will not overwrite the existing file.", err=True)
         sys.exit(1)
 
     click.echo("Downloading the result has started...")
-    stable_download.download(output_file=output_path)
+
+    try:
+        result.download(run_suuid, output_path)
+    except Exception as e:
+        click.echo(f"Something went wrong while downloading the result:\n  {e}", err=True)
+        sys.exit(1)
+
     click.echo("We have succesfully downloaded the result.")
     click.echo(f"The result is saved in: {output_path}")
 

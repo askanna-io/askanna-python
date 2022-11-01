@@ -3,7 +3,7 @@ import sys
 import click
 
 from askanna.config import config
-from askanna.core.auth import AuthGateway
+from askanna.gateways.auth import AuthGateway
 
 HELP = """
 Add your AskAnna API key to your global configuration file (~/.askanna.yml). This is necessary to gain access to
@@ -45,4 +45,4 @@ def cli(email: str, password: str, url: str, remote: str):
     # Do the actual login and update the config file with the token
     auth.login(email=email, password=password, remote_url=remote, ui_url=url, update_config_file=True)
     user = auth.get_user_info()
-    click.echo(f"You are logged in with email '{user.email}'.")
+    click.echo(f"You are logged in with email '{user.email}'")

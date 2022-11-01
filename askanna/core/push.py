@@ -11,7 +11,8 @@ import git
 from askanna import project
 from askanna.config import config
 from askanna.core.upload import PackageUpload
-from askanna.core.utils import validate_askanna_yml, zip_files_in_dir
+from askanna.core.utils.file import zip_files_in_dir
+from askanna.core.utils.validate import validate_askanna_yml
 
 
 def package(src: str) -> str:
@@ -71,13 +72,14 @@ def push(overwrite: bool = False, description: Union[str, None] = None) -> bool:
 
     if not overwrite:
         # If a package for the project exists, we will not push a new version.
-        packages = project.packages(config.project.project_suuid, offset=0, limit=1)
+        packages = project.package_list(config.project.project_suuid, offset=0, limit=1)
         if packages:
             click.echo(
                 "We are not pushing your code to AskAnna because this project already has a code package and "
-                "overwrite is set to `False`."
+                "overwrite is set to `False`.",
+                err=True,
             )
-            sys.exit(0)
+            sys.exit(1)
 
     project_folder = os.path.dirname(config.project.project_config_path)
     package_archive = package(project_folder)
@@ -95,15 +97,11 @@ def push(overwrite: bool = False, description: Union[str, None] = None) -> bool:
 
     click.echo(f"Uploading '{project_folder}' to AskAnna...")
 
-    fileinfo = {
-        "filename": os.path.basename(package_archive),
-        "size": os.stat(package_archive).st_size,
-    }
     uploader = PackageUpload(
         project_suuid=config.project.project_suuid,
         description=description,
     )
-    status, _ = uploader.upload(package_archive, config, fileinfo)
+    status, _ = uploader.upload(package_archive)
     if status:
         # remove temporary zip-file from the system including the parent temporary folder
         try:

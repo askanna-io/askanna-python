@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 
 import click
@@ -6,6 +5,7 @@ import click
 from askanna import project as aa_project
 from askanna.cli.utils import ask_which_project, ask_which_workspace
 from askanna.config import config
+from askanna.core.exceptions import GetError, PatchError
 
 
 @click.group()
@@ -23,33 +23,25 @@ def cli1():
     help="Workspace SUUID to list projects for a workspace",
 )
 def list(workspace_suuid):
-    projects = aa_project.list(workspace_suuid)
+    try:
+        projects = aa_project.list(workspace_suuid=workspace_suuid)
+    except Exception as e:
+        click.echo(f"Something went wrong while listing the projects:\n  {e}", err=True)
+        sys.exit(1)
 
     if not projects:
-        click.echo("Based on the information provided, we cannot find any projects.")
-        sys.exit(0)
+        click.echo("We cannot find any project.")
     if workspace_suuid:
-        click.echo(f"The projects for workspace \"{projects[0].workspace['name']}\" are:\n")
+        click.echo(f"The projects for workspace '{projects[0].workspace['name']}' are:\n")
         click.echo("PROJECT SUUID          PROJECT NAME")
         click.echo("-------------------    -------------------------")
     else:
         click.echo("WORKSPACE SUUID        WORKSPACE NAME          PROJECT SUUID          PROJECT NAME")
         click.echo("-------------------    --------------------    -------------------    -------------------------")
 
-    for project in sorted(
-        projects,
-        key=lambda x: (
-            x.workspace["name"],
-            x.name,
-        ),
-    ):
+    for project in sorted(projects, key=lambda x: (x.workspace["name"], x.name)):
         if workspace_suuid:
-            click.echo(
-                "{project_suuid}    {project_name}".format(
-                    project_suuid=project.short_uuid,
-                    project_name=project.name[:25],
-                )
-            )
+            click.echo(f"{project.short_uuid}    {project.name[:25]}")
         else:
             click.echo(
                 "{workspace_suuid}    {workspace_name}    {project_suuid}    {project_name}".format(
@@ -86,7 +78,91 @@ def change(suuid, name, description, visibility):
 
         click.confirm("\nDo you want to change the project?", abort=True)
 
-    aa_project.change(suuid=suuid, name=name, description=description, visibility=visibility)
+    try:
+        project = aa_project.change(suuid=suuid, name=name, description=description, visibility=visibility)
+    except PatchError as e:
+        if str(e).startswith("404"):
+            click.echo(f"The project SUUID '{suuid}' was not found", err=True)
+            sys.exit(1)
+        else:
+            click.echo(f"Something went wrong while changing the project SUUID '{suuid}':\n  {e}", err=True)
+            sys.exit(1)
+    else:
+        click.echo(f"\nYou succesfully changed project '{project.name}' with SUUID '{project.short_uuid}'")
+
+
+@cli1.command(help="Create a new project in AskAnna", short_help="Create project")
+@click.option(
+    "--workspace",
+    "-w",
+    "workspace_suuid",
+    type=str,
+    help="Workspace SUUID where you want to create the project",
+)
+@click.option("--name", "-n", required=False, type=str, help="Name of the project")
+@click.option("--description", "-d", required=False, type=str, help="Description of the project")
+@click.option(
+    "--visibility",
+    "-v",
+    required=False,
+    type=str,
+    default="PRIVATE",
+    help="Project visibility (PRIVATE (default) or PUBLIC)",
+)
+def create(workspace_suuid, name, description, visibility):
+    if not workspace_suuid:
+        workspace = ask_which_workspace("In which workspace do you want to create the new project?")
+        workspace_suuid = workspace.short_uuid
+
+    if not name:
+        name = click.prompt("\nName of the project", type=str)
+
+        if not description:
+            description = click.prompt("Optional description of the project", type=str, default="", show_default=False)
+
+    click.confirm(f'\nDo you want to create the project "{name}"?', abort=True)
+
+    try:
+        project = aa_project.create(
+            workspace_suuid=workspace_suuid, name=name, description=description, visibility=visibility
+        )
+    except Exception as e:
+        click.echo(f"Something went wrong while creating the project:\n  {e}", err=True)
+        sys.exit(1)
+    else:
+        click.echo(f"\nYou successfully created project '{project.name}' with SUUID '{project.short_uuid}'")
+
+
+@cli1.command(help="Remove a project in AskAnna", short_help="Remove project")
+@click.option("--id", "-i", "suuid", type=str, required=True, help="Project SUUID")
+@click.option("--force", "-f", is_flag=True, help="Force")
+def remove(suuid, force):
+    try:
+        project = aa_project.detail(suuid=suuid)
+    except GetError as e:
+        if str(e).startswith("404"):
+            click.echo(f"The project SUUID '{suuid}' was not found", err=True)
+            sys.exit(1)
+        else:
+            click.echo(f"Something went wrong while removing the project SUUID '{suuid}':\n  {e}", err=True)
+            sys.exit(1)
+
+    if not force:
+        if not click.confirm(f"Are you sure to remove project SUUID '{suuid}' with name '{project.name}'?"):
+            click.echo("Understood. We are not removing the project.")
+            sys.exit(0)
+
+    try:
+        removed = aa_project.delete(suuid=suuid)
+    except Exception as e:
+        click.echo(f"Something went wrong while removing the project SUUID '{suuid}':\n  {e}", err=True)
+        sys.exit(1)
+    else:
+        if removed:
+            click.echo(f"You removed project SUUID '{suuid}'")
+        else:
+            click.echo(f"Something went wrong. Removing the project SUUID '{suuid}' aborted.", err=True)
+            sys.exit(1)
 
 
 cli = click.CommandCollection(

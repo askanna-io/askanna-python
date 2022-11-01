@@ -1,11 +1,13 @@
-# -*- coding: utf-8 -*-
-import click
 import sys
+
+import click
 
 from askanna import job as aa_job
 from askanna import project as aa_project
 from askanna import workspace as aa_workspace
-from askanna.core.dataclasses import Job, Project, Workspace
+from askanna.core.dataclasses.job import Job
+from askanna.core.dataclasses.project import Project
+from askanna.core.dataclasses.workspace import Workspace
 
 
 def ask_which_workspace(question: str = None) -> Workspace:
@@ -28,10 +30,9 @@ def ask_which_workspace(question: str = None) -> Workspace:
             question = "Which workspace do you want to select?"
 
         selection = click.prompt(
-            "\n" + question + "\n\n" + list_str + "\n"
-            + "Please enter the workspace number",
+            "\n" + question + "\n\n" + list_str + "\n" + "Please enter the workspace number",
             type=click.Choice([str(i + 1) for i in range(len(workspace_list))]),
-            show_choices=False
+            show_choices=False,
         )
 
         workspace = workspace_list[int(selection) - 1]
@@ -47,8 +48,11 @@ def ask_which_project(question: str = None, workspace_suuid: str = None) -> Proj
     project_list = aa_project.list(workspace_suuid=workspace_suuid)
 
     if len(project_list) == 0:
-        click.echo("In this workspace you don't have access to any project. Please check your account or the selected "
-                   "workspace.", err=True)
+        click.echo(
+            "In this workspace you don't have access to any project. Please check your account or the selected "
+            "workspace.",
+            err=True,
+        )
         sys.exit(0)
 
     list_str = ""
@@ -59,10 +63,9 @@ def ask_which_project(question: str = None, workspace_suuid: str = None) -> Proj
         question = "Which project do you want to select?"
 
     selection = click.prompt(
-        "\n" + question + "\n\n" + list_str + "\n"
-        + "Please enter the project number",
+        "\n" + question + "\n\n" + list_str + "\n" + "Please enter the project number",
         type=click.Choice([str(i + 1) for i in range(len(project_list))]),
-        show_choices=False
+        show_choices=False,
     )
 
     project = project_list[int(selection) - 1]
@@ -78,8 +81,11 @@ def ask_which_job(question: str = None, project_suuid: str = None) -> Job:
     job_list = aa_job.list(project_suuid=project_suuid)
 
     if len(job_list) == 0:
-        click.echo("In this project you don't have access to any job. Please check if you have pushed your code or "
-                   "check the selected project.", err=True)
+        click.echo(
+            "In this project you don't have access to any job. Please check if you have pushed your code or "
+            "check the selected project.",
+            err=True,
+        )
         sys.exit(0)
 
     list_str = ""
@@ -90,10 +96,9 @@ def ask_which_job(question: str = None, project_suuid: str = None) -> Job:
         question = "Which job do you want to select?"
 
     selected_job = click.prompt(
-        "\n" + question + "\n\n" + list_str + "\n"
-        + "Please enter the job number",
+        "\n" + question + "\n\n" + list_str + "\n" + "Please enter the job number",
         type=click.Choice([str(i + 1) for i in range(len(job_list))]),
-        show_choices=False
+        show_choices=False,
     )
 
     job = job_list[int(selected_job) - 1]

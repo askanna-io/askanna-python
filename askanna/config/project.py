@@ -19,10 +19,10 @@ class ProjectConfig:
     """Project configuration specifiction"""
 
     config_dict: Dict
-    project_config_path: str = ""
-    push_target: PushTarget = PushTarget()
-    project_suuid: str = ""
-    workspace_suuid: str = ""
+    project_config_path: str
+    push_target: PushTarget
+    project_suuid: str
+    workspace_suuid: str
 
     def reload_config(self, project_config_path: str = ""):
         new_config = load_config(project_config_path)
