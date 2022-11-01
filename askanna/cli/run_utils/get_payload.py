@@ -1,47 +1,40 @@
-# -*- coding: utf-8 -*-
-import os
 import sys
+from pathlib import Path
 
 import click
 
-from askanna.core.apiclient import client
+from askanna.gateways.run import RunGateway
 
-
-# read defaults from the environment
-default_run_suuid = os.getenv("AA_RUN_SUUID")
-default_payload_suuid = os.getenv("AA_PAYLOAD_SUUID")
-default_payload_file = os.getenv("AA_PAYLOAD_PATH")
-
-HELP = """Get the payload for the run which is stored in AskAnna"""
+HELP = """Get the payload for the run from AskAnna and it to a file."""
 SHORT_HELP = "Get payload from AskAnna"
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
-@click.option("--run", "-r", default=default_run_suuid, show_default=True)
-@click.option("--payload", "-p", default=default_payload_suuid, show_default=True)
 @click.option(
-    "--output", "-o", default=default_payload_file, show_default=True, type=click.Path()
+    "--run",
+    "run_suuid",
+    required=True,
+    envvar="AA_RUN_SUUID",
+    help="The run SUUID",
 )
-def cli(run, payload, output):
-    api_server = client.base_url
-
-    # we assume we can get jobrun id and the payload
-    payload_url = (
-        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/payload/{PAYLOAD_SUUID}/".format(
-            RUN_SUUID=run,
-            PAYLOAD_SUUID=payload,
-            ASKANNA_API_SERVER=api_server,
-        )
-    )
-
-    req = client.get(payload_url)
-
-    if not req.status_code == 200:
-        click.echo(f"Could not retrieve payload with SUUID: {payload}", err=True)
+@click.option(
+    "--payload",
+    "payload_suuid",
+    required=True,
+    envvar="AA_PAYLOAD_SUUID",
+    help="The payload SUUID",
+)
+@click.option(
+    "--output",
+    "output_path",
+    envvar="AA_PAYLOAD_PATH",
+    default="/input/payload.json",
+    show_default=True,
+    type=click.Path(path_type=Path),
+)
+def cli(run_suuid, payload_suuid, output_path):
+    try:
+        RunGateway().payload(run_suuid, payload_suuid, output_path)
+    except Exception as e:
+        click.echo(f"Something went wrong. The error message received:\n  {e}", err=True)
         sys.exit(1)
-
-    if output:
-        with open(output, "w") as f:
-            f.write(req.text)
-    else:
-        click.echo(req.text)

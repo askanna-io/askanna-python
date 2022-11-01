@@ -1,0 +1,28 @@
+test_job:
+  job:
+    - python test.py
+
+test_job_result:
+  job:
+    - python test.py
+  output:
+    result: result.json
+
+test_job_artifact:
+  job:
+    - python test.py
+  output:
+    artifact: result.json
+
+test_job_result_variable:
+  job:
+    - python test.py
+  output:
+    result: ${FILENAME}.json
+
+test_job_artifact_variable:
+  job:
+    - python test.py
+  output:
+    artifact:
+      - ${FILENAME}.json

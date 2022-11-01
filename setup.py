@@ -41,8 +41,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "askanna=askanna.cli.tool:cli",
-            "askanna-run-utils=askanna.cli.run_utils.tool:cli",
+            "askanna=askanna.cli:cli",
+            "askanna-run-utils=askanna.cli.run_utils:cli",
         ],
     },
     description="The AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects",

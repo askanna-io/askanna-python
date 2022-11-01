@@ -1,20 +1,19 @@
-# This file contains anything that needs to be loaded for `import askanna`. We separated this file to avoid conflicts
-# while in installation mode
-
-# Please note: never do `import askanna` here, this will cause an recursive import loop
-
+"""This file contains anything that needs to be loaded for `import askanna` to work."""
 import click
 
 from askanna import USING_ASKANNA_CLI
-from askanna.core.job import JobGateway
-from askanna.core.metrics import track_metric, track_metrics, MetricGateway  # noqa
-from askanna.core.variables_tracked import track_variable, track_variables  # noqa
-from askanna.core.project import ProjectGateway
-from askanna.core.result import ResultGateway
-from askanna.core.run import RunMultipleQueryGateway, RunActionGateway
-from askanna.core.utils import update_available
-from askanna.core.workspace import WorkspaceGateway
-
+from askanna.core.utils.main import update_available
+from askanna.gateways.job import JobGateway
+from askanna.gateways.project import ProjectGateway
+from askanna.gateways.variable import VariableGateway
+from askanna.gateways.workspace import WorkspaceGateway
+from askanna.sdk.run import GetRunsSDK, ResultSDK, RunSDK
+from askanna.sdk.track import (  # noqa: F401
+    track_metric,
+    track_metrics,
+    track_variable,
+    track_variables,
+)
 
 if USING_ASKANNA_CLI:
     try:
@@ -23,12 +22,11 @@ if USING_ASKANNA_CLI:
         click.echo(f"Something went wrong while checking if an update is available: {e}", err=True)
 
 
-# Instantiated objects for query or actions, these do not contain any data on load and will be filled with data on
-# using detail/get/list actions from it.
+# Instantiated objects for query or actions, these do not contain any data on load and will be filled when needed
 job = JobGateway()
-metrics = MetricGateway()
 project = ProjectGateway()
-result = ResultGateway()
-run = RunActionGateway()
-runs = RunMultipleQueryGateway()
+result = ResultSDK()
+run = RunSDK()
+runs = GetRunsSDK()
+variable = VariableGateway()
 workspace = WorkspaceGateway()

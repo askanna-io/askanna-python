@@ -1,9 +1,9 @@
 import click
 
-from askanna.core.metrics import mc
+from askanna.sdk.track import metric_collector
 
 HELP = """
-Retrieve metrics generated with track_metric and push metrics to AskAnna
+Retrieve metrics generated with track_metric(s) and push these metrics to AskAnna
 """
 
 SHORT_HELP = "Push metrics to AskAnna"
@@ -12,5 +12,5 @@ SHORT_HELP = "Push metrics to AskAnna"
 @click.command(help=HELP, short_help=SHORT_HELP)
 @click.option("--force", "-f", is_flag=True, help="Force push metrics")
 def cli(force):
-    if mc.has_metrics() or force:
-        mc.save(force=True)
+    if len(metric_collector) > 0 or force:
+        metric_collector.save(force=True)
