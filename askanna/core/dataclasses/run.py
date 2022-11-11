@@ -7,58 +7,11 @@ from typing import Any, Dict, List, Optional, Union
 from dateutil import parser as dateutil_parser
 
 from askanna.core.dataclasses.base import Label
+from askanna.core.dataclasses.job import JobRelation, PayloadRelation
+from askanna.core.dataclasses.project import ProjectRelation
+from askanna.core.dataclasses.workspace import WorkspaceRelation
 from askanna.core.exceptions import MultipleObjectsReturned
 from askanna.core.utils.object import json_serializer
-
-
-@dataclass
-class Payload:
-    uuid: uuid.UUID
-    short_uuid: str
-    size: int
-    lines: int
-    created: datetime.datetime
-    modified: datetime.datetime
-    deleted: Optional[datetime.datetime] = None
-
-    def __str__(self):
-        return (
-            f"Payload: {self.short_uuid} ({self.size} byte"
-            + ("s" if self.size != 1 else "")
-            + f" & {self.lines} line"
-            + ("s" if self.lines != 1 else "")
-            + ")"
-        )
-
-    def __repr__(self):
-        return f"Payload(short_uuid='{self.short_uuid}', size={self.size}, lines={self.lines})"
-
-    @classmethod
-    def from_dict(cls, data: Dict) -> "Payload":
-        data["uuid"] = uuid.UUID(data["uuid"])
-
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
-        if data["deleted"]:
-            data["deleted"] = dateutil_parser.parse(data["deleted"])
-
-        return cls(**data)
-
-
-@dataclass
-class PayloadRelation:
-    uuid: uuid.UUID
-    short_uuid: str
-    name: str
-    size: int
-    lines: int
-
-    @classmethod
-    def from_dict(cls, data: Dict) -> "PayloadRelation":
-        del data["relation"]
-        data["uuid"] = uuid.UUID(data["uuid"])
-
-        return cls(**data)
 
 
 @dataclass
@@ -253,8 +206,7 @@ class MetricList:
 
 @dataclass
 class Run:
-    uuid: uuid.UUID
-    short_uuid: str
+    suuid: str
     name: str
     description: str
 
@@ -273,9 +225,9 @@ class Run:
     log: dict
     environment: dict
 
-    job: dict
-    project: dict
-    workspace: dict
+    job: JobRelation
+    project: ProjectRelation
+    workspace: WorkspaceRelation
 
     created: datetime.datetime
     modified: datetime.datetime
@@ -287,7 +239,7 @@ class Run:
 
     def __str__(self):
         summary = {
-            "short_uuid": self.short_uuid,
+            "suuid": self.suuid,
             "name": self.name,
             "status": self.status,
             "duration": self.duration,
@@ -299,13 +251,34 @@ class Run:
         return f"Run summary: {summary}"
 
     def __repr__(self):
-        return f"Run(short_uuid='{self.short_uuid}', status='{self.status}')"
+        return f"Run(suuid='{self.suuid}', status='{self.status}')"
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Run":
+        data["created"] = dateutil_parser.parse(data["created"])
+        data["modified"] = dateutil_parser.parse(data["modified"])
+
         payload = PayloadRelation.from_dict(data["payload"]) if data["payload"] else None
         del data["payload"]
-        return cls(payload=payload, **data)
+        job = JobRelation.from_dict(data["job"])
+        del data["job"]
+        project = ProjectRelation.from_dict(data["project"])
+        del data["project"]
+        workspace = WorkspaceRelation.from_dict(data["workspace"])
+        del data["workspace"]
+
+        return cls(payload=payload, job=job, project=project, workspace=workspace, **data)
+
+
+@dataclass
+class RunRelation:
+    suuid: str
+    name: str
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "RunRelation":
+        del data["relation"]
+        return cls(**data)
 
 
 @dataclass
@@ -330,14 +303,13 @@ class RunList:
 
 @dataclass
 class RunStatus:
-    uuid: uuid.UUID
-    short_uuid: str
+    suuid: str
     status: str
     name: str
     next_url: str
-    job: dict
-    workspace: dict
-    project: dict
+    job: JobRelation
+    project: ProjectRelation
+    workspace: WorkspaceRelation
     created: datetime.datetime
     updated: datetime.datetime
     finished: Optional[datetime.datetime] = None
@@ -345,23 +317,29 @@ class RunStatus:
 
     def __str__(self):
         if self.name:
-            return f"{self.name} ({self.short_uuid}): {self.status}"
-        return f"{self.short_uuid}: {self.status}"
+            return f"{self.name} ({self.suuid}): {self.status}"
+        return f"{self.suuid}: {self.status}"
 
     def __repr__(self):
-        return f"RunStatus(suuid={self.short_uuid}, status={self.status})"
+        return f"RunStatus(suuid={self.suuid}, status={self.status})"
 
     @classmethod
     def from_dict(cls, data: Dict) -> "RunStatus":
         del data["message_type"]
 
-        data["uuid"] = uuid.UUID(data["uuid"])
         data["created"] = dateutil_parser.isoparse(data["created"])
         data["updated"] = dateutil_parser.isoparse(data["updated"])
         if "finished" in data and data["finished"]:
             data["finished"] = dateutil_parser.isoparse(data["finished"])
 
-        return cls(**data)
+        job = JobRelation.from_dict(data["job"])
+        del data["job"]
+        project = ProjectRelation.from_dict(data["project"])
+        del data["project"]
+        workspace = WorkspaceRelation.from_dict(data["workspace"])
+        del data["workspace"]
+
+        return cls(job=job, project=project, workspace=workspace, **data)
 
 
 @dataclass
@@ -401,9 +379,8 @@ class ArtifactFileList:
 
 @dataclass
 class ArtifactInfo:
+    suuid: str
     run: uuid.UUID
-    uuid: uuid.UUID
-    short_uuid: str
 
     size: int
     count_dir: int
@@ -419,7 +396,7 @@ class ArtifactInfo:
     @classmethod
     def from_dict(cls, data: Dict) -> "ArtifactInfo":
         data["run"] = uuid.UUID(data["run"])
-        data["uuid"] = uuid.UUID(data["uuid"])
+
         data["created"] = dateutil_parser.isoparse(data["created"])
         data["modified"] = dateutil_parser.isoparse(data["modified"])
         if "deleted" in data and data["deleted"]:

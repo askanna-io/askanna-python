@@ -32,7 +32,7 @@ class CreateProject:
 
         if not workspace_suuid:
             workspace = ask_which_workspace("In which workspace do you want to create the new project?")
-            workspace_suuid = workspace.short_uuid
+            workspace_suuid = workspace.suuid
 
         try:
             project = aa_project.create(workspace_suuid=workspace_suuid, name=self.name, description=description)
@@ -40,7 +40,7 @@ class CreateProject:
             click.echo(f"Something went wrong while creating the project:\n  {e}", err=True)
             sys.exit(1)
         else:
-            click.echo(f"\nYou successfully created project '{project.name}' with SUUID '{project.short_uuid}'")
+            click.echo(f"\nYou successfully created project '{project.name}' with SUUID '{project.suuid}'")
             return project
 
 

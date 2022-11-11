@@ -1,7 +1,7 @@
-import uuid
+import uuid as _uuid
 from typing import Optional
 
-# Inspiration for the suuid encoder comes from https://pythonhosted.org/shorten/user/examples.html
+# Inspiration for create suuid from uuid comes from https://pythonhosted.org/shorten/user/examples.html
 
 
 def bx_encode(n: int, alphabet: str) -> str:
@@ -38,13 +38,14 @@ def bx_encode(n: int, alphabet: str) -> str:
     return "".join(digits)
 
 
-def str_to_suuid(string: str, group_size: int, n_groups: int) -> str:
-    """Make a suuid from a string. The string is split into 'n_groups' groups of size 'group_size'.
+def str_to_groups(string: str, group_size: int, n_groups: int) -> str:
+    """Make a 'grouped string' from a string. The string is split into 'n_groups' groups of size 'group_size' and
+    joined with a '-'.
 
     Args:
-        string (str): _description_
-        group_size (int): _description_
-        n_groups (int): _description_
+        string (str): the string to convert to suuid
+        group_size (int): the size of each group
+        n_groups (int): the number of groups
 
     Raises:
         ValueError: if the length of the string is not at least a multiple of 'group_size' and 'n_groups'
@@ -53,36 +54,41 @@ def str_to_suuid(string: str, group_size: int, n_groups: int) -> str:
         str: a string in the suuid form
     """
     if len(string) < group_size * n_groups:
-        raise ValueError("string is too short given the group size and number of groups")
+        raise ValueError("String is too short given the group size and number of groups")
 
     string_groups = [string[i : i + group_size] for i in range(0, len(string), group_size)]
 
     return "-".join(string_groups[:n_groups])
 
 
-def create_suuid(uuid_obj: Optional[uuid.UUID] = None) -> str:
-    """Given an uuid4, return the suuid form of it. If the uuid_obj is not given, a new uuid4 is generated.
+def create_suuid(uuid: Optional[_uuid.UUID] = None) -> str:
+    """create_suuid will produce 16 character alphabetic tokens, split into 4 character groups. The format is:
+
+        xxxx-xxxx-xxxx-xxxx
+
+    When you provide a uuid, the suuid will be based on that uuid. If you don't provide a uuid, a new uuid will be
+    generated.
 
     Args:
-        uuid_obj (uuid.UUID, optional): an uuid4 object
+        uuid (uuid.UUID, optional): an uuid4 object
 
     Returns:
         str: a string in the suuid form
     """
-
     alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
     token_length = 16
     group_size = 4
+
     n_groups = int(token_length / group_size)
 
     # Generate a random UUID if not given
-    if not uuid_obj:
-        uuid_obj = uuid.uuid4()
+    if not uuid:
+        uuid = _uuid.uuid4()
 
     # Convert uuid to digits with the given alphabet
-    token = bx_encode(int(uuid_obj.hex, 16), alphabet)
+    token = bx_encode(int(uuid.hex, 16), alphabet)
     # Padding with the first symbol from 'alphabet' as needed to get the desired length
     token = token.rjust(token_length, alphabet[0])
 
-    return str_to_suuid(token, group_size, n_groups)
+    return str_to_groups(token, group_size, n_groups)

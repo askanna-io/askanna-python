@@ -32,21 +32,32 @@ def run_artifact_file() -> bytes:
 def run_artifact_list() -> list:
     return [
         {
-            "uuid": "1ffeb3e8-6b4e-41e1-9565-a2256d8f7994",
+            "suuid": "abcd-abcd-abcd-abcd",
+            "workspace": {
+                "relation": "workspace",
+                "suuid": "7aYw-rkCA-wdMo-1Gi6",
+                "name": "a workspace",
+            },
             "project": {
                 "relation": "project",
-                "name": "Test project",
-                "uuid": "95be337b-f09d-4527-9b06-69a27a7ce870",
-                "short_uuid": "4YYm-HyoP-rfIs-mghs",
+                "suuid": "4YYm-HyoP-rfIs-mghs",
+                "name": "a project",
             },
-            "created": "2022-08-23T07:22:58.778753Z",
-            "modified": "2022-08-23T07:22:58.778794Z",
-            "deleted": None,
-            "short_uuid": "abcd-abcd-abcd-abcd",
+            "job": {
+                "relation": "job",
+                "suuid": "HyoP-rfIs-mghs-4YYm",
+                "name": "a job",
+            },
+            "run": {
+                "relation": "run",
+                "suuid": "HyoP-rfIs-mghs-4YYm",
+                "name": None,
+            },
             "size": 198,
             "count_dir": 0,
             "count_files": 1,
-            "run": "8247df11-e2b4-478e-9ee4-a01609ba781f",
+            "created": "2022-08-23T07:22:58.778753Z",
+            "modified": "2022-08-23T07:22:58.778794Z",
         }
     ]
 
@@ -55,20 +66,31 @@ def run_artifact_list() -> list:
 def run_artifact_list_not_found() -> list:
     return [
         {
-            "uuid": "1ffeb3e8-6b4e-41e1-9565-a2256d8f7994",
+            "suuid": "wxyz-wxyz-wxyz-wxyz",
+            "workspace": {
+                "relation": "workspace",
+                "suuid": "7aYw-rkCA-wdMo-1Gi6",
+                "name": "a workspace",
+            },
             "project": {
                 "relation": "project",
-                "name": "Test project",
-                "uuid": "95be337b-f09d-4527-9b06-69a27a7ce870",
-                "short_uuid": "4YYm-HyoP-rfIs-mghs",
+                "suuid": "4YYm-HyoP-rfIs-mghs",
+                "name": "a project",
             },
-            "created": "2022-08-23T07:22:58.778753Z",
-            "modified": "2022-08-23T07:22:58.778794Z",
-            "deleted": None,
-            "short_uuid": "wxyz-wxyz-wxyz-wxyz",
+            "job": {
+                "relation": "job",
+                "suuid": "HyoP-rfIs-mghs-4YYm",
+                "name": "a job",
+            },
+            "run": {
+                "relation": "run",
+                "suuid": "HyoP-rfIs-mghs-4YYm",
+                "name": None,
+            },
             "size": 198,
             "count_dir": 0,
             "count_files": 1,
-            "run": "8247df11-e2b4-478e-9ee4-a01609ba781f",
+            "created": "2022-08-23T07:22:58.778753Z",
+            "modified": "2022-08-23T07:22:58.778794Z",
         }
     ]

@@ -4,14 +4,12 @@ import pytest
 @pytest.fixture
 def workspace_detail() -> dict:
     return {
-        "uuid": "695fcc8b-ba8c-4575-a1e0-f0fcfc70a349",
-        "short_uuid": "1234-1234-1234-1234",
+        "suuid": "1234-1234-1234-1234",
         "name": "test-workspace",
         "description": "Here you can add some info about the workspace",
         "visibility": "PRIVATE",
         "created_by": {
-            "uuid": "726f6262-6572-7440-6173-6b616e6e6121",
-            "short_uuid": "3Tw1-jp9H-FjQw-8PYY",
+            "suuid": "3Tw1-jp9H-FjQw-8PYY",
             "name": "Robbert",
         },
         "permission": {
@@ -84,14 +82,12 @@ def workspace_list_limit(workspace_new_detail) -> dict:
 @pytest.fixture
 def workspace_new_detail() -> dict:
     return {
-        "uuid": "978420cf-e42e-4c3b-95fb-405f1e2f6a88",
-        "short_uuid": "4buD-tVhI-emHj-QXCY",
+        "suuid": "4buD-tVhI-emHj-QXCY",
         "name": "a new workspace",
         "description": "description new workspace",
         "visibility": "PUBLIC",
         "created_by": {
-            "uuid": "726f6262-6572-7440-6173-6b616e6e6121",
-            "short_uuid": "3Tw1-jp9H-FjQw-8PYY",
+            "suuid": "3Tw1-jp9H-FjQw-8PYY",
             "name": "Robbert",
         },
         "permission": {

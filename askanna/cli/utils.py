@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 
 import click
 
@@ -10,7 +11,7 @@ from askanna.core.dataclasses.project import Project
 from askanna.core.dataclasses.workspace import Workspace
 
 
-def ask_which_workspace(question: str = None) -> Workspace:
+def ask_which_workspace(question: Optional[str] = None) -> Workspace:
     """
     Determine which workspace should be used to perform an action
     """
@@ -41,7 +42,7 @@ def ask_which_workspace(question: str = None) -> Workspace:
     return workspace
 
 
-def ask_which_project(question: str = None, workspace_suuid: str = None) -> Project:
+def ask_which_project(question: Optional[str] = None, workspace_suuid: Optional[str] = None) -> Project:
     """
     Determine which project should be used to perform an action
     """
@@ -74,7 +75,7 @@ def ask_which_project(question: str = None, workspace_suuid: str = None) -> Proj
     return project
 
 
-def ask_which_job(question: str = None, project_suuid: str = None) -> Job:
+def ask_which_job(question: Optional[str] = None, project_suuid: Optional[str] = None) -> Job:
     """
     Determine which job should be used to perform an action
     """

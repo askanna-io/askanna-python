@@ -1,5 +1,6 @@
 import json
 import sys
+from typing import Optional
 
 import click
 
@@ -19,8 +20,8 @@ SHORT_HELP = "Start a run in AskAnna"
 
 
 def determine_project(
-    project_suuid: str = None,
-    workspace_suuid: str = None,
+    project_suuid: Optional[str] = None,
+    workspace_suuid: Optional[str] = None,
 ) -> Project:
     if not project_suuid:
         project_suuid = config.project.project_suuid
@@ -33,7 +34,7 @@ def determine_project(
     else:
         if not workspace_suuid:
             workspace = ask_which_workspace(question="From which workspace do you want to run a job?")
-            workspace_suuid = workspace.short_uuid
+            workspace_suuid = workspace.suuid
 
         return ask_which_project(
             question="From which project do you want to run a job?",
@@ -124,24 +125,25 @@ def cli(
             push(overwrite=True, description=description)
 
         # Only determine project when it's necessary
-        project = None
+        project_suuid = None
         if not job_suuid:
             project = determine_project(project_suuid, workspace_suuid)
+            project_suuid = project.suuid
 
         if job_suuid:
             pass
         elif job_name:
             job_name = job_name.strip()
             try:
-                job = aa_job.get_job_by_name(job_name=job_name, project_suuid=project.short_uuid)
-                job_suuid = job.short_uuid
+                job = aa_job.get_job_by_name(job_name=job_name, project_suuid=project_suuid)
+                job_suuid = job.suuid
             except Exception as e:
                 click.echo(e)
                 sys.exit(1)
         else:
             job = ask_which_job(
                 question="Which job do you want to run?",
-                project_suuid=project.short_uuid,
+                project_suuid=project_suuid,
             )
 
             if not click.confirm(f"\nDo you want to run the job '{job.name}'?", abort=True):
@@ -149,7 +151,7 @@ def cli(
             else:
                 click.echo("")
 
-            job_suuid = job.short_uuid
+            job_suuid = job.suuid
 
         try:
             run = aa_run.start(
@@ -163,8 +165,7 @@ def cli(
             sys.exit(1)
         else:
             click.echo(
-                f"Succesfully started a new run for job '{run.job.get('name')}' in AskAnna with SUUID "
-                f"'{run.short_uuid}'."
+                f"Succesfully started a new run for job '{run.job.name}' in AskAnna with SUUID " f"'{run.suuid}'."
             )
 
 

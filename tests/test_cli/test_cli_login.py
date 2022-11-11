@@ -56,7 +56,7 @@ class TestCliLogin(unittest.TestCase):
             json={
                 "name": fake.name(),
                 "email": self.email,
-                "short_uuid": fake.uuid4(),
+                "suuid": fake.uuid4(),
                 "is_active": True,
                 "date_joined": fake.iso8601(),
                 "last_login": fake.iso8601(),
@@ -91,7 +91,7 @@ class TestCliLogin(unittest.TestCase):
             json={
                 "name": fake.name(),
                 "email": self.email,
-                "short_uuid": fake.uuid4(),
+                "suuid": fake.uuid4(),
                 "is_active": True,
                 "date_joined": fake.iso8601(),
                 "last_login": fake.iso8601(),
@@ -291,7 +291,7 @@ class TestCliLogin(unittest.TestCase):
             json={
                 "name": "",
                 "email": email,
-                "short_uuid": fake.uuid4(),
+                "suuid": fake.uuid4(),
                 "is_active": True,
                 "date_joined": fake.iso8601(),
                 "last_login": fake.iso8601(),
@@ -324,7 +324,7 @@ class TestCliLogin(unittest.TestCase):
             json={
                 "name": "",
                 "email": email,
-                "short_uuid": fake.uuid4(),
+                "suuid": fake.uuid4(),
                 "is_active": True,
                 "date_joined": fake.iso8601(),
                 "last_login": fake.iso8601(),
@@ -357,7 +357,7 @@ class TestCliLogin(unittest.TestCase):
             json={
                 "name": "",
                 "email": email,
-                "short_uuid": fake.uuid4(),
+                "suuid": fake.uuid4(),
                 "is_active": True,
                 "date_joined": fake.iso8601(),
                 "last_login": fake.iso8601(),

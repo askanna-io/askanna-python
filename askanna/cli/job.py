@@ -32,22 +32,22 @@ def list(project_suuid):
     if not jobs:
         click.echo("We cannot find any job.")
     if project_suuid:
-        click.echo(f"The jobs for project '{jobs[0].project['name']}' are:\n")
+        click.echo(f"The jobs for project '{jobs[0].project.name}' are:\n")
         click.echo("JOB SUUID              JOB NAME")
         click.echo("-------------------    -------------------------")
     else:
         click.echo("PROJECT SUUID          PROJECT NAME            JOB SUUID              JOB NAME")
         click.echo("-------------------    --------------------    -------------------    -------------------------")
 
-    for job in sorted(jobs, key=lambda x: (x.project["name"], x.name)):
+    for job in sorted(jobs, key=lambda x: (x.project.name, x.name)):
         if project_suuid:
-            click.echo(f"{job.short_uuid}    {job.name[:25]}")
+            click.echo(f"{job.suuid}    {job.name[:25]}")
         else:
             click.echo(
                 "{project_suuid}    {project_name}    {job_suuid}    {job_name}".format(
-                    project_suuid=job.project["short_uuid"],
-                    project_name="{:20}".format(job.project["name"])[:20],
-                    job_suuid=job.short_uuid,
+                    project_suuid=job.project.suuid,
+                    project_name=f"{job.project.name:20}"[:20],
+                    job_suuid=job.suuid,
                     job_name=job.name[:25],
                 )
             )
@@ -64,12 +64,12 @@ def change(job_suuid, name, description):
         if not project_suuid:
             workspace = ask_which_workspace(question="From which workspace do you want to change a job?")
             project = ask_which_project(
-                question="From which project do you want to change a job?", workspace_suuid=workspace.short_uuid
+                question="From which project do you want to change a job?", workspace_suuid=workspace.suuid
             )
-            project_suuid = project.short_uuid
+            project_suuid = project.suuid
 
         job = ask_which_job(question="Which job do you want to change?", project_suuid=project_suuid)
-        job_suuid = job.short_uuid
+        job_suuid = job.suuid
 
     if not name and not description:
         if click.confirm("\nDo you want to change the name of the job?"):
@@ -89,11 +89,11 @@ def change(job_suuid, name, description):
             click.echo(f"Something went wrong while changing the job SUUID '{job_suuid}':\n  {e}", err=True)
             sys.exit(1)
     else:
-        click.echo(f"\nYou succesfully changed job '{job.name}' with SUUID '{job.short_uuid}'")
+        click.echo(f"\nYou succesfully changed job '{job.name}' with SUUID '{job.suuid}'")
 
 
 @cli1.command(help="Remove a job in AskAnna", short_help="Remove job")
-@click.option("--id", "-i", "job_suuid", type=str, required=True, help="Job SUUID")
+@click.option("--id", "-i", "job_suuid", type=str, required=True, help="Job SUUID", prompt="Job SUUID")
 @click.option("--force", "-f", is_flag=True, help="Force")
 def remove(job_suuid, force):
     try:

@@ -68,7 +68,7 @@ class Upload:
                 f"In the AskAnna platform something went wrong with creating the upload entry: {reg_upload.json()}",
             )
 
-        return reg_upload.json().get("short_uuid")
+        return reg_upload.json().get("suuid")
 
     def upload_file(self, file_path):
         """

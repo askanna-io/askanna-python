@@ -43,6 +43,11 @@ def cli(email: str, password: str, url: str, remote: str):
             password = click.prompt("Password", type=str, hide_input=True)
 
     # Do the actual login and update the config file with the token
-    auth.login(email=email, password=password, remote_url=remote, ui_url=url, update_config_file=True)
+    try:
+        auth.login(email=email, password=password, remote_url=remote, ui_url=url, update_config_file=True)
+    except Exception as e:
+        click.echo(f"Login to AskAnna failed:\n  {e}")
+        sys.exit(1)
+
     user = auth.get_user_info()
     click.echo(f"You are logged in with email '{user.email}'")

@@ -51,7 +51,7 @@ class ProjectGateway:
         if r.status_code != 200:
             raise GetError(f"{r.status_code} - Something went wrong while retrieving projects: {r.json()}")
 
-        return [Project(**project) for project in r.json().get("results")]
+        return [Project.from_dict(project) for project in r.json().get("results")]
 
     def detail(self, suuid: str) -> Project:
         """Get information of a project
@@ -75,7 +75,7 @@ class ProjectGateway:
                 f"{r.status_code} - Something went wrong while retrieving project SUUID '{suuid}': {r.json()}"
             )
 
-        return Project(**r.json())
+        return Project.from_dict(r.json())
 
     def create(self, workspace_suuid: str, name: str, description: str = "", visibility: str = "PRIVATE") -> Project:
         """Create a new project
@@ -109,7 +109,7 @@ class ProjectGateway:
         )
 
         if r.status_code == 201:
-            return Project(**r.json())
+            return Project.from_dict(r.json())
         else:
             raise CreateError(f"{r.status_code} - Something went wrong while creating the project: {r.json()}")
 
@@ -154,7 +154,7 @@ class ProjectGateway:
         r = client.patch(url, json=changes)
 
         if r.status_code == 200:
-            return Project(**r.json())
+            return Project.from_dict(r.json())
         else:
             raise PatchError(
                 f"{r.status_code} - Something went wrong while updating the project SUUID '{suuid}': {r.json()}"

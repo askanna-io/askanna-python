@@ -37,7 +37,7 @@ class VariableGateway:
             "ordering": ordering,
         }
         if project_suuid:
-            url = client.askanna_url.project.variable(project_suuid)
+            url = client.askanna_url.project.variable(project_suuid=project_suuid)
         else:
             url = client.askanna_url.variable.variable()
 
@@ -46,7 +46,7 @@ class VariableGateway:
         if r.status_code != 200:
             raise GetError(f"{r.status_code} - Something went wrong while retrieving variables: {r.json()}")
 
-        return [Variable(**variable) for variable in r.json().get("results")]
+        return [Variable.from_dict(variable) for variable in r.json().get("results")]
 
     def detail(self, variable_suuid: str) -> Variable:
         """Get the details of a variable
