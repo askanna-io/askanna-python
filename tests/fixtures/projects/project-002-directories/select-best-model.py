@@ -23,7 +23,7 @@ askanna.track_variable("parameters", parameters)
 for param in parameters:
     print(f"Running with param = {param}")
     response = askanna.run.start(job_suuid="2qSS-casN-tc2G-TA2d", data=param)
-    train_runs.append(response.short_uuid)
+    train_runs.append(response.suuid)
     print(f"Status = {response.status}")
 
 askanna.track_variable("train-runs", json.dumps(train_runs))
@@ -33,7 +33,7 @@ for run in train_runs:
     status = "running"
     while status == "running":
         runinfo = askanna.run.status(run)
-        print(f"Update: {runinfo.short_uuid} is still running")
+        print(f"Update: {runinfo.suuid} is still running")
         time.sleep(10)
         status = runinfo.status
 
@@ -48,15 +48,15 @@ for run in runs:
 alpha = run_selected.variables.get("alpha").get("variable").get("value")
 l1_ratio = run_selected.variables.get("l1_ratio").get("variable").get("value")
 
-print(f"The optimal run SUUID is {run_selected.short_uuid}")
+print(f"The optimal run SUUID is {run_selected.suuid}")
 print(f"It had the parameters: alpha={alpha}, l1_ratio={l1_ratio}")
 print(f"And RMSE: {rmse}")
 
 askanna.track_variable(
-    "best-model", {"run_suuid": run_selected.short_uuid, "alpha": alpha, "l1_ratio": l1_ratio, "rmse": rmse}
+    "best-model", {"run_suuid": run_selected.suuid, "alpha": alpha, "l1_ratio": l1_ratio, "rmse": rmse}
 )
 
-url = f"https://api.askanna.eu/v1/result/{run_selected.short_uuid}/"
+url = f"https://api.askanna.eu/v1/result/{run_selected.suuid}/"
 token = "Token " + os.getenv("AA_TOKEN")
 headers = {"Authorization": token}
 response = requests.get(url, headers=headers)

@@ -32,22 +32,22 @@ def list(workspace_suuid):
     if not projects:
         click.echo("We cannot find any project.")
     if workspace_suuid:
-        click.echo(f"The projects for workspace '{projects[0].workspace['name']}' are:\n")
+        click.echo(f"The projects for workspace '{projects[0].workspace.name}' are:\n")
         click.echo("PROJECT SUUID          PROJECT NAME")
         click.echo("-------------------    -------------------------")
     else:
         click.echo("WORKSPACE SUUID        WORKSPACE NAME          PROJECT SUUID          PROJECT NAME")
         click.echo("-------------------    --------------------    -------------------    -------------------------")
 
-    for project in sorted(projects, key=lambda x: (x.workspace["name"], x.name)):
+    for project in sorted(projects, key=lambda x: (x.workspace.name, x.name)):
         if workspace_suuid:
-            click.echo(f"{project.short_uuid}    {project.name[:25]}")
+            click.echo(f"{project.suuid}    {project.name[:25]}")
         else:
             click.echo(
                 "{workspace_suuid}    {workspace_name}    {project_suuid}    {project_name}".format(
-                    workspace_suuid=project.workspace["short_uuid"],
-                    workspace_name="{:20}".format(project.workspace["name"])[:20],
-                    project_suuid=project.short_uuid,
+                    workspace_suuid=project.workspace.suuid,
+                    workspace_name=f"{project.workspace.name:20}"[:20],
+                    project_suuid=project.suuid,
                     project_name=project.name[:25],
                 )
             )
@@ -64,9 +64,9 @@ def change(suuid, name, description, visibility):
         if not suuid:
             workspace = ask_which_workspace(question="From which workspace do you want to change a project?")
             project = ask_which_project(
-                question="Which project do you want to change?", workspace_suuid=workspace.short_uuid
+                question="Which project do you want to change?", workspace_suuid=workspace.suuid
             )
-            suuid = project.short_uuid
+            suuid = project.suuid
 
     if not name and not description and not visibility:
         if click.confirm("\nDo you want to change the name of the project?"):
@@ -88,7 +88,7 @@ def change(suuid, name, description, visibility):
             click.echo(f"Something went wrong while changing the project SUUID '{suuid}':\n  {e}", err=True)
             sys.exit(1)
     else:
-        click.echo(f"\nYou succesfully changed project '{project.name}' with SUUID '{project.short_uuid}'")
+        click.echo(f"\nYou succesfully changed project '{project.name}' with SUUID '{project.suuid}'")
 
 
 @cli1.command(help="Create a new project in AskAnna", short_help="Create project")
@@ -112,7 +112,7 @@ def change(suuid, name, description, visibility):
 def create(workspace_suuid, name, description, visibility):
     if not workspace_suuid:
         workspace = ask_which_workspace("In which workspace do you want to create the new project?")
-        workspace_suuid = workspace.short_uuid
+        workspace_suuid = workspace.suuid
 
     if not name:
         name = click.prompt("\nName of the project", type=str)
@@ -130,11 +130,11 @@ def create(workspace_suuid, name, description, visibility):
         click.echo(f"Something went wrong while creating the project:\n  {e}", err=True)
         sys.exit(1)
     else:
-        click.echo(f"\nYou successfully created project '{project.name}' with SUUID '{project.short_uuid}'")
+        click.echo(f"\nYou successfully created project '{project.name}' with SUUID '{project.suuid}'")
 
 
 @cli1.command(help="Remove a project in AskAnna", short_help="Remove project")
-@click.option("--id", "-i", "suuid", type=str, required=True, help="Project SUUID")
+@click.option("--id", "-i", "suuid", type=str, required=True, help="Project SUUID", prompt="Project SUUID")
 @click.option("--force", "-f", is_flag=True, help="Force")
 def remove(suuid, force):
     try:

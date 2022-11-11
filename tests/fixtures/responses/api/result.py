@@ -12,7 +12,7 @@ def result_response(api_responses: RequestsMock) -> RequestsMock:
     api_responses.add(
         "POST",
         url=askanna_url.run.result_upload(run_suuid),
-        json={"short_uuid": result_suuid},
+        json={"suuid": result_suuid},
         status=201,
     )
     api_responses.add(

@@ -2,7 +2,8 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 from askanna.config import config
-from askanna.core.dataclasses.run import ArtifactInfo, Payload, Run, RunList, RunStatus
+from askanna.core.dataclasses.job import Payload
+from askanna.core.dataclasses.run import ArtifactInfo, Run, RunList, RunStatus
 from askanna.core.exceptions import GetError
 from askanna.gateways.job import JobGateway
 from askanna.gateways.run import RunGateway
@@ -57,7 +58,7 @@ class RunSDK:
             raise ValueError("Parameters 'job_suuid' and 'job_name' are both set. Please only set one.")
         if job_name:
             project_suuid = project_suuid or config.project.project_suuid
-            job_suuid = JobGateway().get_job_by_name(job_name=job_name, project_suuid=project_suuid).short_uuid
+            job_suuid = JobGateway().get_job_by_name(job_name=job_name, project_suuid=project_suuid).suuid
 
         run_list = self.run_gateway.list(
             limit=limit,
@@ -70,11 +71,11 @@ class RunSDK:
 
         if include_metrics:
             for run in run_list:
-                run.metrics = self.run_gateway.metric(run.short_uuid)
+                run.metrics = self.run_gateway.metric(run.suuid)
 
         if include_variables:
             for run in run_list:
-                run.variables = self.run_gateway.variable(run.short_uuid)
+                run.variables = self.run_gateway.variable(run.suuid)
 
         return run_list
 
@@ -88,10 +89,10 @@ class RunSDK:
         run = self.run_gateway.detail(run_suuid)
 
         if include_metrics:
-            run.metrics = self.run_gateway.metric(run.short_uuid)
+            run.metrics = self.run_gateway.metric(run.suuid)
 
         if include_variables:
-            run.variables = self.run_gateway.variable(run.short_uuid)
+            run.variables = self.run_gateway.variable(run.suuid)
 
         return run
 
@@ -110,12 +111,12 @@ class RunSDK:
             raise ValueError("Parameters 'job_suuid' and 'job_name' are both set. Please only set one.")
         if job_name:
             project_suuid = project_suuid or config.project.project_suuid
-            job_suuid = JobGateway().get_job_by_name(job_name=job_name, project_suuid=project_suuid).short_uuid
+            job_suuid = JobGateway().get_job_by_name(job_name=job_name, project_suuid=project_suuid).suuid
         if not job_suuid:
             raise ValueError("No job SUUID set")
 
         run_status = JobGateway().run_request(job_suuid, data, name, description)
-        self.run_suuid = run_status.short_uuid
+        self.run_suuid = run_status.suuid
         return run_status
 
     def status(self, run_suuid: Optional[str] = None) -> RunStatus:
@@ -135,9 +136,7 @@ class RunSDK:
         if not payload_info:
             return
 
-        return self.run_gateway.payload(
-            run_suuid=run_suuid, payload_suuid=payload_info.short_uuid, output_path=output_path
-        )
+        return self.run_gateway.payload(run_suuid=run_suuid, payload_suuid=payload_info.suuid, output_path=output_path)
 
     def payload_info(self, run_suuid: Optional[str] = None) -> Union[Payload, None]:
         run_suuid = run_suuid or self._get_run_suuid()

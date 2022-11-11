@@ -4,22 +4,19 @@ import pytest
 @pytest.fixture
 def project_detail() -> dict:
     return {
-        "uuid": "08c7cdf5-be3c-4263-b06a-c70bfed66a05",
-        "short_uuid": "1234-1234-1234-1234",
+        "suuid": "1234-1234-1234-1234",
         "name": "a project",
         "description": "a project description",
         "workspace": {
             "relation": "workspace",
+            "suuid": "1S6G-K3fI-visU-LKac",
             "name": "a workspace",
-            "uuid": "2fbfbc98-083a-42a7-890c-0d95cc1ab903",
-            "short_uuid": "1S6G-K3fI-visU-LKac",
         },
         "package": {
-            "uuid": "6af7721c-7b15-4ddc-9f9b-de92826dbfcf",
-            "short_uuid": "3FqG-if1Z-Gd2s-uYvq",
+            "relation": "package",
+            "suuid": "3FqG-if1Z-Gd2s-uYvq",
             "name": "a-project_f8cbd1bd38a544f1819b8e9b957e933c.zip",
         },
-        "notifications": {"all": {"email": []}, "error": {"email": []}},
         "permission": {
             "workspace.me.view": True,
             "workspace.me.edit": False,
@@ -60,8 +57,8 @@ def project_detail() -> dict:
         },
         "is_member": False,
         "created_by": {
-            "uuid": "726f6262-6572-7440-6173-6b616e6e6121",
-            "short_uuid": "3Tw1-jp9H-FjQw-8PYY",
+            "relation": "user",
+            "suuid": "3Tw1-jp9H-FjQw-8PYY",
             "name": "Robbert",
         },
         "visibility": "PUBLIC",
@@ -94,18 +91,15 @@ def project_list_limit(project_new_detail) -> dict:
 @pytest.fixture
 def project_new_detail() -> dict:
     return {
-        "uuid": "a43ea3f4-ccfb-46e2-a94b-c0b52dea6d1f",
-        "short_uuid": "abcd-abcd-abcd-abcd",
+        "suuid": "abcd-abcd-abcd-abcd",
         "name": "a new project",
         "description": "description new project",
         "workspace": {
             "relation": "workspace",
+            "suuid": "1S6G-K3fI-visU-LKac",
             "name": "a workspace",
-            "uuid": "2fbfbc98-083a-42a7-890c-0d95cc1ab903",
-            "short_uuid": "1S6G-K3fI-visU-LKac",
         },
-        "package": {"uuid": None, "short_uuid": None, "name": None},
-        "notifications": {},
+        "package": None,
         "permission": {
             "askanna.me": True,
             "askanna.admin": False,
@@ -146,8 +140,8 @@ def project_new_detail() -> dict:
         },
         "is_member": True,
         "created_by": {
-            "uuid": "726f6262-6572-7440-6173-6b616e6e6121",
-            "short_uuid": "3Tw1-jp9H-FjQw-8PYY",
+            "relation": "user",
+            "suuid": "3Tw1-jp9H-FjQw-8PYY",
             "name": "Robbert",
         },
         "visibility": "PUBLIC",

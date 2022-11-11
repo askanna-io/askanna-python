@@ -1,12 +1,13 @@
 import datetime
-import uuid
 from dataclasses import dataclass
+from typing import Dict
+
+from dateutil import parser as dateutil_parser
 
 
 @dataclass
 class Workspace:
-    uuid: uuid.UUID
-    short_uuid: str
+    suuid: str
     name: str
     description: str
     visibility: str
@@ -18,4 +19,21 @@ class Workspace:
     url: str
 
     def __str__(self):
-        return f"{self.name} {self.short_uuid}"
+        return f"{self.name} {self.suuid}"
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "Workspace":
+        data["created"] = dateutil_parser.parse(data["created"])
+        data["modified"] = dateutil_parser.parse(data["modified"])
+        return cls(**data)
+
+
+@dataclass
+class WorkspaceRelation:
+    suuid: str
+    name: str
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "WorkspaceRelation":
+        del data["relation"]
+        return cls(**data)

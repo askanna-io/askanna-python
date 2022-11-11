@@ -41,7 +41,7 @@ class WorkspaceGateway:
         if r.status_code != 200:
             raise GetError(f"{r.status_code} - Something went wrong while retrieving workspaces: {r.json()}")
 
-        return [Workspace(**workspace) for workspace in r.json().get("results")]
+        return [Workspace.from_dict(workspace) for workspace in r.json().get("results")]
 
     def detail(self, workspace_suuid: str) -> Workspace:
         """Get information of a workspace
@@ -66,7 +66,7 @@ class WorkspaceGateway:
                 f"{r.json()}"
             )
 
-        return Workspace(**r.json())
+        return Workspace.from_dict(r.json())
 
     def create(self, name: str, description: str = "", visibility: str = "PRIVATE") -> Workspace:
         """Create a new workspace
@@ -97,7 +97,7 @@ class WorkspaceGateway:
         )
 
         if r.status_code == 201:
-            return Workspace(**r.json())
+            return Workspace.from_dict(r.json())
         else:
             raise CreateError(f"{r.status_code} - Something went wrong while creating the workspace: {r.json()}")
 
@@ -142,7 +142,7 @@ class WorkspaceGateway:
         r = client.patch(url, json=changes)
 
         if r.status_code == 200:
-            return Workspace(**r.json())
+            return Workspace.from_dict(r.json())
         else:
             raise PatchError(
                 f"{r.status_code} - Something went wrong while updating the workspace SUUID '{workspace_suuid}': "

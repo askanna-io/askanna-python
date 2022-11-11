@@ -47,7 +47,7 @@ class JobGateway:
         if r.status_code != 200:
             raise GetError(f"{r.status_code} - Something went wrong while retrieving jobs: {r.json()}")
 
-        return [Job(**job) for job in r.json().get("results")]
+        return [Job.from_dict(job) for job in r.json().get("results")]
 
     def detail(self, job_suuid: str) -> Job:
         """Get information of a job
@@ -65,7 +65,7 @@ class JobGateway:
         r = client.get(url)
 
         if r.status_code == 200:
-            return Job(**r.json())
+            return Job.from_dict(r.json())
         if r.status_code == 404:
             raise GetError(f"404 - The job SUUID '{job_suuid}' was not found")
         raise GetError(f"{r.status_code} - Something went wrong while retrieving job SUUID '{job_suuid}': {r.json()}")
@@ -172,7 +172,7 @@ class JobGateway:
         r = client.patch(url, json=changes)
 
         if r.status_code == 200:
-            return Job(**r.json())
+            return Job.from_dict(r.json())
         if r.status_code == 404:
             raise PatchError(f"404 - The job SUUID '{job_suuid}' was not found")
         raise PatchError(

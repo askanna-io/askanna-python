@@ -1,11 +1,11 @@
 from pathlib import Path
 from typing import List, Optional, Union
 
+from askanna.core.dataclasses.job import Payload
 from askanna.core.dataclasses.run import (
     ArtifactInfo,
     MetricList,
     MetricObject,
-    Payload,
     Run,
     RunList,
     RunStatus,
@@ -96,7 +96,7 @@ class RunGateway:
         r = client.get(url)
 
         if r.status_code == 200:
-            return Run(**r.json())
+            return Run.from_dict(r.json())
         if r.status_code == 404:
             raise GetError(f"404 - The run SUUID '{run_suuid}' was not found")
         raise GetError(f"{r.status_code} - Something went wrong while retrieving run SUUID '{run_suuid}': {r.json()}")
@@ -129,7 +129,7 @@ class RunGateway:
         r = client.patch(url, json=changes)
 
         if r.status_code == 200:
-            return Run(**r.json())
+            return Run.from_dict(r.json())
         if r.status_code == 404:
             raise PatchError(f"404 - The run SUUID '{run_suuid}' was not found")
         raise PatchError(
@@ -591,4 +591,4 @@ class RunGateway:
                 + str(r.json())
             )
 
-        return r.json()[0]["short_uuid"]
+        return r.json()[0]["suuid"]

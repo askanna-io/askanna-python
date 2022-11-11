@@ -18,7 +18,7 @@ class Label:
 
 @dataclass
 class User:
-    short_uuid: str
+    suuid: str
     name: str
     email: str
     is_active: bool

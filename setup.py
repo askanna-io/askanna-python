@@ -13,7 +13,7 @@ with open("CHANGELOG.md") as history_file:
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()
 
-setup_requirements = ["wheel~=0.37.1"]
+setup_requirements = ["wheel~=0.38.4"]
 
 
 setup(

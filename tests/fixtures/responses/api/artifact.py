@@ -88,7 +88,7 @@ def artifact_response(
     api_responses.add(
         "POST",
         url=askanna_url.run.artifact_list(run_suuid),
-        json={"short_uuid": artifact_suuid},
+        json={"suuid": artifact_suuid},
         status=201,
     )
     api_responses.add(
@@ -111,7 +111,7 @@ def artifact_response(
     api_responses.add(
         "POST",
         url=askanna_url.run.artifact_list(run_suuid_with_finish_fail),
-        json={"short_uuid": artifact_suuid_fail},
+        json={"suuid": artifact_suuid_fail},
         status=201,
     )
     api_responses.add(

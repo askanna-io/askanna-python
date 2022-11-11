@@ -28,29 +28,34 @@ class TestCliPush(unittest.TestCase):
                 "previous": None,
                 "results": [
                     {
-                        "uuid": "d83b6138-a9a9-44a6-b286-cc55e34abf56",
-                        "created_by": {
-                            "relation": "membership",
-                            "name": "test@test.com",
-                            "uuid": "2ba3b8fc-2045-4f1f-9687-878119a59214",
-                            "short_uuid": "1KLU-TJMX-zx1y-EofD",
+                        "suuid": "6a1T-iH8R-4tkl-B2pp",
+                        "workspace": {
+                            "relation": "workspace",
+                            "suuid": "1234-1234-1234-1234",
+                            "name": "a workspace",
                         },
                         "project": {
+                            "relation": "project",
+                            "suuid": "1234-1234-1234-1234",
                             "name": "001 Simple",
-                            "uuid": "020720b2-9f39-4cfa-97cc-e417453eeae9",
-                            "short_uuid": "1234-1234-1234-1234",
                         },
-                        "filename": "001-simple_5ce008c6caef40289cd541dc1d81408b.zip",
+                        "created_by": {
+                            "relation": "membership",
+                            "suuid": "1KLU-TJMX-zx1y-EofD",
+                            "name": "test@test.com",
+                            "job_title": "",
+                            "role": {
+                                "code": "WA",
+                                "name": "Workspace Admin",
+                            },
+                            "status": "accepted",
+                        },
                         "created": "2022-08-30T13:15:14.343891Z",
                         "modified": "2022-08-30T13:15:14.343936Z",
-                        "deleted": None,
-                        "description": "Initial push",
                         "name": None,
-                        "short_uuid": "6a1T-iH8R-4tkl-B2pp",
-                        "original_filename": "001-simple_5ce008c6caef40289cd541dc1d81408b.zip",
+                        "description": "Initial push",
+                        "filename": "001-simple_5ce008c6caef40289cd541dc1d81408b.zip",
                         "size": 1212,
-                        "finished": "2022-08-30T13:15:14.497068Z",
-                        "member": "2ba3b8fc-2045-4f1f-9687-878119a59214",
                     }
                 ],
             },
@@ -59,7 +64,7 @@ class TestCliPush(unittest.TestCase):
             responses.POST,
             url=askanna_url.base_url + "package/",
             status=201,
-            json={"short_uuid": "abcd-abcd-abcd-abcd"},
+            json={"suuid": "abcd-abcd-abcd-abcd"},
         )
         self.responses.add(
             responses.POST,

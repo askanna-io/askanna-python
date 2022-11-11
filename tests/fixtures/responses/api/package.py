@@ -118,7 +118,7 @@ def package_response(
     api_responses.add(
         "POST",
         url=askanna_url.package.package(),
-        json={"short_uuid": package_suuid},
+        json={"suuid": package_suuid},
         status=201,
     )
     api_responses.add(

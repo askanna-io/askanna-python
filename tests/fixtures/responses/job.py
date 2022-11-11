@@ -4,36 +4,46 @@ import pytest
 @pytest.fixture
 def job_detail() -> dict:
     return {
-        "uuid": "8e79792f-cc67-4695-850f-5e00e5942d5b",
+        "suuid": "1234-1234-1234-1234",
+        "name": "a job",
+        "description": None,
+        "workspace": {
+            "relation": "workspace",
+            "suuid": "7aYw-rkCA-wdMo-1Gi6",
+            "name": "a workspace",
+        },
         "project": {
             "relation": "project",
+            "suuid": "abcd-abcd-abcd-abcd",
             "name": "a project",
-            "uuid": "47bd90d7-0061-4a51-9b15-0aaad5582d98",
-            "short_uuid": "abcd-abcd-abcd-abcd",
         },
         "environment": "askanna/askanna-python:3-slim",
-        "schedules": [],
+        "timezone": "UTC",
+        "schedules": None,
         "notifications": {"all": {"email": []}, "error": {"email": []}},
         "created": "2022-10-17T06:53:04.148997Z",
         "modified": "2022-10-17T06:53:04.150201Z",
-        "description": None,
-        "name": "a job",
-        "short_uuid": "1234-1234-1234-1234",
-        "timezone": "UTC",
     }
 
 
 @pytest.fixture
 def job_with_schedule_detail() -> dict:
     return {
-        "uuid": "fb4519ea-74c0-42a6-8534-e3c2f094d2b1",
+        "suuid": "5678-5678-5678-5678",
+        "name": "a scheduled job",
+        "description": None,
+        "workspace": {
+            "relation": "workspace",
+            "suuid": "7aYw-rkCA-wdMo-1Gi6",
+            "name": "a workspace",
+        },
         "project": {
             "relation": "project",
             "name": "a project",
-            "uuid": "47bd90d7-0061-4a51-9b15-0aaad5582d98",
-            "short_uuid": "abcd-abcd-abcd-abcd",
+            "suuid": "abcd-abcd-abcd-abcd",
         },
         "environment": "askanna/python:3.7",
+        "timezone": "UTC",
         "schedules": [
             {
                 "raw_definition": "{'weekday': 1, 'hour': 3, 'minute': 21}",
@@ -46,10 +56,6 @@ def job_with_schedule_detail() -> dict:
         "notifications": {"all": {"email": ["notify@example.com"]}, "error": {"email": []}},
         "created": "2021-12-23T11:29:37.153209Z",
         "modified": "2022-06-21T07:08:10.858126Z",
-        "description": None,
-        "name": "a scheduled job",
-        "short_uuid": "5678-5678-5678-5678",
-        "timezone": "UTC",
     }
 
 

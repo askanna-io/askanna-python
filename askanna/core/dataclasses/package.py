@@ -1,22 +1,45 @@
 import datetime
-import uuid
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
+
+from dateutil import parser as dateutil_parser
+
+from askanna.core.dataclasses.project import ProjectRelation
+from askanna.core.dataclasses.workspace import WorkspaceRelation
 
 
 @dataclass
 class Package:
-    filename: str
-    name: Optional[str]
-    description: str
-    uuid: uuid.UUID
-    short_uuid: str
-    project: dict
-    size: int
-    original_filename: str
+    suuid: str
+    workspace: WorkspaceRelation
+    project: ProjectRelation
     created_by: dict
-    member: uuid.UUID  # type: ignore
     created: datetime.datetime
     modified: datetime.datetime
-    deleted: Optional[datetime.datetime] = None
-    finished: Optional[datetime.datetime] = None
+    name: Optional[str]
+    description: str
+    filename: str
+    size: int
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "Package":
+        data["created"] = dateutil_parser.parse(data["created"])
+        data["modified"] = dateutil_parser.parse(data["modified"])
+
+        workspace = WorkspaceRelation.from_dict(data["workspace"])
+        del data["workspace"]
+        project = ProjectRelation.from_dict(data["project"])
+        del data["project"]
+
+        return cls(workspace=workspace, project=project, **data)
+
+
+@dataclass
+class PackageRelation:
+    suuid: str
+    name: str
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "PackageRelation":
+        del data["relation"]
+        return cls(**data)
