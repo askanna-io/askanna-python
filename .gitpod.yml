@@ -23,6 +23,7 @@ vscode:
     - GitLab.gitlab-workflow
     - ms-python.python
     - njpwerner.autodocstring
+    - DavidAnson.vscode-markdownlint
     - yzhang.markdown-all-in-one
     - TakumiI.markdowntable
     - ms-azuretools.vscode-docker
