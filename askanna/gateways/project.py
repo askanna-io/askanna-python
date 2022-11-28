@@ -14,9 +14,9 @@ class ProjectGateway:
 
     def list(
         self,
+        workspace_suuid: Optional[str] = None,
         limit: int = 100,
         offset: int = 0,
-        workspace_suuid: Optional[str] = None,
         ordering: str = "-created",
     ) -> List[Project]:
         """List all projects with the option to filter on workspace
@@ -53,11 +53,11 @@ class ProjectGateway:
 
         return [Project.from_dict(project) for project in r.json().get("results")]
 
-    def detail(self, suuid: str) -> Project:
+    def detail(self, project_suuid: str) -> Project:
         """Get information of a project
 
         Args:
-            suuid (str): SUUID of the project
+            project_suuid (str): SUUID of the project
 
         Raises:
             GetError: Error based on response status code with the error message from the API
@@ -65,14 +65,14 @@ class ProjectGateway:
         Returns:
             Project: Project information in a Project dataclass
         """
-        url = client.askanna_url.project.project_detail(suuid)
+        url = client.askanna_url.project.project_detail(project_suuid=project_suuid)
         r = client.get(url)
 
         if r.status_code == 404:
-            raise GetError(f"404 - The project SUUID '{suuid}' was not found")
+            raise GetError(f"404 - The project SUUID '{project_suuid}' was not found")
         elif r.status_code != 200:
             raise GetError(
-                f"{r.status_code} - Something went wrong while retrieving project SUUID '{suuid}': {r.json()}"
+                f"{r.status_code} - Something went wrong while retrieving project SUUID '{project_suuid}': {r.json()}"
             )
 
         return Project.from_dict(r.json())
@@ -115,7 +115,7 @@ class ProjectGateway:
 
     def change(
         self,
-        suuid: str,
+        project_suuid: str,
         name: Optional[str] = None,
         description: Optional[str] = None,
         visibility: Optional[str] = None,
@@ -123,7 +123,7 @@ class ProjectGateway:
         """Change the name, description and/or visibility of a project
 
         Args:
-            suuid (str): SUUID of the project you want to change the information of
+            project_suuid (str): SUUID of the project you want to change the information of
             name (str, optional): New name for the project. Defaults to None.
             description (str, optional): New description of the project. Defaults to None.
             visibility ("PUBLIC" or "PRIVATE", optional): New visibility of the project. Defaults to None.
@@ -150,21 +150,22 @@ class ProjectGateway:
         if not changes:
             raise ValueError("At least one of the parameters 'name', 'description' or 'visibility' must be set.")
 
-        url = client.askanna_url.project.project_detail(suuid)
+        url = client.askanna_url.project.project_detail(project_suuid=project_suuid)
         r = client.patch(url, json=changes)
 
         if r.status_code == 200:
             return Project.from_dict(r.json())
         else:
             raise PatchError(
-                f"{r.status_code} - Something went wrong while updating the project SUUID '{suuid}': {r.json()}"
+                f"{r.status_code} - Something went wrong while updating the project SUUID '{project_suuid}': "
+                f"{r.json()}"
             )
 
-    def delete(self, suuid: str) -> bool:
+    def delete(self, project_suuid: str) -> bool:
         """Delete a project
 
         Args:
-            suuid (str): SUUID of the project you want to delete
+            project_suuid (str): SUUID of the project you want to delete
 
         Raises:
             DeleteError: Error based on response status code with the error message from the API
@@ -172,16 +173,17 @@ class ProjectGateway:
         Returns:
             bool: True if the project was succesfully deleted
         """
-        url = client.askanna_url.project.project_detail(suuid)
+        url = client.askanna_url.project.project_detail(project_suuid)
         r = client.delete(url)
 
         if r.status_code == 204:
             return True
         elif r.status_code == 404:
-            raise DeleteError(f"404 - The project SUUID '{suuid}' was not found")
+            raise DeleteError(f"404 - The project SUUID '{project_suuid}' was not found")
         else:
             raise DeleteError(
-                f"{r.status_code} - Something went wrong while deleting the project SUUID '{suuid}': {r.json()}"
+                f"{r.status_code} - Something went wrong while deleting the project SUUID '{project_suuid}': "
+                f"{r.json()}"
             )
 
     def package_list(

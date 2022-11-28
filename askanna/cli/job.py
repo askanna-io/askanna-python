@@ -97,7 +97,7 @@ def change(job_suuid, name, description):
 @click.option("--force", "-f", is_flag=True, help="Force")
 def remove(job_suuid, force):
     try:
-        job = aa_job.detail(job_suuid=job_suuid)
+        job = aa_job.get(job_suuid=job_suuid)
     except GetError as e:
         if str(e).startswith("404"):
             click.echo(f"The job SUUID '{job_suuid}' was not found", err=True)

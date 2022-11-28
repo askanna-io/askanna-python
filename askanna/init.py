@@ -3,10 +3,8 @@ import click
 
 from askanna import USING_ASKANNA_CLI
 from askanna.core.utils.main import update_available
-from askanna.gateways.job import JobGateway
-from askanna.gateways.project import ProjectGateway
-from askanna.gateways.variable import VariableGateway
-from askanna.gateways.workspace import WorkspaceGateway
+from askanna.sdk.job import JobSDK
+from askanna.sdk.project import ProjectSDK
 from askanna.sdk.run import GetRunsSDK, ResultSDK, RunSDK
 from askanna.sdk.track import (  # noqa: F401
     track_metric,
@@ -14,6 +12,8 @@ from askanna.sdk.track import (  # noqa: F401
     track_variable,
     track_variables,
 )
+from askanna.sdk.variable import VariableSDK
+from askanna.sdk.workspace import WorkspaceSDK
 
 if USING_ASKANNA_CLI:
     try:
@@ -23,10 +23,10 @@ if USING_ASKANNA_CLI:
 
 
 # Instantiated objects for query or actions, these do not contain any data on load and will be filled when needed
-job = JobGateway()
-project = ProjectGateway()
+job = JobSDK()
+project = ProjectSDK()
 result = ResultSDK()
 run = RunSDK()
 runs = GetRunsSDK()
-variable = VariableGateway()
-workspace = WorkspaceGateway()
+variable = VariableSDK()
+workspace = WorkspaceSDK()

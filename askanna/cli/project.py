@@ -79,7 +79,7 @@ def change(suuid, name, description, visibility):
         click.confirm("\nDo you want to change the project?", abort=True)
 
     try:
-        project = aa_project.change(suuid=suuid, name=name, description=description, visibility=visibility)
+        project = aa_project.change(project_suuid=suuid, name=name, description=description, visibility=visibility)
     except PatchError as e:
         if str(e).startswith("404"):
             click.echo(f"The project SUUID '{suuid}' was not found", err=True)
@@ -138,7 +138,7 @@ def create(workspace_suuid, name, description, visibility):
 @click.option("--force", "-f", is_flag=True, help="Force")
 def remove(suuid, force):
     try:
-        project = aa_project.detail(suuid=suuid)
+        project = aa_project.get(project_suuid=suuid)
     except GetError as e:
         if str(e).startswith("404"):
             click.echo(f"The project SUUID '{suuid}' was not found", err=True)
@@ -153,7 +153,7 @@ def remove(suuid, force):
             sys.exit(0)
 
     try:
-        removed = aa_project.delete(suuid=suuid)
+        removed = aa_project.delete(project_suuid=suuid)
     except Exception as e:
         click.echo(f"Something went wrong while removing the project SUUID '{suuid}':\n  {e}", err=True)
         sys.exit(1)

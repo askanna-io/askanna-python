@@ -3,7 +3,14 @@ from typing import List, Optional, Union
 
 from askanna.config import config
 from askanna.core.dataclasses.job import Payload
-from askanna.core.dataclasses.run import ArtifactInfo, Run, RunList, RunStatus
+from askanna.core.dataclasses.run import (
+    ArtifactInfo,
+    MetricList,
+    Run,
+    RunList,
+    RunStatus,
+    VariableList,
+)
 from askanna.core.exceptions import GetError
 from askanna.gateways.job import JobGateway
 from askanna.gateways.run import RunGateway
@@ -96,6 +103,16 @@ class RunSDK:
 
         return run
 
+    def change(
+        self, run_suuid: Optional[str] = None, name: Optional[str] = None, description: Optional[str] = None
+    ) -> Run:
+        run_suuid = run_suuid or self._get_run_suuid()
+        return self.run_gateway.change(run_suuid=run_suuid, name=name, description=description)
+
+    def delete(self, run_suuid: Optional[str] = None) -> bool:
+        run_suuid = run_suuid or self._get_run_suuid()
+        return self.run_gateway.delete(run_suuid=run_suuid)
+
     def start(
         self,
         job_suuid: Optional[str] = None,
@@ -126,6 +143,14 @@ class RunSDK:
     def log(self, run_suuid: Optional[str] = None) -> List:
         run_suuid = run_suuid or self._get_run_suuid()
         return self.run_gateway.log(run_suuid)
+
+    def get_metric(self, run_suuid: Optional[str] = None) -> MetricList:
+        run_suuid = run_suuid or self._get_run_suuid()
+        return self.run_gateway.metric(run_suuid=run_suuid)
+
+    def get_variable(self, run_suuid: Optional[str] = None) -> VariableList:
+        run_suuid = run_suuid or self._get_run_suuid()
+        return self.run_gateway.variable(run_suuid=run_suuid)
 
     def payload(
         self, run_suuid: Optional[str] = None, output_path: Optional[Union[Path, str]] = None
