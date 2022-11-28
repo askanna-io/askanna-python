@@ -113,7 +113,7 @@ def create(name, description, visibility):
 @click.option("--force", "-f", is_flag=True, help="Force")
 def remove(workspace_suuid, force):
     try:
-        workspace = aa_workspace.detail(workspace_suuid=workspace_suuid)
+        workspace = aa_workspace.get(workspace_suuid=workspace_suuid)
     except GetError as e:
         if str(e).startswith("404"):
             click.echo(f"The workspace SUUID '{workspace_suuid}' was not found", err=True)

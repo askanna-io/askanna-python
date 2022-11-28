@@ -131,10 +131,10 @@ def add(name, value, masked, project_suuid):
 
     project = None
     if project_suuid:
-        project = aa_project.detail(project_suuid)
+        project = aa_project.get(project_suuid=project_suuid)
         click.echo(f"Selected project: {project.name}")
     elif config.project.project_suuid:
-        project = aa_project.detail(config.project.project_suuid)
+        project = aa_project.get(project_suuid=config.project.project_suuid)
         if click.confirm(f'\nDo you want to create a variable for project "{project.name}"?'):
             project_suuid = project.suuid
             click.echo(f"Selected project: {project.name}")

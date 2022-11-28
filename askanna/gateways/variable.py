@@ -12,9 +12,9 @@ class VariableGateway:
 
     def list(
         self,
+        project_suuid: Optional[str] = None,
         limit: int = 100,
         offset: int = 0,
-        project_suuid: Optional[str] = None,
         ordering: str = "-created",
     ) -> List[Variable]:
         """List variables with the option to filter on project

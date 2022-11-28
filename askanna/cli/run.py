@@ -28,7 +28,7 @@ def determine_project(
 
     # Still if there is no project_suuid found, we will ask which project to use
     if project_suuid:
-        project = aa_project.detail(project_suuid)
+        project = aa_project.get(project_suuid=project_suuid)
         click.echo(f"Selected project: {project.name}")
         return project
     else:

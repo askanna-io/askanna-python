@@ -13,9 +13,9 @@ class JobGateway:
 
     def list(
         self,
+        project_suuid: Optional[str] = None,
         limit: int = 100,
         offset: int = 0,
-        project_suuid: Optional[str] = None,
         ordering: str = "-created",
     ) -> List[Job]:
         """List all jobs with the option to filter on project
@@ -93,12 +93,12 @@ class JobGateway:
         if len(matching_jobs) > 1:
             if not project_suuid:
                 raise GetError(
-                    "There are multiple jobs with the same name. You can narrow the selection by "
-                    "providing the project SUUID."
+                    "There are multiple jobs with the same name. You can narrow the selection by providing the "
+                    "project SUUID."
                 )
             raise GetError(
-                "There are multiple jobs with the same name. This could happen if you "
-                "changed names of the job manually. Please make sure the job names are unique."
+                "There are multiple jobs with the same name. This could happen if you changed names of the job "
+                "manually. Please make sure the job names are unique."
             )
 
         return matching_jobs[0]
