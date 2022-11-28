@@ -13,7 +13,7 @@ with open("CHANGELOG.md") as history_file:
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.read()
 
-setup_requirements = ["wheel~=0.37.1"]
+setup_requirements = ["wheel~=0.38.4"]
 
 
 setup(
@@ -35,14 +35,15 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     entry_points={
         "console_scripts": [
-            "askanna=askanna.cli.tool:cli",
-            "askanna-run-utils=askanna.cli.run_utils.tool:cli",
+            "askanna=askanna.cli:cli",
+            "askanna-run-utils=askanna.cli.run_utils:cli",
         ],
     },
     description="The AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects",

@@ -80,6 +80,12 @@ python 3.10:
   script:
     - tox -e py310
 
+python 3.11:
+  <<: *test_template
+  image: python:3.11-slim
+  script:
+    - tox -e py311
+
 .build_docker_image_template: &build_docker_image_template
   stage: build
   tags:
@@ -133,6 +139,12 @@ image python 3.10:
   needs: [python 3.10]
   variables:
     PY_VERSION: "3.10-slim"
+
+image python 3.11:
+  <<: *build_docker_image_template
+  needs: [python 3.11]
+  variables:
+    PY_VERSION: "3.11-slim"
 
 .verify_docker_build_template: &verify_docker_build_template
   stage: verifybuild
@@ -189,6 +201,12 @@ verify image python 3.10:
   variables:
     PY_VERSION: "3.10-slim"
 
+verify image python 3.11:
+  <<: *verify_docker_build_template
+  needs: [image python 3.11]
+  variables:
+    PY_VERSION: "3.11-slim"
+
 publish_to_pypi:
   stage: publish
   image: python:3-slim
@@ -240,12 +258,14 @@ publish_to_docker:
     - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.8-slim-main askanna/python:3.8
     - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.9-slim-main askanna/python:3.9
     - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.10-slim-main askanna/python:3.10
+    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.11-slim-main askanna/python:3.11
     - docker push askanna/python:latest
     - docker push askanna/python:3
     - docker push askanna/python:3.7
     - docker push askanna/python:3.8
     - docker push askanna/python:3.9
     - docker push askanna/python:3.10
+    - docker push askanna/python:3.11
   after_script:
     - docker logout
   only:

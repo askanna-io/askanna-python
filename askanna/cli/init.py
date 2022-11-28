@@ -1,10 +1,12 @@
 import os
+import sys
 
 import click
 import yaml
 
+from askanna import project as aa_project
 from askanna.cli.utils import ask_which_workspace
-from askanna.core.apiclient import client
+from askanna.core.dataclasses.project import Project
 
 HELP = """
 This command will allow you to create an AskAnna project in your current directory
@@ -14,11 +16,10 @@ SHORT_HELP = "Create a project in the current directory"
 
 
 class CreateProject:
-    def __init__(self, name: str = None):
-        self.client = client
+    def __init__(self, name: str = ""):
         self.name = name
 
-    def cli(self, workspace_suuid: str = None, description: str = None):
+    def cli(self, workspace_suuid: str = "", description: str = "") -> Project:
         if not self.name:
             click.echo(
                 "Hi! It is time to create a new project in AskAnna. "
@@ -31,22 +32,16 @@ class CreateProject:
 
         if not workspace_suuid:
             workspace = ask_which_workspace("In which workspace do you want to create the new project?")
-            workspace_suuid = workspace.short_uuid
+            workspace_suuid = workspace.suuid
 
-        url = f"{self.client.base_url}project/"
-        r = self.client.post(
-            url,
-            data={
-                "name": self.name,
-                "workspace": workspace_suuid,
-                "description": description,
-            },
-        )
-        if r.status_code == 201:
-            click.echo("\nYou have successfully created a new project in AskAnna!")
-            return r.json()
+        try:
+            project = aa_project.create(workspace_suuid=workspace_suuid, name=self.name, description=description)
+        except Exception as e:
+            click.echo(f"Something went wrong while creating the project:\n  {e}", err=True)
+            sys.exit(1)
         else:
-            raise Exception("We could not create the project.")
+            click.echo(f"\nYou successfully created project '{project.name}' with SUUID '{project.suuid}'")
+            return project
 
 
 @click.command(help=HELP, short_help=SHORT_HELP)
@@ -63,12 +58,12 @@ def cli(name, workspace, description):
     askanna_project_file = os.path.join(cwd, "askanna.yml")
     if os.path.exists(askanna_project_file):
         click.echo(
-            "This directory already has an 'askanna.yml' file. If you continue, we will "
-            "create a new project in AskAnna."
+            "This directory already has an 'askanna.yml' file. If you continue, we will create a new project in "
+            "AskAnna."
         )
         click.echo(
-            "But, we will not update your 'askanna.yml' file with the push-target of the "
-            "new project. If you continue, you need to add the push-target yourself.\n"
+            "We will not update your 'askanna.yml' file with the push-target of the new project. If you continue, you "
+            "need to add the push-target yourself.\n"
         )
         click.confirm("Do you want to continue without updating the 'askanna.yml'?", abort=True)
         click.echo("")
@@ -78,16 +73,16 @@ def cli(name, workspace, description):
 
     if not os.path.exists(askanna_project_file):
         with open(askanna_project_file, "w") as pf:
-            pf.write(yaml.dump({"push-target": project_info["url"]}, indent=2))
+            pf.write(yaml.dump({"push-target": project_info.url}, indent=2))
     else:
         click.echo(
             "\nTo be able to push your code to AskAnna, you need to update your local `askanna.yml` file. "
             "In the `askanna.yml` set or update the push-target with:"
         )
-        click.echo("push-target: {}".format(project_info["url"]))
+        click.echo(f"push-target: {project_info.url}")
 
     click.echo("\nWe have setup the new project. You can open your project at:")
-    click.echo(project_info["url"])
+    click.echo(project_info.url)
     click.echo(
         "\nAs a first step you can configure your first job for this project in the `askanna.yml` file. "
         "Ones you are done, you can easily push your code to AskAnna via:\n"

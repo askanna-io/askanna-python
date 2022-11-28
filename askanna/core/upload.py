@@ -1,116 +1,111 @@
 import io
 import os
-import sys
-from typing import Union
+from typing import Optional
 
-import click
 import resumable
 
-from askanna.core.apiclient import client
-from askanna.core.utils import diskunit, file_type
+from askanna.core.exceptions import PostError
+from askanna.core.utils.file import file_type
+from askanna.core.utils.settings import diskunit
+from askanna.gateways.api_client import client
 
 
 class Upload:
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
+    message_upload_success = "File is uploaded"
+    message_upload_fail = "File upload failed"
 
-    tpl_upload_pass = "File is uploaded"  # nosec: B105
-    tpl_upload_fail = "Upload failed"
-
-    def __init__(self, api_server: Union[str, None] = None, *args, **kwargs):
-        self.ASKANNA_API_SERVER = api_server or client.base_url
+    def __init__(self):
         self.suuid = None
         self.resumable_file = None
-        self.kwargs = kwargs
+
+    def register_upload_url(self) -> str:
+        raise NotImplementedError(f"Please implement 'register_upload_url' for {self.__class__.__name__}")
+
+    def register_chunk_url(self) -> str:
+        raise NotImplementedError(f"Please implement 'register_chunk_url' for {self.__class__.__name__}")
+
+    def upload_chunk_url(self, chunk_uuid: str) -> str:
+        raise NotImplementedError(f"Please implement 'upload_chunk_url' for {self.__class__.__name__}")
+
+    def finish_upload_url(self) -> str:
+        raise NotImplementedError(f"Please implement 'finish_upload_url' for {self.__class__.__name__}")
 
     @property
     def chunk_baseinfo(self) -> dict:
         return {
-            "resumableChunkSize": self.resumable_file.chunk_size,
-            "resumableTotalSize": self.resumable_file.size,
-            "resumableType": file_type(self.resumable_file.path),
-            "resumableIdentifier": str(self.resumable_file.unique_identifier),
-            "resumableFilename": os.path.basename(self.resumable_file.path),
-            "resumableRelativePath": self.resumable_file.path,
-            "resumableTotalChunks": len(self.resumable_file.chunks),
+            "resumableChunkSize": self.resumable_file.chunk_size,  # type: ignore
+            "resumableTotalSize": self.resumable_file.size,  # type: ignore
+            "resumableType": file_type(self.resumable_file.path),  # type: ignore
+            "resumableIdentifier": str(self.resumable_file.unique_identifier),  # type: ignore
+            "resumableFilename": os.path.basename(self.resumable_file.path),  # type: ignore
+            "resumableRelativePath": self.resumable_file.path,  # type: ignore
+            "resumableTotalChunks": len(self.resumable_file.chunks),  # type: ignore
             "resumableChunkNumber": 1,
             "resumableCurrentChunkSize": 1,
         }.copy()
 
-    def url_template_arguments(self):
-        """
-        This method is meant to be overwritten by inheritors
-        providing specific url templating variables
-        """
-        return {
-            "ASKANNA_API_SERVER": self.ASKANNA_API_SERVER,
-            "PACKAGE_SUUID": self.suuid,
-        }
-
-    @property
-    def register_upload_url(self) -> str:
-        return self.tpl_register_upload_url.format(**self.url_template_arguments())
-
-    @property
-    def register_chunk_url(self) -> str:
-        return self.tpl_register_chunk_url.format(**self.url_template_arguments())
-
-    def upload_chunk_url(self, chunk_uuid: str) -> str:
-        arguments = self.url_template_arguments()
-        arguments.update({"CHUNK_UUID": chunk_uuid})
-        return self.tpl_upload_chunk_url.format(**arguments)
-
-    @property
-    def final_upload_url(self) -> str:
-        return self.tpl_final_upload_url.format(**self.url_template_arguments())
-
-    def upload(self, file_obj, config, fileinfo):
-        self.create_entry(config=config, fileinfo=fileinfo)
-        self.upload_file(file_obj)
+    def upload(self, file_path: str):
+        self.suuid = self.create_entry(file_path)
+        self.upload_file(file_path)
         return self.finish_upload()
 
-    def create_entry_extrafields(self):
+    @property
+    def entry_extrafields(self) -> dict:
         return {}
 
-    def create_entry(self, config: Union[dict, None] = None, fileinfo: dict = {}) -> str:
-        info_dict = {
-            "filename": fileinfo.get("filename"),
-            "size": fileinfo.get("size"),
+    def create_entry(self, file_path) -> str:
+        request_dict = {
+            "filename": os.path.basename(file_path),
+            "size": os.stat(file_path).st_size,
         }
 
-        info_dict.update(**self.create_entry_extrafields())
+        request_dict.update(**self.entry_extrafields)
 
-        # the request to AskAnna API
-        req = client.post(self.register_upload_url, json=info_dict)
-        if req.status_code != 201:
-            click.echo(
-                "In the AskAnna platform something went wrong with creating the upload entry.",
-                err=True,
+        # Register upload on the server
+        reg_upload = client.post(self.register_upload_url(), json=request_dict)
+        if reg_upload.status_code != 201:
+            raise PostError(
+                f"In the AskAnna platform something went wrong with creating the upload entry: {reg_upload.json()}",
             )
-            sys.exit(1)
 
-        res = req.json()
+        return reg_upload.json().get("suuid")
 
-        # the result
-        self.suuid = res.get("short_uuid")
-        return self.suuid
+    def upload_file(self, file_path):
+        """
+        Take a file and make chunks out of it to upload
+        """
+        self.resumable_file = resumable.file.ResumableFile(file_path, 1 * diskunit.MiB)  # type: ignore
+        for chunk in self.resumable_file.chunks:
+            self.upload_chunk(chunk)
 
-    def upload_chunk(self, chunk, chunk_dict):
-        config = chunk_dict.copy()
-        config.update(
+    @property
+    def chunk_dict_template(self) -> dict:
+        return {
+            "filename": "",
+            "size": 0,
+            "file_no": 0,
+            "is_last": False,
+        }
+
+    def upload_chunk(self, chunk):
+        chunk_dict = self.chunk_dict_template.copy()
+        chunk_dict.update(
             **{
                 "filename": chunk.index + 1,
                 "size": chunk.size,
                 "file_no": chunk.index + 1,
-                "is_last": len(self.resumable_file.chunks) == chunk.index + 1,
+                "is_last": len(self.resumable_file.chunks) == chunk.index + 1,  # type: ignore
             }
         )
 
-        # request chunk id from API
-        req_chunk = client.post(self.register_chunk_url, json=config)
-        chunk_uuid = req_chunk.json().get("uuid")
+        # Register chunk on the server
+        reg_chunk = client.post(self.register_chunk_url(), json=chunk_dict)
+        if reg_chunk.status_code != 201:
+            raise PostError(
+                "In the AskAnna platform something went wrong with creating the chunk entry for file_no "
+                f"'{chunk_dict.get('file_no')}'.",
+            )
+        chunk_uuid = reg_chunk.json().get("uuid")
 
         files = {"file": io.BytesIO(chunk.read())}
         data = self.chunk_baseinfo
@@ -121,92 +116,116 @@ class Upload:
             }
         )
 
-        specific_chunk_req = client.post(self.upload_chunk_url(chunk_uuid=chunk_uuid), data=data, files=files)
-        assert specific_chunk_req.status_code == 200, "File could not be uploaded"
+        upload_chunk_response = client.post(
+            self.upload_chunk_url(chunk_uuid=chunk_uuid),
+            data=data,
+            files=files,
+        )
 
-    def chunk_dict_template(self):
-        return {
-            "filename": "",
-            "size": 0,
-            "file_no": 0,
-            "is_last": False,
-        }
-
-    def upload_file(self, file_obj):
-        """
-        Take a file_obj and make chunks out of it to upload
-        """
-        chunk_dict = self.chunk_dict_template()
-
-        self.resumable_file = resumable.file.ResumableFile(file_obj, 1 * diskunit.MiB)
-        for chunk in self.resumable_file.chunks:
-            self.upload_chunk(chunk, chunk_dict)
+        if upload_chunk_response.status_code != 200:
+            raise PostError(
+                f"Chunk with file_no '{chunk_dict.get('file_no')}' and chunk UUID '{chunk_uuid}' could not be uploaded"
+            )
 
     def finish_upload(self):
         # Do final call when all chunks are uploaded
         final_call_dict = self.chunk_baseinfo
-
-        final_call_req = client.post(self.final_upload_url, data=final_call_dict)
+        final_call_req = client.post(self.finish_upload_url(), data=final_call_dict)
 
         if final_call_req.status_code == 200:
-            return True, self.tpl_upload_pass
+            return True, self.message_upload_success
         else:
-            return False, self.tpl_upload_fail
+            return False, self.message_upload_fail
 
 
 class PackageUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}package/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/"
-    tpl_upload_chunk_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/packagechunk/{CHUNK_UUID}/chunk/"
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}package/{PACKAGE_SUUID}/finish_upload/"
+    message_upload_success = "Package is uploaded"
+    message_upload_fail = "Package upload failed"
 
-    tpl_upload_pass = "Package is uploaded"  # nosec: B105
-    tpl_upload_fail = "Package upload failed"
+    def __init__(self, project_suuid: str, description: Optional[str] = None):
+        self.project_suuid = project_suuid
+        self.description = description
+        super().__init__()
 
-    def create_entry_extrafields(self):
+    def register_upload_url(self) -> str:
+        return client.askanna_url.package.base_package_url
+
+    def register_chunk_url(self) -> str:
+        if self.suuid:
+            return client.askanna_url.package.package_chunk(self.suuid)
+        raise TypeError("No SUUID found for package upload")
+
+    def upload_chunk_url(self, chunk_uuid: str) -> str:
+        if self.suuid:
+            return client.askanna_url.package.package_chunk_upload(self.suuid, chunk_uuid)
+        raise TypeError("No SUUID found for package upload")
+
+    def finish_upload_url(self) -> str:
+        if self.suuid:
+            return client.askanna_url.package.package_finish_upload(self.suuid)
+        raise TypeError("No SUUID found for package upload")
+
+    @property
+    def entry_extrafields(self) -> dict:
         return {
-            "project": self.kwargs.get("project_suuid"),
-            "description": self.kwargs.get("description"),
+            "project": self.project_suuid,
+            "description": self.description,
         }
 
 
 class ArtifactUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/"
-    tpl_upload_chunk_url = (
-        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/artifactchunk/{CHUNK_UUID}/chunk/"  # noqa
-    )
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/artifact/{ARTIFACT_SUUID}/finish_upload/"
+    message_upload_success = "Artifact is uploaded"
+    message_upload_fail = "Artifact upload failed"
 
-    tpl_upload_pass = "Artifact is uploaded"  # nosec: B105
-    tpl_upload_fail = "Artifact upload failed"
+    def __init__(self, run_suuid: str):
+        self.run_suuid = run_suuid
+        super().__init__()
 
-    def url_template_arguments(self):
-        """
-        This method is meant to be overwritten by inheritors
-        providing specific url templating variables
-        """
-        return {
-            "ASKANNA_API_SERVER": self.ASKANNA_API_SERVER,
-            "ARTIFACT_SUUID": self.suuid,
-            "RUN_SUUID": self.kwargs.get("run_suuid"),
-        }
+    def register_upload_url(self) -> str:
+        if self.run_suuid:
+            return client.askanna_url.run.artifact_list(self.run_suuid)
+        raise TypeError("No Run SUUID found for artifact upload")
+
+    def register_chunk_url(self) -> str:
+        if self.run_suuid and self.suuid:
+            return client.askanna_url.run.artifact_chunk(self.run_suuid, self.suuid)
+        raise TypeError("No Run SUUID or Artifact SUUID found for artifact upload")
+
+    def upload_chunk_url(self, chunk_uuid: str) -> str:
+        if self.run_suuid and self.suuid:
+            return client.askanna_url.run.artifact_chunk_upload(self.run_suuid, self.suuid, chunk_uuid)
+        raise TypeError("No Run SUUID or Artifact SUUID found for artifact upload")
+
+    def finish_upload_url(self) -> str:
+        if self.run_suuid and self.suuid:
+            return client.askanna_url.run.artifact_finish_upload(self.run_suuid, self.suuid)
+        raise TypeError("No Run SUUID or Artifact SUUID found for artifact upload")
 
 
 class ResultUpload(Upload):
-    tpl_register_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/"
-    tpl_register_chunk_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/"
-    tpl_upload_chunk_url = (
-        "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/resultchunk/{CHUNK_UUID}/chunk/"  # noqa
-    )
-    tpl_final_upload_url = "{ASKANNA_API_SERVER}runinfo/{RUN_SUUID}/result/{RESULT_SUUID}/finish_upload/"
+    message_upload_success = "Result is uploaded"
+    message_upload_fail = "Result upload failed"
 
-    tpl_upload_pass = "Result is uploaded"  # nosec: B105
-    tpl_upload_fail = "Result upload failed"
+    def __init__(self, run_suuid: str):
+        self.run_suuid = run_suuid
+        super().__init__()
 
-    def url_template_arguments(self):
-        return {
-            "ASKANNA_API_SERVER": self.ASKANNA_API_SERVER,
-            "RUN_SUUID": self.kwargs.get("RUN_SUUID"),
-            "RESULT_SUUID": self.suuid,
-        }
+    def register_upload_url(self) -> str:
+        if self.run_suuid:
+            return client.askanna_url.run.result_upload(self.run_suuid)
+        raise TypeError("No Run SUUID found for result upload")
+
+    def register_chunk_url(self) -> str:
+        if self.run_suuid and self.suuid:
+            return client.askanna_url.run.result_chunk(self.run_suuid, self.suuid)
+        raise TypeError("No Run SUUID or Result SUUID found for result upload")
+
+    def upload_chunk_url(self, chunk_uuid: str) -> str:
+        if self.run_suuid and self.suuid:
+            return client.askanna_url.run.result_chunk_upload(self.run_suuid, self.suuid, chunk_uuid)
+        raise TypeError("No Run SUUID or Result SUUID found for result upload")
+
+    def finish_upload_url(self) -> str:
+        if self.run_suuid and self.suuid:
+            return client.askanna_url.run.result_finish_upload(self.run_suuid, self.suuid)
+        raise TypeError("No Run SUUID or Result SUUID found for result upload")

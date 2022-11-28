@@ -42,7 +42,7 @@ def cli(force, description, message):
 
     # Check for existing package
     if not force:
-        packages = project.packages(config.project.project_suuid, offset=0, limit=1)
+        packages = project.package_list(config.project.project_suuid, offset=0, limit=1)
         if packages and not click.confirm("Do you want to replace the current code on AskAnna?"):
             click.echo("We are not pushing your code to AskAnna. You choose not to replace your existing code.")
             sys.exit(0)

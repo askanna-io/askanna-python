@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.20.0 (2022-11-28)
+
+- New subcommands to get run status & log
+- All commands and SDK modules now have the change & remove/delete option.
+- The remove prompt will by default ask for confirmation before removing the object.
+- Refactor API endpoints, and align gateway methods, SDK modules & CLI commands. The goal is to make separate
+  components that perform a single task. This should make it easier to maintain the AskAnna CLI - Python SDK.
+- There is now a separate SDK module with the code necessary for the AskAnna Python SDK. This is related to the
+  above change.
+- Dataclasses now also contain relation types as a dataclass used within the main dataclasses. For example, to get
+  the project workspace name, you can now use `project.workspace.name` i.s.o. `project.workspace.get("name)`.
+
+The following changes are related to breaking changes in the AskAnna Backend:
+
+- The API response does not provide the `uuid` info anymore and the `short_uuid` is renamed to `suuid`.
+- Renamed API endpoints to follow the new config of the AskAnna Backend.
+
 ## 0.19.2 (2022-09-10)
 
 - Update dataclass for projects
