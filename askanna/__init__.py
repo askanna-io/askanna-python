@@ -1,6 +1,6 @@
 __author__ = "AskAnna Team"
 __email__ = "support@askanna.io"
-__version__ = "0.19.2"
+__version__ = "0.20.0"
 
 import re
 import sys
