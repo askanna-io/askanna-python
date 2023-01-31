@@ -77,6 +77,14 @@ class TestJobURL:
         with pytest.raises(TypeError):
             api_url.JobURL().job_detail()  # type: ignore
 
+    def test_job_run_request_url(self):
+        url = api_url.JobURL().run_request("test_job")
+        assert url == config.server.remote + "/v1/job/test_job/run/request/batch/"
+
+    def test_job_run_request_url_without_job_suuid(self):
+        with pytest.raises(TypeError):
+            api_url.JobURL().run_request()  # type: ignore
+
 
 class TestPackageURL:
     def test_base_package_url(self):
@@ -136,18 +144,6 @@ class TestProjectURL:
     def test_project_detail_url_without_project_suuid(self):
         with pytest.raises(TypeError):
             api_url.ProjectURL().project_detail()  # type: ignore
-
-    def test_project_job_list_url(self):
-        url = api_url.ProjectURL().job_list("test_project")
-        assert url == config.server.remote + "/v1/project/test_project/job/"
-
-    def test_project_variable_url(self):
-        url = api_url.ProjectURL().variable_list("test")
-        assert url == config.server.remote + "/v1/project/test/variable/"
-
-    def test_project_package_list_url(self):
-        url = api_url.ProjectURL().package_list("test_project")
-        assert url == config.server.remote + "/v1/project/test_project/package/"
 
 
 class TestRunURL:

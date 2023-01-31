@@ -41,7 +41,7 @@ class TestUploadInit:
         assert upload.message_upload_success == "Package is uploaded"
         assert upload.message_upload_fail == "Package upload failed"
         assert type(upload.chunk_dict_template) == dict
-        assert upload.entry_extrafields == {"project": project_suuid, "description": None}
+        assert upload.entry_extrafields == {"project_suuid": project_suuid, "description": None}
 
         assert upload.register_upload_url() == askanna_url.package.base_package_url
         with pytest.raises(TypeError):
@@ -129,7 +129,7 @@ class TestUploadSuccess:
         upload = PackageUpload(project_suuid, description)
 
         assert upload is not None
-        assert upload.entry_extrafields == {"project": project_suuid, "description": description}
+        assert upload.entry_extrafields == {"project_suuid": project_suuid, "description": description}
 
         result = upload.upload("tests/fixtures/files/zip_file.zip")
 

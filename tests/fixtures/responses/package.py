@@ -35,7 +35,7 @@ def package_detail_for_list() -> dict:
             "name": "Robbert",
             "job_title": "Founder AskAnna",
             "role": {"name": "Workspace Admin", "code": "WA"},
-            "status": "accepted",
+            "status": "active",
         },
         "created": "2020-10-29T12:26:29.850420Z",
         "modified": "2021-01-11T15:52:53.844154Z",

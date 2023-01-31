@@ -9,29 +9,29 @@ from askanna.gateways.package import PackageGateway
 @pytest.mark.usefixtures("api_response")
 class TestGatewayPackage:
     def test_list_packages(self):
-        packages = PackageGateway().list()
-        assert len(packages) == 1
+        result = PackageGateway().list()
+        assert len(result.packages) == 1
 
     def test_list_packages_project(self):
         project_suuid = "1234-1234-1234-1234"
-        packages = PackageGateway().list(project_suuid=project_suuid)
-        assert len(packages) == 1
+        result = PackageGateway().list(project_suuid=project_suuid)
+        assert len(result.packages) == 1
 
     def test_list_packages_limit_1(self):
-        packages = PackageGateway().list(limit=1, offset=0)
-        assert len(packages) == 1
+        result = PackageGateway().list(page_size=1)
+        assert len(result.packages) == 1
 
     def test_list_packages_not_found(self):
         with pytest.raises(GetError) as e:
-            PackageGateway().list(limit=1, offset=100)
+            PackageGateway().list(cursor="999")
 
-        assert "404 - Something went wrong while retrieving packages" in e.value.args[0]
+        assert "404 - Something went wrong while retrieving package list" in e.value.args[0]
 
     def test_list_packages_not_200(self):
         with pytest.raises(GetError) as e:
-            PackageGateway().list(limit=1, offset=999)
+            PackageGateway().list(page_size=1, cursor="999")
 
-        assert "500 - Something went wrong while retrieving packages" in e.value.args[0]
+        assert "500 - Something went wrong while retrieving package list" in e.value.args[0]
 
     def test_download_package(self, package_zip_file):
         package_suuid = "1234-1234-1234-1234"

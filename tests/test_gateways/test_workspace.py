@@ -10,23 +10,23 @@ class TestGatewayWorkspace:
         workspace_gateway = WorkspaceGateway()
         result = workspace_gateway.list()
 
-        assert len(result) == 1
-        assert result[0].name == "test-workspace"
+        assert len(result.workspaces) == 1
+        assert result.workspaces[0].name == "test-workspace"
 
-    def test_workspace_list_limit_offset(self):
+    def test_workspace_list_cursor(self):
         workspace_gateway = WorkspaceGateway()
-        result = workspace_gateway.list(limit=1, offset=1)
+        result = workspace_gateway.list(page_size=1, cursor="123")
 
-        assert len(result) == 1
-        assert result[0].name == "a new workspace"
+        assert len(result.workspaces) == 1
+        assert result.workspaces[0].name == "a new workspace"
 
     def test_workspace_list_error(self):
         workspace_gateway = WorkspaceGateway()
         with pytest.raises(GetError) as e:
-            workspace_gateway.list(offset=999)
+            workspace_gateway.list(cursor="999")
 
         assert (
-            "500 - Something went wrong while retrieving workspaces: {'error': 'Internal Server Error'}"
+            "500 - Something went wrong while retrieving the workspace list:\n  {'error': 'Internal Server Error'}"
             in e.value.args[0]
         )
 

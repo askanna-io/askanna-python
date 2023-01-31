@@ -5,7 +5,7 @@ from zipfile import ZipFile
 
 import click
 
-from askanna.gateways.package import PackageGateway
+from askanna.sdk.package import PackageSDK
 
 HELP = """
 Get the code package for the run from AskAnna. Intended for use with runner and unpacks the package to a directory.
@@ -33,9 +33,9 @@ SHORT_HELP = "Get code package from AskAnna"
 def cli(package_suuid, output_dir):
 
     try:
-        package_content = PackageGateway().download(package_suuid)
+        package_content = PackageSDK().get(package_suuid)
     except Exception as e:
-        click.echo(f"Something went wrong. The error message received:\n  {e}", err=True)
+        click.echo(f"Something went wrong getting the package. The error message received:\n  {e}", err=True)
         sys.exit(1)
 
     if not package_content:

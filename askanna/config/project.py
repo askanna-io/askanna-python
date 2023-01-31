@@ -33,6 +33,13 @@ class ProjectConfig:
         self.project_suuid = new_config.project_suuid
         self.workspace_suuid = new_config.workspace_suuid
 
+    def clean_config(self):
+        self.config_dict = {}
+        self.project_config_path = ""
+        self.push_target = PushTarget()
+        self.project_suuid = ""
+        self.workspace_suuid = ""
+
 
 def extract_push_target(push_target: str) -> PushTarget:
     """

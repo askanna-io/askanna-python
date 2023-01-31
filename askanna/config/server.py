@@ -1,7 +1,7 @@
 import os
 import sys
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 import click
 
@@ -30,7 +30,7 @@ class ServerConfig:
     """Server configuration specification"""
 
     remote: str
-    config_dict: Dict = None
+    config_dict: Optional[Dict] = None
     server_config_path: str = SERVER_CONFIG_PATH
     server: str = "default"
     token: str = ""
@@ -54,7 +54,7 @@ class ServerConfig:
 
 
 def add_or_update_server_in_config_dict(  # nosec
-    config_dict: Dict, server: str, remote: str, token: str = "", ui: str = ""
+    config_dict: Optional[Dict], server: str, remote: str, token: str = "", ui: str = ""
 ) -> Dict:
 
     server_dict = {
@@ -63,11 +63,12 @@ def add_or_update_server_in_config_dict(  # nosec
         "token": token,
     }
 
-    if config_dict.get("server", {}).get(server):
+    if config_dict and config_dict.get("server", {}).get(server):
         config_dict["server"][server].update(server_dict)
-    elif config_dict.get("server"):
+    elif config_dict and config_dict.get("server"):
         config_dict["server"].update({server: server_dict})
     else:
+        config_dict = {}
         config_dict["server"] = {server: server_dict}
 
     return config_dict

@@ -49,9 +49,6 @@ class JobURL:
     def job_detail(self, job_suuid: str) -> str:
         return self.base_job_url + job_suuid + "/"
 
-    def run_list(self, job_suuid: str) -> str:
-        return self.job_detail(job_suuid) + "run/"
-
     def run_request(self, job_suuid: str) -> str:
         return self.job_detail(job_suuid) + "run/request/batch/"
 
@@ -96,18 +93,6 @@ class ProjectURL:
 
     def project_detail(self, project_suuid: str) -> str:
         return self.base_project_url + project_suuid + "/"
-
-    def job_list(self, project_suuid: str) -> str:
-        return self.project_detail(project_suuid) + "job/"
-
-    def variable(self, project_suuid: str) -> str:
-        return self.project_detail(project_suuid) + "variable/"
-
-    def variable_list(self, project_suuid: str) -> str:
-        return self.project_detail(project_suuid) + "variable/"
-
-    def package_list(self, project_suuid: str) -> str:
-        return self.project_detail(project_suuid) + "package/"
 
 
 class RunURL:
@@ -219,9 +204,6 @@ class WorkspaceURL:
 
     def workspace_detail(self, workspace_suuid: str) -> str:
         return self.base_workspace_url + workspace_suuid + "/"
-
-    def project_list(self, workspace_suuid: str) -> str:
-        return self.workspace_detail(workspace_suuid) + "project/"
 
 
 askanna_url = AskAnnaURL()

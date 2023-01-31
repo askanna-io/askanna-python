@@ -4,7 +4,6 @@ from click.testing import CliRunner
 from askanna.cli import cli
 
 
-@pytest.mark.usefixtures("api_response")
 class TestCliWorkspaceMain:
     """
     Test 'askanna workspace' main command
@@ -28,14 +27,34 @@ class TestCliWorkspaceList:
     """
 
     def test_command_workspace_list_help(self):
-        result = CliRunner().invoke(cli, ["workspace", "list", "--help"])
+        result = CliRunner().invoke(cli, "workspace list --help")
         assert result.exit_code == 0
         assert "workspace list [OPTIONS]" in result.output
 
     def test_command_workspace_list(self):
-        result = CliRunner().invoke(cli, ["workspace", "list"])
+        result = CliRunner().invoke(cli, "workspace list")
         assert result.exit_code == 0
+        assert "WORKSPACE SUUID" in result.output
         assert "1234-1234-1234-1234" in result.output
+        assert "SUUID: 1234-1234-1234-1234" not in result.output
+
+
+@pytest.mark.usefixtures("api_response")
+class TestCliWorkspaceInfo:
+    """
+    Test 'askanna workspace info' where we expect to get a info of a workspace
+    """
+
+    def test_command_workspace_info_help(self):
+        result = CliRunner().invoke(cli, "workspace info --help")
+        assert result.exit_code == 0
+        assert "workspace info [OPTIONS]" in result.output
+
+    def test_command_workspace_info(self):
+        result = CliRunner().invoke(cli, ["workspace", "info", "--id", "1234-1234-1234-1234"])
+        assert result.exit_code == 0
+        assert "SUUID:       1234-1234-1234-1234" in result.output
+        assert "Created:  2020-04-01 09:44:11.853000+00:00" in result.output
 
 
 @pytest.mark.usefixtures("api_response")
@@ -45,7 +64,7 @@ class TestCliWorkspaceChange:
     """
 
     def test_command_workspace_change_help(self):
-        result = CliRunner().invoke(cli, ["workspace", "change", "--help"])
+        result = CliRunner().invoke(cli, "workspace change --help")
         assert result.exit_code == 0
         assert "workspace change [OPTIONS]" in result.output
 
@@ -81,7 +100,7 @@ class TestCliWorkspaceCreate:
     """
 
     def test_command_workspace_create_help(self):
-        result = CliRunner().invoke(cli, ["workspace", "create", "--help"])
+        result = CliRunner().invoke(cli, "workspace create --help")
         assert result.exit_code == 0
         assert "workspace create [OPTIONS]" in result.output
 
@@ -119,7 +138,7 @@ class TestCliWorkspaceRemove:
     """
 
     def test_command_workspace_remove_help(self):
-        result = CliRunner().invoke(cli, ["workspace", "remove", "--help"])
+        result = CliRunner().invoke(cli, "workspace remove --help")
         assert result.exit_code == 0
         assert "workspace remove [OPTIONS]" in result.output
 

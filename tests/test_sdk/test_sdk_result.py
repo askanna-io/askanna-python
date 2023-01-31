@@ -46,7 +46,7 @@ class TestSDKResult(unittest.TestCase):
                     "avatar": None,
                     "job_title": "a developer",
                     "role": {"name": "Workspace Admin", "code": "WA"},
-                    "status": "accepted",
+                    "status": "active",
                 },
                 "package": {
                     "relation": "package",
@@ -161,7 +161,7 @@ class TestSDKResult(unittest.TestCase):
                     "avatar": None,
                     "job_title": "k1",
                     "role": {"name": "Workspace Admin", "code": "WA"},
-                    "status": "accepted",
+                    "status": "active",
                 },
                 "package": {
                     "relation": "package",
@@ -262,7 +262,6 @@ class TestSDKResult(unittest.TestCase):
         self.responses.add(
             responses.GET,
             url=self.base_url + "abcd-abcd-abcd-abcd/result/",
-            stream=True,
             content_type="application/json",
             status=200,
             body=self.content,

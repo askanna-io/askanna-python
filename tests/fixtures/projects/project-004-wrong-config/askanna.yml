@@ -1,0 +1,8 @@
+test_job:
+  job:
+    - touch result1.json
+    - touch result2.json
+  output:
+    result:
+      - result1.json
+      - result2.json

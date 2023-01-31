@@ -10,23 +10,23 @@ class TestGatewayProject:
         project_gateway = ProjectGateway()
         result = project_gateway.list()
 
-        assert len(result) == 1
-        assert result[0].name == "a project"
+        assert len(result.projects) == 1
+        assert result.projects[0].name == "a project"
 
-    def test_project_list_limit_offset(self):
+    def test_project_list_cursor(self):
         project_gateway = ProjectGateway()
-        result = project_gateway.list(limit=1, offset=1)
+        result = project_gateway.list(page_size=1, cursor="123")
 
-        assert len(result) == 1
-        assert result[0].name == "a new project"
+        assert len(result.projects) == 1
+        assert result.projects[0].name == "a new project"
 
     def test_project_list_error(self):
         project_gateway = ProjectGateway()
         with pytest.raises(GetError) as e:
-            project_gateway.list(offset=999)
+            project_gateway.list(cursor="999")
 
         assert (
-            "500 - Something went wrong while retrieving projects: {'error': 'Internal Server Error'}"
+            "500 - Something went wrong while retrieving the project list:\n  {'error': 'Internal Server Error'}"
             in e.value.args[0]
         )
 
@@ -34,8 +34,8 @@ class TestGatewayProject:
         project_gateway = ProjectGateway()
         result = project_gateway.list(workspace_suuid="1234-1234-1234-1234")
 
-        assert len(result) == 1
-        assert result[0].name == "a project"
+        assert len(result.projects) == 1
+        assert result.projects[0].name == "a project"
 
     def test_project_detail(self):
         project_gateway = ProjectGateway()
@@ -135,31 +135,3 @@ class TestGatewayProject:
             project_gateway.delete("0987-0987-0987-0987")
 
         assert "500 - Something went wrong while deleting the project SUUID '0987-0987-0987-0987'" in e.value.args[0]
-
-    def test_package_list(self):
-        project_gateway = ProjectGateway()
-        result = project_gateway.package_list("1234-1234-1234-1234")
-
-        assert len(result) == 1
-        assert result[0].name == "askanna-hello.zip"
-
-    def test_package_list_limit(self):
-        project_gateway = ProjectGateway()
-        result = project_gateway.package_list("1234-1234-1234-1234", limit=1, offset=1)
-
-        assert len(result) == 1
-        assert result[0].name == "askanna-hello.zip"
-
-    def test_package_list_not_found(self):
-        project_gateway = ProjectGateway()
-        with pytest.raises(GetError) as e:
-            project_gateway.package_list("7890-7890-7890-7890")
-
-        assert "404 - Something went wrong while retrieving packages" in e.value.args[0]
-
-    def test_package_list_error(self):
-        project_gateway = ProjectGateway()
-        with pytest.raises(GetError) as e:
-            project_gateway.package_list("0987-0987-0987-0987")
-
-        assert "500 - Something went wrong while retrieving packages" in e.value.args[0]

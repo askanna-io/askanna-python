@@ -36,5 +36,5 @@ def cli(run_suuid, payload_suuid, output_path):
     try:
         RunGateway().payload(run_suuid, payload_suuid, output_path)
     except Exception as e:
-        click.echo(f"Something went wrong. The error message received:\n  {e}", err=True)
+        click.echo(f"Something went wrong getting the payload. The error message received:\n  {e}", err=True)
         sys.exit(1)

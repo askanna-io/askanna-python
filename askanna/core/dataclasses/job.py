@@ -4,8 +4,7 @@ from typing import Dict
 
 from dateutil import parser as dateutil_parser
 
-from askanna.core.dataclasses.project import ProjectRelation
-from askanna.core.dataclasses.workspace import WorkspaceRelation
+from .relation import ProjectRelation, WorkspaceRelation
 
 
 @dataclass
@@ -13,14 +12,14 @@ class Job:
     suuid: str
     name: str
     description: str
-    project: ProjectRelation
-    workspace: WorkspaceRelation
-    notifications: dict
-    schedules: list
-    created: datetime.datetime
-    modified: datetime.datetime
     environment: str
     timezone: str
+    schedules: list
+    notifications: dict
+    project: ProjectRelation
+    workspace: WorkspaceRelation
+    created: datetime.datetime
+    modified: datetime.datetime
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Job":
@@ -33,17 +32,6 @@ class Job:
         del data["workspace"]
 
         return cls(project=project, workspace=workspace, **data)
-
-
-@dataclass
-class JobRelation:
-    suuid: str
-    name: str
-
-    @classmethod
-    def from_dict(cls, data: Dict) -> "JobRelation":
-        del data["relation"]
-        return cls(**data)
 
 
 @dataclass
@@ -70,17 +58,4 @@ class Payload:
     def from_dict(cls, data: Dict) -> "Payload":
         data["created"] = dateutil_parser.parse(data["created"])
         data["modified"] = dateutil_parser.parse(data["modified"])
-        return cls(**data)
-
-
-@dataclass
-class PayloadRelation:
-    suuid: str
-    name: str
-    size: int
-    lines: int
-
-    @classmethod
-    def from_dict(cls, data: Dict) -> "PayloadRelation":
-        del data["relation"]
         return cls(**data)

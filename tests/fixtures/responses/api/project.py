@@ -1,5 +1,4 @@
-from responses import RequestsMock
-from responses.matchers import json_params_matcher
+from responses import RequestsMock, matchers
 
 from askanna.config.api_url import askanna_url
 
@@ -10,34 +9,71 @@ def project_response(
     project_list_limit,
     project_detail,
     project_new_detail,
-    package_list,
-    package_list_limit,
 ) -> RequestsMock:
     api_responses.add(
         "GET",
-        url=f"{askanna_url.project.project_list()}?offset=1&limit=1&ordering=-created",
+        url=f"{askanna_url.project.project_list()}?page_size=1&cursor=123",
         status=200,
         content_type="application/json",
         json=project_list_limit,
     )
     api_responses.add(
         "GET",
-        url=f"{askanna_url.project.project_list()}?offset=999&limit=100&ordering=-created",
+        url=f"{askanna_url.project.project_list()}?cursor=999",
         status=500,
         content_type="application/json",
         json={"error": "Internal Server Error"},
     )
     api_responses.add(
         "GET",
-        url=f"{askanna_url.project.project_list()}?offset=0&limit=100&ordering=-created",
+        url=f"{askanna_url.project.project_list()}?page_size=100&order_by=workspace.name,name",
         status=200,
         content_type="application/json",
         json=project_list,
     )
     api_responses.add(
         "GET",
-        url=askanna_url.workspace.project_list(workspace_suuid="1234-1234-1234-1234")
-        + "?offset=0&limit=100&ordering=-created",
+        url=(
+            f"{askanna_url.project.project_list()}?workspace_suuid=1234-1234-1234-1234&page_size=100&"
+            "order_by=workspace.name,name"
+        ),
+        status=200,
+        content_type="application/json",
+        json=project_list,
+    )
+    api_responses.add(
+        "GET",
+        url=(
+            f"{askanna_url.project.project_list()}?workspace_suuid=7890-7890-7890-7890&page_size=100&"
+            "order_by=workspace.name,name"
+        ),
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
+    )
+    api_responses.add(
+        "GET",
+        url=(
+            f"{askanna_url.project.project_list()}?workspace_suuid=5678-5678-5678-5678&page_size=100&"
+            "order_by=workspace.name,name"
+        ),
+        status=200,
+        content_type="application/json",
+        json={"count": 0, "next": None, "previous": None, "results": []},
+    )
+    api_responses.add(
+        "GET",
+        url=(
+            f"{askanna_url.project.project_list()}?workspace_suuid=3456-3456-3456-3456&page_size=100&"
+            "order_by=workspace.name,name"
+        ),
+        status=200,
+        content_type="application/json",
+        json={"count": 1000, "next": None, "previous": None, "results": [project_detail]},
+    )
+    api_responses.add(
+        "GET",
+        url=askanna_url.project.project_list(),
         status=200,
         content_type="application/json",
         json=project_list,
@@ -45,6 +81,13 @@ def project_response(
     api_responses.add(
         "GET",
         url=askanna_url.project.project_detail("1234-1234-1234-1234"),
+        status=200,
+        content_type="application/json",
+        json=project_detail,
+    )
+    api_responses.add(
+        "GET",
+        url=askanna_url.project.project_detail("4321-4321-4321-4321"),
         status=200,
         content_type="application/json",
         json=project_detail,
@@ -64,48 +107,12 @@ def project_response(
         json={"error": "Internal Server Error"},
     )
     api_responses.add(
-        "GET",
-        url=f"{askanna_url.project.package_list('1234-1234-1234-1234')}?limit=1&offset=1",
-        status=200,
-        content_type="application/json",
-        json=package_list_limit,
-    )
-    api_responses.add(
-        "GET",
-        url=f"{askanna_url.project.package_list('1234-1234-1234-1234')}?offset=999",
-        status=500,
-        content_type="application/json",
-        json={"error": "Internal Server Error"},
-    )
-    api_responses.add(
-        "GET",
-        url=askanna_url.project.package_list("1234-1234-1234-1234"),
-        status=200,
-        content_type="application/json",
-        json=package_list,
-    )
-    api_responses.add(
-        "GET",
-        url=f"{askanna_url.project.package_list('7890-7890-7890-7890')}",
-        status=404,
-        content_type="application/json",
-        json={"detail": "Not found."},
-    )
-    api_responses.add(
-        "GET",
-        url=f"{askanna_url.project.package_list('0987-0987-0987-0987')}",
-        status=500,
-        content_type="application/json",
-        json={"error": "Internal Server Error"},
-    )
-
-    api_responses.add(
         "POST",
         url=askanna_url.project.project(),
         match=[
-            json_params_matcher(
+            matchers.json_params_matcher(
                 {
-                    "workspace": "1234-1234-1234-1234",
+                    "workspace_suuid": "1234-1234-1234-1234",
                     "name": "a new project",
                     "description": "description new project",
                     "visibility": "PUBLIC",
@@ -120,9 +127,9 @@ def project_response(
         "POST",
         url=askanna_url.project.project(),
         match=[
-            json_params_matcher(
+            matchers.json_params_matcher(
                 {
-                    "workspace": "1234-1234-1234-1234",
+                    "workspace_suuid": "1234-1234-1234-1234",
                     "name": "new-project",
                     "description": "",
                     "visibility": "PRIVATE",
@@ -137,9 +144,9 @@ def project_response(
         "POST",
         url=askanna_url.project.project(),
         match=[
-            json_params_matcher(
+            matchers.json_params_matcher(
                 {
-                    "workspace": "5678-5678-5678-5678",
+                    "workspace_suuid": "5678-5678-5678-5678",
                     "name": "new-project",
                     "description": None,
                     "visibility": "PRIVATE",
@@ -154,9 +161,9 @@ def project_response(
         "POST",
         url=askanna_url.project.project(),
         match=[
-            json_params_matcher(
+            matchers.json_params_matcher(
                 {
-                    "workspace": "1234-1234-1234-1234",
+                    "workspace_suuid": "1234-1234-1234-1234",
                     "name": "project with error",
                     "description": "",
                     "visibility": "PRIVATE",
@@ -172,7 +179,7 @@ def project_response(
     api_responses.add(
         "PATCH",
         url=askanna_url.project.project_detail("1234-1234-1234-1234"),
-        match=[json_params_matcher({"name": "new name"})],
+        match=[matchers.json_params_matcher({"name": "new name"})],
         status=200,
         content_type="application/json",
         json=project_detail,
@@ -180,7 +187,7 @@ def project_response(
     api_responses.add(
         "PATCH",
         url=askanna_url.project.project_detail("7890-7890-7890-7890"),
-        match=[json_params_matcher({"description": "new description"})],
+        match=[matchers.json_params_matcher({"description": "new description"})],
         status=404,
         content_type="application/json",
         json={"error": "Internal Server Error"},
@@ -188,7 +195,7 @@ def project_response(
     api_responses.add(
         "PATCH",
         url=askanna_url.project.project_detail("0987-0987-0987-0987"),
-        match=[json_params_matcher({"name": "new name"})],
+        match=[matchers.json_params_matcher({"name": "new name"})],
         status=500,
         content_type="application/json",
         json={"error": "Internal Server Error"},
@@ -198,6 +205,13 @@ def project_response(
         "DELETE",
         url=askanna_url.project.project_detail("1234-1234-1234-1234"),
         status=204,
+    )
+    api_responses.add(
+        "DELETE",
+        url=askanna_url.project.project_detail("4321-4321-4321-4321"),
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
     )
     api_responses.add(
         "DELETE",
