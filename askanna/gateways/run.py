@@ -283,7 +283,7 @@ class RunGateway:
                 f"'{run_suuid}': {response.json()}"
             )
 
-        return MetricList(metrics=[MetricObject.from_dict(metric) for metric in response.json()])
+        return MetricList(metrics=[MetricObject.from_dict(metric) for metric in response.json()["results"]])
 
     def metric_update(self, run_suuid: str, metrics: MetricList) -> None:
         """Update the metrics of a run
@@ -326,7 +326,7 @@ class RunGateway:
                 f"'{run_suuid}': {response.json()}"
             )
 
-        return VariableList(variables=[VariableObject.from_dict(variable) for variable in response.json()])
+        return VariableList(variables=[VariableObject.from_dict(variable) for variable in response.json()["results"]])
 
     def variable_update(self, run_suuid: str, variables: VariableList) -> None:
         """Update the variables of a run
