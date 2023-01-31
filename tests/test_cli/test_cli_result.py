@@ -5,6 +5,7 @@ import unittest
 
 import responses
 from click.testing import CliRunner
+from responses import matchers
 
 from askanna.cli import cli
 from askanna.config import config
@@ -52,7 +53,7 @@ class TestCLIResult(unittest.TestCase):
                     "avatar": None,
                     "job_title": "k1",
                     "role": {"name": "Workspace Admin", "code": "WA"},
-                    "status": "accepted",
+                    "status": "active",
                 },
                 "package": {
                     "relation": "package",
@@ -167,7 +168,7 @@ class TestCLIResult(unittest.TestCase):
                     "avatar": None,
                     "job_title": "k1",
                     "role": {"name": "Workspace Admin", "code": "WA"},
-                    "status": "accepted",
+                    "status": "active",
                 },
                 "package": {
                     "relation": "package",
@@ -264,7 +265,7 @@ class TestCLIResult(unittest.TestCase):
             responses.GET,
             url=self.base_url + "abcd-abcd-abcd-abcd/result/",
             headers={"Range": f"bytes=0-{os.path.getsize(self.result_json_file)}"},
-            stream=True,
+            match=[matchers.request_kwargs_matcher({"stream": True})],
             content_type="application/json",
             status=206,
             body=content,

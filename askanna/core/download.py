@@ -36,16 +36,16 @@ class ChunkedDownload:
         We take the session from client and will do a preflight request to
         determine whether the url will result in a (final) http_response_code=200
         """
-        r = client.head(url)
-        self.history.append([url, r.status_code, r.headers])
+        response = client.head(url)
+        self.history.append([url, response.status_code, response.headers])
 
-        if r.status_code in [301, 302] and r.headers.get("Location"):
-            self.url = r.headers.get("Location")
-            return self.perform_preflight(url=r.headers.get("Location"))
-        elif r.status_code == 200:
-            self.size = int(r.headers.get("Content-Length", 0))
-            self.content_type = r.headers.get("Content-Type")
-            self.accept_ranges = r.headers.get("Accept-Ranges", "none")
+        if response.status_code in [301, 302] and response.headers.get("Location"):
+            self.url = response.headers.get("Location")
+            return self.perform_preflight(url=response.headers.get("Location"))
+        if response.status_code == 200:
+            self.size = int(response.headers.get("Content-Length", 0))
+            self.content_type = response.headers.get("Content-Type")
+            self.accept_ranges = response.headers.get("Accept-Ranges", "none")
 
     def setup_download(self):
         """
@@ -88,13 +88,15 @@ class ChunkedDownload:
             }
 
             try:
-                r = client.get(self.url, stream=True, headers=range_header)
-                if not r.content or r.status_code not in [200, 206]:
-                    raise GetError(f"Could not download chunk {chunk[0]} from {self.url} (code={r.status_code})")
+                response = client.get(self.url, stream=True, headers=range_header)
+                if not response.content or response.status_code not in [200, 206]:
+                    raise GetError(
+                        f"Could not download chunk {chunk[0]} from {self.url} (code={response.status_code})"
+                    )
 
                 # So far so good on the download, save the result
                 with Path(f"file_{chunk[0]}.part").open("wb") as f:
-                    for r_chunk in r.iter_content(chunk_size=1024):
+                    for r_chunk in response.iter_content(chunk_size=1024):
                         f.write(r_chunk)
             except Exception as e:
                 click.echo(e)

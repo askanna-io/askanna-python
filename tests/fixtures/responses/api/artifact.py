@@ -1,5 +1,4 @@
-from responses import RequestsMock
-from responses.matchers import json_params_matcher
+from responses import RequestsMock, matchers
 
 from askanna.config.api_url import askanna_url
 
@@ -56,8 +55,10 @@ def artifact_response(
             "Accept-Ranges": "bytes",
             "Content-Length": str(len(run_artifact_file)),
         },
-        match=[json_params_matcher({"Range": f"bytes=0-{len(run_artifact_file)}"})],
-        stream=True,
+        match=[
+            matchers.json_params_matcher({"Range": f"bytes=0-{len(run_artifact_file)}"}),
+            matchers.request_kwargs_matcher({"stream": True}),
+        ],
         content_type="application/zip",
         status=206,
         body=run_artifact_file,

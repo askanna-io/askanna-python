@@ -14,12 +14,15 @@ except ImportError:  # pragma: no cover
     from yaml import SafeLoader as SafeLoader
 
 
+string_format_datetime = "%Y-%m-%d %H:%M:%S %Z"
+
+
 def read_config(path: str) -> Dict:
     """
     Reading existing config or return default dict
     """
     try:
-        with open(os.path.expanduser(path), "r") as f:
+        with open(os.path.expanduser(path)) as f:
             return yaml.load(f, Loader=SafeLoader) or {}
     except FileNotFoundError:
         click.echo(f"Cannot find the config file: {os.path.expanduser(path)}", err=True)

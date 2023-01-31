@@ -4,9 +4,10 @@ import sys
 import click
 import yaml
 
-from askanna import project as aa_project
 from askanna.cli.utils import ask_which_workspace
+from askanna.config import config
 from askanna.core.dataclasses.project import Project
+from askanna.sdk.project import ProjectSDK
 
 HELP = """
 This command will allow you to create an AskAnna project in your current directory
@@ -35,7 +36,7 @@ class CreateProject:
             workspace_suuid = workspace.suuid
 
         try:
-            project = aa_project.create(workspace_suuid=workspace_suuid, name=self.name, description=description)
+            project = ProjectSDK().create(workspace_suuid=workspace_suuid, name=self.name, description=description)
         except Exception as e:
             click.echo(f"Something went wrong while creating the project:\n  {e}", err=True)
             sys.exit(1)
@@ -71,23 +72,33 @@ def cli(name, workspace, description):
     project_creator = CreateProject(name=name)
     project_info = project_creator.cli(workspace_suuid=workspace, description=description)
 
+    if config.server.ui:
+        project_url = config.server.ui + "/" + project_info.workspace.suuid + "/project/" + project_info.suuid + "/"
+    else:
+        project_url = config.server.remote + "/v1/project/" + project_info.suuid + "/"
+
     if not os.path.exists(askanna_project_file):
         with open(askanna_project_file, "w") as pf:
-            pf.write(yaml.dump({"push-target": project_info.url}, indent=2))
+            pf.write(yaml.dump({"push-target": project_url}, indent=2))
     else:
         click.echo(
             "\nTo be able to push your code to AskAnna, you need to update your local `askanna.yml` file. "
             "In the `askanna.yml` set or update the push-target with:"
         )
-        click.echo(f"push-target: {project_info.url}")
+        click.echo(f"push-target: {project_url}")
 
-    click.echo("\nWe have setup the new project. You can open your project at:")
-    click.echo(project_info.url)
+    if config.server.ui:
+        click.echo("\nWe have setup the new project. You can open your project at:")
+        click.echo(project_url)
+    else:
+        click.echo("\nWe have setup the new project.")
     click.echo(
-        "\nAs a first step you can configure your first job for this project in the `askanna.yml` file. "
-        "Ones you are done, you can easily push your code to AskAnna via:\n"
+        "\nAs a first step you can configure your first job for this project in the `askanna.yml` file."
+        "\nOnes you are done, you can push your code to AskAnna with the command:\n"
         "\n"
         "  askanna push\n"
+        "\n"
+        "More info about creating jobs: https://docs.askanna.io/job/create-job/\n"
         "\n"
         "Success with your project!"
     )

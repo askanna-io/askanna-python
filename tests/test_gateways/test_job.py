@@ -10,31 +10,32 @@ class TestGatewayJob:
         job_gateway = JobGateway()
         result = job_gateway.list()
 
-        assert len(result) == 1
-        assert result[0].name == "a job"
+        assert len(result.jobs) == 1
+        assert result.jobs[0].name == "a job"
 
-    def test_job_list_limit_offset(self):
+    def test_job_list_cursor(self):
         job_gateway = JobGateway()
-        result = job_gateway.list(limit=1, offset=1)
+        result = job_gateway.list(page_size=1, cursor="123")
 
-        assert len(result) == 1
-        assert result[0].name == "a scheduled job"
+        assert len(result.jobs) == 1
+        assert result.jobs[0].name == "a scheduled job"
 
     def test_job_list_error(self):
         job_gateway = JobGateway()
         with pytest.raises(GetError) as e:
-            job_gateway.list(offset=999)
+            job_gateway.list(cursor="999")
 
         assert (
-            "500 - Something went wrong while retrieving jobs: {'error': 'Internal Server Error'}" in e.value.args[0]
+            "500 - Something went wrong while retrieving the job list:\n  {'error': 'Internal Server Error'}"
+            in e.value.args[0]
         )
 
     def test_job_list_project(self):
         job_gateway = JobGateway()
         result = job_gateway.list(project_suuid="1234-1234-1234-1234")
 
-        assert len(result) == 1
-        assert result[0].name == "a job"
+        assert len(result.jobs) == 1
+        assert result.jobs[0].name == "a job"
 
     def test_job_detail(self):
         job_gateway = JobGateway()
@@ -59,29 +60,6 @@ class TestGatewayJob:
             + "{'error': 'Internal Server Error'}"
             in e.value.args[0]
         )
-
-    def test_job_get_job_by_name(self):
-        job_gateway = JobGateway()
-        result = job_gateway.get_job_by_name("a job")
-
-        assert result.name == "a job"
-
-    def test_job_get_job_by_name_more_than_two(self):
-        job_gateway = JobGateway()
-        with pytest.raises(GetError) as e:
-            job_gateway.get_job_by_name("a job", project_suuid="abcd-abcd-abcd-abcd")
-
-        assert (
-            "There are multiple jobs with the same name. This could happen if you changed names of the job manually. "
-            "Please make sure the job names are unique." in e.value.args[0]
-        )
-
-    def test_job_get_job_by_name_not_exist(self):
-        job_gateway = JobGateway()
-        with pytest.raises(GetError) as e:
-            job_gateway.get_job_by_name("job that does not exist")
-
-        assert "A job with this name is not available. Did you push your code?" in e.value.args[0]
 
     def test_job_change_no_changes(self):
         job_gateway = JobGateway()

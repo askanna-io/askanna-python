@@ -94,7 +94,6 @@ class TestReadConfigFromURL(unittest.TestCase):
         self.responses.add(
             responses.GET,
             url=self.config_url,
-            stream=True,
             content_type="application/octet-stream",
             status=200,
             body=f"askanna-remote: {self.remote_url}\n",
@@ -108,7 +107,6 @@ class TestReadConfigFromURL(unittest.TestCase):
         self.responses.add(
             responses.GET,
             url=self.invalid_config_url,
-            stream=True,
             content_type="application/octet-stream",
             status=200,
             body=f"invalid: {self.remote_url}\n  config: file",

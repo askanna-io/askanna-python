@@ -37,26 +37,31 @@ def cli(run_suuid, job_name):
     result_path = project_config[job_name].get("output", {}).get("result")
 
     if not result_path:
-        click.echo("Result storage aborted. No `output/result` defined for this job in `askanna.yml`.")
+        click.echo("  Result: no `result` defined for this job in `askanna.yml`")
         sys.exit(0)
     elif isinstance(result_path, list):
-        click.echo("Please enter a path in `output/result`, not a list.", err=True)
+        click.echo("  Please enter a path in `result` definition, not a list.", err=True)
         sys.exit(1)
 
     # Expand and translate result_path if they are configured with variables
     result_path = string_expand_variables([result_path])[0]
 
     if not os.path.exists(result_path):
-        click.echo(f"output/result: {result_path} does not exist. Not saving result.", err=True)
+        click.echo(f"  Result: {result_path} does not exist. Not saving result.", err=True)
         sys.exit(1)
 
-    click.echo("Uploading result to AskAnna...")
+    click.echo("  Uploading result to AskAnna...")
 
-    uploader = ResultUpload(run_suuid)
-    status, msg = uploader.upload(result_path)
+    try:
+        uploader = ResultUpload(run_suuid)
+        status, msg = uploader.upload(result_path)
+    except Exception as e:
+        click.echo(f"  {e}", err=True)
+        sys.exit(1)
+
     if status:
-        click.echo(msg)
+        click.echo(f"  {msg}")
         sys.exit(0)
     else:
-        click.echo(msg, err=True)
+        click.echo(f"  {msg}", err=True)
         sys.exit(1)

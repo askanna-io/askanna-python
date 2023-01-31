@@ -168,7 +168,7 @@ class PackageUpload(Upload):
     @property
     def entry_extrafields(self) -> dict:
         return {
-            "project": self.project_suuid,
+            "project_suuid": self.project_suuid,
             "description": self.description,
         }
 

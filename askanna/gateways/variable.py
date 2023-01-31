@@ -1,8 +1,20 @@
 from typing import List, Optional
 
-from askanna.core.dataclasses.project import Variable
+from askanna.core.dataclasses.variable import Variable
 from askanna.core.exceptions import DeleteError, GetError, PatchError, PostError
 from askanna.gateways.api_client import client
+
+from .utils import ListResponse
+
+
+class VariableListResponse(ListResponse):
+    def __init__(self, data: dict):
+        super().__init__(data)
+        self.results: List[Variable] = [Variable.from_dict(variable) for variable in data["results"]]
+
+    @property
+    def variables(self):
+        return self.results
 
 
 class VariableGateway:
@@ -13,40 +25,55 @@ class VariableGateway:
     def list(
         self,
         project_suuid: Optional[str] = None,
-        limit: int = 100,
-        offset: int = 0,
-        ordering: str = "-created",
-    ) -> List[Variable]:
-        """List variables with the option to filter on project
+        workspace_suuid: Optional[str] = None,
+        is_masked: Optional[bool] = None,
+        page_size: Optional[int] = None,
+        cursor: Optional[str] = None,
+        order_by: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> VariableListResponse:
+        """List variables with the option to filter and order options
 
         Args:
-            limit (int, optional): Number of results to return. Defaults to 100.
-            offset (int, optional): The initial index from which to return the results. Defaults to 0.
             project_suuid (str, optional): Project SUUID to filter for variables in a project. Defaults to None.
-            ordering (str, optional): Ordering of the results. Defaults to "-created".
+            workspace_suuid (str, optional): Workspace SUUID to filter for variables in a workspace. Defaults to None.
+            is_masked (bool, optional): Filter on variables that are masked or not. Defaults to None.
+            page_size (int, optional): Number of results per page. Defaults to the default value of the backend.
+            cursor (str, optional): Cursor to start the page from. Defaults to None.
+            order_by (str, optional): Order by field(s). Defaults to the default value of the backend.
+            search (str, optional): Search for a specific variable.
 
         Raises:
             GetError: Error based on response status code with the error message from the API
 
         Returns:
-            List[Variable]: A list of variables. List items are of type Variable dataclass.
+            VariableListResponse: The response from the API with a list of variables and pagination information.
         """
-        query = {
-            "offset": offset,
-            "limit": limit,
-            "ordering": ordering,
-        }
-        if project_suuid:
-            url = client.askanna_url.project.variable(project_suuid=project_suuid)
-        else:
-            url = client.askanna_url.variable.variable()
+        assert page_size is None or page_size > 0, "page_size must be a positive integer"
+        assert is_masked is None or isinstance(is_masked, bool), "is_masked must be a boolean"
 
-        r = client.get(url, params=query)
+        response = client.get(
+            url=client.askanna_url.variable.variable(),
+            params={
+                "project_suuid": project_suuid,
+                "workspace_suuid": workspace_suuid,
+                "is_masked": is_masked,
+                "page_size": page_size,
+                "cursor": cursor,
+                "order_by": order_by,
+                "search": search,
+            },
+        )
 
-        if r.status_code != 200:
-            raise GetError(f"{r.status_code} - Something went wrong while retrieving variables: {r.json()}")
+        if response.status_code != 200:
+            error_message = response.json().get("detail", "Something went wrong while retrieving variable list")
+            try:
+                error_message += f": {response.json()}"
+            except ValueError:
+                pass
+            raise GetError(error_message)
 
-        return [Variable.from_dict(variable) for variable in r.json().get("results")]
+        return VariableListResponse(response.json())
 
     def detail(self, variable_suuid: str) -> Variable:
         """Get the details of a variable
@@ -57,9 +84,16 @@ class VariableGateway:
         Returns:
             Variable: A variable dataclass
         """
-        url = client.askanna_url.variable.variable_detail(variable_suuid)
-        r = client.get(url)
-        return Variable(**r.json())
+        response = client.get(url=client.askanna_url.variable.variable_detail(variable_suuid))
+        if response.status_code == 404:
+            raise GetError(f"{response.status_code} - The variable SUUID '{variable_suuid}' was not found")
+        if response.status_code != 200:
+            raise GetError(
+                f"{response.status_code} - Something went wrong while retrieving the variable SUUID "
+                f"'{variable_suuid}': {response.json()}"
+            )
+
+        return Variable.from_dict(response.json())
 
     def create(self, project_suuid: str, name: str, value: str, is_masked: bool = False) -> Variable:
         """Create a new variable for a project
@@ -76,20 +110,24 @@ class VariableGateway:
         Returns:
             Variable: A variable dataclass of the newly created variable
         """
-        url = client.askanna_url.variable.variable()
-        r = client.create(
-            url,
+        assert isinstance(is_masked, bool), "is_masked must be a boolean"
+
+        response = client.create(
+            url=client.askanna_url.variable.variable(),
             json={
                 "name": name,
                 "value": value,
                 "is_masked": is_masked,
-                "project": project_suuid,
+                "project_suuid": project_suuid,
             },
         )
-        if r.status_code == 201:
-            return Variable(**r.json())
-        else:
-            raise PostError(f"{r.status_code} - Something went wrong while creating the variable: {r.json()}")
+
+        if response.status_code != 201:
+            raise PostError(
+                f"{response.status_code} - Something went wrong while creating the variable: {response.json()}"
+            )
+
+        return Variable.from_dict(response.json())
 
     def change(
         self,
@@ -98,28 +136,49 @@ class VariableGateway:
         value: Optional[str] = None,
         is_masked: Optional[bool] = None,
     ) -> Variable:
+        """Change the name, value or is_masked of a variable
+
+        Note: is_masked can only be changed to True, a masked variable cannot be set to unmasked.
+
+        Args:
+            variable_suuid (str): SUUID of the variable to change
+            name (str, optional): New name of the variable. Defaults to None.
+            value (str, optional): New value of the variable. Defaults to None.
+            is_masked (bool, optional): New is_masked value of the variable. Defaults to None.
+
+        Raises:
+            ValueError: Error if none of the arguments 'name', 'value' or 'is_masked' are provided.
+            PatchError: Error based on response status code with the error message from the API
+
+        Returns:
+            Variable: The updated variable in a Variable dataclass
+        """
         changes = {}
         if name:
             changes.update({"name": name})
         if value:
             changes.update({"value": value})
         if is_masked:
+            assert isinstance(is_masked, bool), "is_masked must be a boolean"
             changes.update({"is_masked": is_masked})
 
         if not changes:
             raise ValueError("At least one of the arguments 'name', 'value' or 'is_masked' should be provided.")
 
-        url = client.askanna_url.variable.variable_detail(variable_suuid)
-        r = client.patch(url, json=changes)
-
-        if r.status_code == 200:
-            return Variable(**r.json())
-        if r.status_code == 404:
-            raise PatchError(f"{r.status_code} - The variable SUUID '{variable_suuid}' was not found")
-
-        raise PatchError(
-            f"{r.status_code} - Something went wrong while updating the variable SUUID '{variable_suuid}': {r.json()}"
+        response = client.patch(
+            url=client.askanna_url.variable.variable_detail(variable_suuid),
+            json=changes,
         )
+
+        if response.status_code == 404:
+            raise PatchError(f"{response.status_code} - The variable SUUID '{variable_suuid}' was not found")
+        if response.status_code != 200:
+            raise PatchError(
+                f"{response.status_code} - Something went wrong while updating the variable SUUID '{variable_suuid}': "
+                f"{response.json()}"
+            )
+
+        return Variable.from_dict(response.json())
 
     def delete(self, variable_suuid: str) -> bool:
         """Delete a variable
@@ -133,13 +192,16 @@ class VariableGateway:
         Returns:
             bool: True if the variable was succesfully deleted
         """
-        url = client.askanna_url.variable.variable_detail(variable_suuid)
-        r = client.delete(url)
-
-        if r.status_code == 204:
-            return True
-        if r.status_code == 404:
-            raise DeleteError(f"{r.status_code} - The variable SUUID '{variable_suuid}' was not found")
-        raise DeleteError(
-            f"{r.status_code} - Something went wrong while deleting the variable SUUID '{variable_suuid}': {r.json()}"
+        response = client.delete(
+            url=client.askanna_url.variable.variable_detail(variable_suuid),
         )
+
+        if response.status_code == 404:
+            raise DeleteError(f"{response.status_code} - The variable SUUID '{variable_suuid}' was not found")
+        if response.status_code != 204:
+            raise DeleteError(
+                f"{response.status_code} - Something went wrong while deleting the variable SUUID '{variable_suuid}': "
+                f"{response.json()}"
+            )
+
+        return True

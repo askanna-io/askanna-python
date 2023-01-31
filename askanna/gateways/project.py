@@ -1,10 +1,21 @@
 from typing import List, Optional
 
-from askanna.core.dataclasses.package import Package
+from askanna.core.dataclasses.base import VISIBILITY
 from askanna.core.dataclasses.project import Project
 from askanna.core.exceptions import CreateError, DeleteError, GetError, PatchError
 from askanna.gateways.api_client import client
-from askanna.gateways.package import PackageGateway
+
+from .utils import ListResponse
+
+
+class ProjectListResponse(ListResponse):
+    def __init__(self, data: dict):
+        super().__init__(data)
+        self.results: List[Project] = [Project.from_dict(project) for project in data["results"]]
+
+    @property
+    def projects(self):
+        return self.results
 
 
 class ProjectGateway:
@@ -15,43 +26,58 @@ class ProjectGateway:
     def list(
         self,
         workspace_suuid: Optional[str] = None,
-        limit: int = 100,
-        offset: int = 0,
-        ordering: str = "-created",
-    ) -> List[Project]:
-        """List all projects with the option to filter on workspace
+        page_size: Optional[int] = None,
+        cursor: Optional[str] = None,
+        order_by: Optional[str] = None,
+        search: Optional[str] = None,
+        is_member: Optional[bool] = None,
+        visibility: Optional[VISIBILITY] = None,
+    ) -> ProjectListResponse:
+        """List all projects with filter and order options
 
         Args:
-            limit (int): Number of results to return. Defaults to 100.
-            offset (int): The initial index from which to return the results. Defaults to 0.
             workspace_suuid (str, optional): Workspace SUUID to filter for projects in a workspace. Defaults to None.
-            ordering (str): Ordering of the results. Defaults to "-created".
+            page_size (int, optional): Number of results per page. Defaults to the default value of the backend.
+            cursor (str, optional): Cursor to start the page from. Defaults to None.
+            order_by (str, optional): Order by field(s). Defaults to the default value of the backend.
+            search (str, optional): Search for a specific project.
+            is_member (bool, optional): Filter on projects where the authenticated user is a member.
+            visibility ("PRIVATE" or "PUBLIC", optional): Filter on projects with a specific visibility.
 
         Raises:
             GetError: Error based on response status code with the error message from the API
 
         Returns:
-            List[Project]: A list of projects. List items are of type Project dataclass.
+            ProjectListResponse: The response from the API with a list of projects and pagination information.
         """
-        if workspace_suuid:
-            # Get URL to filter projects for a specific workspace
-            url = client.askanna_url.workspace.project_list(workspace_suuid)
-        else:
-            # Get URL to select for all projects
-            url = client.askanna_url.project.project_list()
+        assert page_size is None or page_size > 0, "page_size must be a positive integer"
+        assert is_member is None or isinstance(is_member, bool), "is_member must be a boolean"
+        if visibility is not None:
+            visibility = visibility.lower()  # type: ignore
+            assert visibility in ["public", "private"], "visibility must be 'public' or 'private'"
 
-        query = {
-            "offset": offset,
-            "limit": limit,
-            "ordering": ordering,
-        }
+        response = client.get(
+            url=client.askanna_url.project.project_list(),
+            params={
+                "workspace_suuid": workspace_suuid,
+                "page_size": page_size,
+                "cursor": cursor,
+                "order_by": order_by,
+                "search": search,
+                "is_member": is_member,
+                "visibility": visibility,
+            },
+        )
 
-        r = client.get(url, params=query)
+        if response.status_code != 200:
+            error_message = f"{response.status_code} - Something went wrong while retrieving the project list"
+            try:
+                error_message += f":\n  {response.json()}"
+            except ValueError:
+                pass
+            raise GetError(error_message)
 
-        if r.status_code != 200:
-            raise GetError(f"{r.status_code} - Something went wrong while retrieving projects: {r.json()}")
-
-        return [Project.from_dict(project) for project in r.json().get("results")]
+        return ProjectListResponse(response.json())
 
     def detail(self, project_suuid: str) -> Project:
         """Get information of a project
@@ -65,17 +91,19 @@ class ProjectGateway:
         Returns:
             Project: Project information in a Project dataclass
         """
-        url = client.askanna_url.project.project_detail(project_suuid=project_suuid)
-        r = client.get(url)
+        response = client.get(
+            url=client.askanna_url.project.project_detail(project_suuid=project_suuid),
+        )
 
-        if r.status_code == 404:
+        if response.status_code == 404:
             raise GetError(f"404 - The project SUUID '{project_suuid}' was not found")
-        elif r.status_code != 200:
+        if response.status_code != 200:
             raise GetError(
-                f"{r.status_code} - Something went wrong while retrieving project SUUID '{project_suuid}': {r.json()}"
+                f"{response.status_code} - Something went wrong while retrieving project SUUID '{project_suuid}': "
+                f"{response.json()}"
             )
 
-        return Project.from_dict(r.json())
+        return Project.from_dict(response.json())
 
     def create(self, workspace_suuid: str, name: str, description: str = "", visibility: str = "PRIVATE") -> Project:
         """Create a new project
@@ -93,25 +121,25 @@ class ProjectGateway:
         Returns:
             Project: The information of the newly created project in a Project dataclass
         """
-        url = client.askanna_url.project.project()
-
         if visibility and visibility not in ["PUBLIC", "PRIVATE"]:
             raise ValueError("Visibility must be either PUBLIC or PRIVATE")
 
-        r = client.create(
-            url,
+        response = client.create(
+            url=client.askanna_url.project.project(),
             json={
-                "workspace": workspace_suuid,
+                "workspace_suuid": workspace_suuid,
                 "name": name,
                 "description": description,
                 "visibility": visibility,
             },
         )
 
-        if r.status_code == 201:
-            return Project.from_dict(r.json())
-        else:
-            raise CreateError(f"{r.status_code} - Something went wrong while creating the project: {r.json()}")
+        if response.status_code != 201:
+            raise CreateError(
+                f"{response.status_code} - Something went wrong while creating the project: {response.json()}"
+            )
+
+        return Project.from_dict(response.json())
 
     def change(
         self,
@@ -123,7 +151,7 @@ class ProjectGateway:
         """Change the name, description and/or visibility of a project
 
         Args:
-            project_suuid (str): SUUID of the project you want to change the information of
+            project_suuid (str): SUUID of the project to change
             name (str, optional): New name for the project. Defaults to None.
             description (str, optional): New description of the project. Defaults to None.
             visibility ("PUBLIC" or "PRIVATE", optional): New visibility of the project. Defaults to None.
@@ -136,8 +164,6 @@ class ProjectGateway:
         Returns:
             Project: The changed project information in a Project dataclass
         """
-        if visibility and visibility not in ["PUBLIC", "PRIVATE"]:
-            raise ValueError("Visibility must be either PUBLIC or PRIVATE")
 
         changes = {}
         if name:
@@ -145,21 +171,27 @@ class ProjectGateway:
         if description:
             changes.update({"description": description})
         if visibility:
+            if visibility not in ["PUBLIC", "PRIVATE"]:
+                raise ValueError("Visibility must be either PUBLIC or PRIVATE")
             changes.update({"visibility": visibility})
 
         if not changes:
             raise ValueError("At least one of the parameters 'name', 'description' or 'visibility' must be set.")
 
-        url = client.askanna_url.project.project_detail(project_suuid=project_suuid)
-        r = client.patch(url, json=changes)
+        response = client.patch(
+            url=client.askanna_url.project.project_detail(project_suuid=project_suuid),
+            json=changes,
+        )
 
-        if r.status_code == 200:
-            return Project.from_dict(r.json())
-        else:
+        if response.status_code == 404:
+            raise PatchError(f"404 - The project SUUID '{project_suuid}' was not found")
+        if response.status_code != 200:
             raise PatchError(
-                f"{r.status_code} - Something went wrong while updating the project SUUID '{project_suuid}': "
-                f"{r.json()}"
+                f"{response.status_code} - Something went wrong while updating the project SUUID '{project_suuid}': "
+                f"{response.json()}"
             )
+
+        return Project.from_dict(response.json())
 
     def delete(self, project_suuid: str) -> bool:
         """Delete a project
@@ -173,40 +205,16 @@ class ProjectGateway:
         Returns:
             bool: True if the project was succesfully deleted
         """
-        url = client.askanna_url.project.project_detail(project_suuid)
-        r = client.delete(url)
+        response = client.delete(
+            url=client.askanna_url.project.project_detail(project_suuid),
+        )
 
-        if r.status_code == 204:
-            return True
-        elif r.status_code == 404:
+        if response.status_code == 404:
             raise DeleteError(f"404 - The project SUUID '{project_suuid}' was not found")
-        else:
+        if response.status_code != 204:
             raise DeleteError(
-                f"{r.status_code} - Something went wrong while deleting the project SUUID '{project_suuid}': "
-                f"{r.json()}"
+                f"{response.status_code} - Something went wrong while deleting the project SUUID '{project_suuid}': "
+                f"{response.json()}"
             )
 
-    def package_list(
-        self,
-        project_suuid: str,
-        limit: int = 100,
-        offset: int = 0,
-        ordering: str = "-created",
-    ) -> List[Package]:
-        """Get a list of packages in a project
-
-        Args:
-            project_suuid (str): SUUID of the project to get the packages from
-            limit (int): Number of results to return. Defaults to 100.
-            offset (int): The initial index from which to return the results. Defaults to 0.
-            ordering (str): The ordering of the results. Defaults to "-created".
-
-        Returns:
-            List[Package]: List of packages for the project in a Package dataclass
-        """
-        return PackageGateway().list(
-            project_suuid=project_suuid,
-            limit=limit,
-            offset=offset,
-            ordering=ordering,
-        )
+        return True

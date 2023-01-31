@@ -65,7 +65,6 @@ class TestCliLogin(unittest.TestCase):
         self.responses.add(
             responses.GET,
             url=f"{self.ui_url}/askanna-config.yml",
-            stream=True,
             content_type="application/octet-stream",
             status=200,
             body=f"askanna-remote: {self.remote_url}\n",
@@ -73,7 +72,6 @@ class TestCliLogin(unittest.TestCase):
         self.responses.add(
             responses.GET,
             url=f"{self.wrong_config_url}/askanna-config.yml",
-            stream=True,
             content_type="application/octet-stream",
             status=200,
             body=f"no-remote: {self.remote_url}\n",

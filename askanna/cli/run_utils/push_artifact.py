@@ -39,7 +39,7 @@ def cli(run_suuid, job_name):
     paths_defined = project_config[job_name].get("output", {}).get("artifact", [])
 
     if not paths_defined:
-        click.echo("Artifact storage aborted. No `output/artifact` defined for this job in `askanna.yml`.")
+        click.echo("  Artifact: no `artifact` defined for this job in `askanna.yml`")
         sys.exit(0)
     elif isinstance(paths_defined, str):
         paths_defined = [paths_defined]
@@ -47,30 +47,31 @@ def cli(run_suuid, job_name):
     # Expand and translate paths if they are configured with variables
     paths = string_expand_variables(paths_defined)
 
-    click.echo("Making a zip file with artifact...")
+    click.echo("  Making a zip file with artifact...")
 
     tempdir = tempfile.mkdtemp(prefix="askanna-artifact")
     zip_file = os.path.join(tempdir, f"artifact_{run_suuid}.zip")
     create_zip_from_paths(filename=zip_file, paths=paths)
 
-    click.echo("Uploading artifact to AskAnna...")
+    click.echo("  Uploading artifact to AskAnna...")
 
-    uploader = ArtifactUpload(run_suuid)
-    status, msg = uploader.upload(zip_file)
+    try:
+        uploader = ArtifactUpload(run_suuid)
+        status, msg = uploader.upload(zip_file)
+    except Exception as e:
+        click.echo(f"  {e}", err=True)
+        sys.exit(1)
+
     if status:
-        click.echo(msg)
+        click.echo(f"  {msg}")
         try:
             os.remove(zip_file)
             os.rmdir(tempdir)
         except OSError as e:
-            click.echo(
-                "Pushing your artifact was successful, but we could not remove the temporary file "
-                "used for uploading the artifact to AskAnna.",
-                err=True,
-            )
-            click.echo(f"The error: {e.strerror}", err=True)
-            click.echo(f"You can manually delete the file: {zip_file}", err=True)
+            click.echo("  Pushing the artifact was successful, but the temporary file could not be removed.", err=True)
+            click.echo(f"  The error: {e.strerror}", err=True)
+            click.echo(f"  You can manually delete the file: {zip_file}", err=True)
         sys.exit(0)
     else:
-        click.echo(msg, err=True)
+        click.echo(f"  {msg}", err=True)
         sys.exit(1)
