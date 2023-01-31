@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.21.0 (2023-01-31)
+
+- Add info option to CLI commands
+- Support new query options in both Python SDK and CLI. A.o. you can now search for objects.
+- Extend run CLI commands, a.o. to retrieve a list of runs or info of a run
+- Support new Cursor Pagination setup from the AskAnna Backend
+- Refactor to support the new setup of the AskAnna Backend API endpoints
+
 ## 0.20.0 (2022-11-28)
 
 - New subcommands to get run status & log
