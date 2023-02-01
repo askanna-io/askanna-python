@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.21.0 (2023-01-31)
+## 0.21.0 (2023-02-01)
 
 - Add info option to CLI commands
 - Support new query options in both Python SDK and CLI. A.o. you can now search for objects.
