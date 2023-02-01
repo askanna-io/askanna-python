@@ -45,17 +45,23 @@ class AuthGateway:
         if client.config.server.remote == "https://beta-api.askanna.eu" and not ui_url:
             client.config.server.ui = "https://beta.askanna.eu"
 
-        url = client.askanna_url.auth.login()
-        r = client.post(url, json={"username": email.strip(), "password": password.strip()})
+        response = client.post(
+            url=client.askanna_url.auth.login(),
+            json={
+                "email": email.strip(),
+                "password": password.strip(),
+            },
+        )
+        if response.status_code == 400:
+            raise PostError(f"{response.status_code} - We could not log you in. Please check your credentials.")
+        if response.status_code == 404:
+            raise PostError(
+                f"{response.status_code} - We could not log you in. Please check the url or remote you provided."
+            )
+        if response.status_code != 200:
+            raise PostError(f"{response.status_code} - We could not log you in: {response.reason}")
 
-        if r.status_code == 400:
-            raise PostError(f"{r.status_code} - We could not log you in. Please check your credentials.")
-        if r.status_code == 404:
-            raise PostError(f"{r.status_code} - We could not log you in. Please check the url or remote you provided.")
-        if r.status_code != 200:
-            raise PostError(f"{r.status_code} - We could not log you in: {r.reason}")
-
-        client.config.server.token = str(r.json().get("key"))
+        client.config.server.token = str(response.json().get("key"))
         client.update_session()
 
         if update_config_file:
@@ -63,14 +69,16 @@ class AuthGateway:
 
     def get_user_info(self) -> User:
         url = client.askanna_url.auth.user()
-        r = client.get(url)
+        response = client.get(url)
 
-        if r.status_code == 200:
-            return User(**r.json())
-        elif r.status_code == 401:
+        if response.status_code == 401:
             raise GetError(
                 "The provided token is not valid. Via `askanna logout` you can remove the token "
                 "and via `askanna login` you can set a new token."
             )
-        else:
-            raise GetError("{} - We could not connect to AskAnna. More info:\n" "{}".format(r.status_code, r.reason))
+        if response.status_code != 200:
+            raise GetError(
+                "{} - We could not connect to AskAnna. More info:\n" "{}".format(response.status_code, response.reason)
+            )
+
+        return User(**response.json())

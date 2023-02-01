@@ -9,6 +9,7 @@ pytest_plugins = [
     "tests.fixtures.responses.package",
     "tests.fixtures.responses.project",
     "tests.fixtures.responses.run",
+    "tests.fixtures.responses.variable",
     "tests.fixtures.responses.workspace",
 ]
 

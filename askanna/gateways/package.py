@@ -6,6 +6,18 @@ from askanna.core.download import ChunkedDownload
 from askanna.core.exceptions import GetError
 from askanna.gateways.api_client import client
 
+from .utils import ListResponse
+
+
+class PackageListResponse(ListResponse):
+    def __init__(self, data: dict):
+        super().__init__(data)
+        self.results: List[Package] = [Package.from_dict(package) for package in data["results"]]
+
+    @property
+    def packages(self):
+        return self.results
+
 
 class PackageGateway:
     """Management of packages in AskAnna
@@ -14,42 +26,86 @@ class PackageGateway:
 
     def list(
         self,
-        limit: int = 100,
-        offset: int = 0,
         project_suuid: Optional[str] = None,
-        ordering: str = "-created",
-    ) -> List[Package]:
+        workspace_suuid: Optional[str] = None,
+        created_by_name: Optional[str] = None,
+        created_by_suuid: Optional[str] = None,
+        page_size: Optional[int] = None,
+        cursor: Optional[str] = None,
+        order_by: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> PackageListResponse:
         """Get a list of packages
 
         Args:
-            limit (int): Number of results to return. Defaults to 100.
-            offset (int): The initial index from which to return the results. Defaults to 0.
             project_suuid (str, optional): Project SUUID to filter for packages in a project. Defaults to None.
-            ordering (str): Ordering of the results. Defaults to "-created".
+            workspace_suuid (str, optional): Workspace SUUID to filter for packages in a workspace. Defaults to None.
+            created_by_name (str, optional): Filter packages on a created by name. Defaults to None.
+            created_by_suuid (str, optional): Filter packages on a created by SUUID. Defaults to None.
+            page_size (int, optional): Number of packages to return per page. Defaults to the default value of
+                the backend.
+            cursor (str, optional): Cursor to start the page from. Defaults to None.
+            order_by (str, optional): Order by field(s). Defaults to the default value of the backend.
+            search (str, optional): Search for a specific package.
 
         Raises:
             GetError: Error based on response status code with the error message from the API
 
         Returns:
-            List[Package]: A list of packages. List items are of type Package dataclass.
+            PackageListResponse: The response from the API with a list of packages and pagination information
         """
-        query = {
-            "offset": offset,
-            "limit": limit,
-            "ordering": ordering,
-        }
+        assert page_size is None or page_size > 0, "page_size must be a positive integer"
 
-        if project_suuid:
-            url = client.askanna_url.project.package_list(project_suuid)
-        else:
-            url = client.askanna_url.package.package_list()
+        response = client.get(
+            url=client.askanna_url.package.package_list(),
+            params={
+                "project_suuid": project_suuid,
+                "workspace_suuid": workspace_suuid,
+                "created_by_name": created_by_name,
+                "created_by_suuid": created_by_suuid,
+                "page_size": page_size,
+                "cursor": cursor,
+                "order_by": order_by,
+                "search": search,
+            },
+        )
 
-        r = client.get(url, params=query)
+        if response.status_code != 200:
+            error_message = f"{response.status_code} - Something went wrong while retrieving package list"
+            try:
+                error_message += f":\n  {response.json()}"
+            except ValueError:
+                pass
+            raise GetError(error_message)
 
-        if r.status_code != 200:
-            raise GetError(f"{r.status_code} - Something went wrong while retrieving packages: {r.json()}")
+        return PackageListResponse(response.json())
 
-        return [Package(**package) for package in r.json().get("results")]
+    def detail(self, package_suuid: str) -> Package:
+        """Get information of a package
+
+        Args:
+            package_suuid (str): SUUID of the package
+
+        Raises:
+            GetError: Error based on response status code with the error message from the API
+
+        Returns:
+            Package: Package information in a Package dataclass
+        """
+
+        response = client.get(
+            url=client.askanna_url.package.package_detail(package_suuid),
+        )
+
+        if response.status_code == 404:
+            raise GetError(f"404 - The package SUUID '{package_suuid}' was not found")
+        if response.status_code != 200:
+            raise GetError(
+                f"{response.status_code} - Something went wrong while retrieving package SUUID '{package_suuid}': "
+                f"{response.json()}"
+            )
+
+        return Package.from_dict(response.json())
 
     def download(self, package_suuid: str, output_path: Optional[Union[Path, str]] = None) -> Union[bytes, None]:
         """Download a package
@@ -65,17 +121,17 @@ class PackageGateway:
             bytes or None: The package as bytes or None if output_path is set
         """
         url = client.askanna_url.package.package_download(package_suuid)
-        r = client.get(url)
+        response = client.get(url)
 
-        if r.status_code == 404:
+        if response.status_code == 404:
             raise GetError(f"404 - Package SUUID '{package_suuid}' was not found")
-        elif r.status_code != 200:
+        elif response.status_code != 200:
             raise GetError(
-                f"{r.status_code} - Something went wrong while retrieving the package SUUID '{package_suuid}': "
-                + str(r.json())
+                f"{response.status_code} - Something went wrong while retrieving the package SUUID '{package_suuid}': "
+                + str(response.json())
             )
 
-        download_url = r.json().get("target")
+        download_url = response.json().get("target")
 
         if output_path:
             download = ChunkedDownload(download_url)
@@ -91,14 +147,14 @@ class PackageGateway:
             download.download(output_path)
             return None
         else:
-            r = client.get(download_url, stream=True)
+            response = client.get(download_url, stream=True)
 
-            if r.status_code == 200:
-                return r.content
-            if r.status_code == 404:
+            if response.status_code == 404:
                 raise GetError(f"404 - Package SUUID '{package_suuid}' was not found")
+            if response.status_code != 200:
+                raise GetError(
+                    f"{response.status_code} - Something went wrong while retrieving the package SUUID "
+                    f"'{package_suuid}': {response.json()}"
+                )
 
-            raise GetError(
-                f"{r.status_code} - Something went wrong while retrieving the package SUUID '{package_suuid}': "
-                + str(r.json())
-            )
+            return response.content

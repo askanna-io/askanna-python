@@ -9,8 +9,8 @@ def workspace_detail() -> dict:
         "description": "Here you can add some info about the workspace",
         "visibility": "PRIVATE",
         "created_by": {
+            "relation": "user",
             "suuid": "3Tw1-jp9H-FjQw-8PYY",
-            "name": "Robbert",
         },
         "permission": {
             "askanna.me": True,
@@ -53,7 +53,6 @@ def workspace_detail() -> dict:
         "is_member": True,
         "created": "2020-04-01T09:44:11.853000Z",
         "modified": "2022-09-19T08:47:40.214291Z",
-        "url": "https://askanna.eu/3Cpy-QMzd-MVko-1rDQ/",
     }
 
 
@@ -71,7 +70,7 @@ def workspace_list(workspace_detail) -> dict:
 def workspace_list_limit(workspace_new_detail) -> dict:
     return {
         "count": 8,
-        "next": "https://api.askanna.eu/v1/workspace/?limit=1&offset=1",
+        "next": "https://api.askanna.eu/v1/workspace/?cursor=567&page_size=1",
         "previous": None,
         "results": [
             workspace_new_detail,
@@ -87,8 +86,8 @@ def workspace_new_detail() -> dict:
         "description": "description new workspace",
         "visibility": "PUBLIC",
         "created_by": {
+            "relation": "user",
             "suuid": "3Tw1-jp9H-FjQw-8PYY",
-            "name": "Robbert",
         },
         "permission": {
             "askanna.me": True,
@@ -131,5 +130,4 @@ def workspace_new_detail() -> dict:
         "is_member": True,
         "created": "2022-10-18T07:31:47.803088Z",
         "modified": "2022-10-18T07:31:47.803123Z",
-        "url": "https://askanna.eu/4buD-tVhI-emHj-QXCY/",
     }

@@ -1,7 +1,6 @@
 from typing import List
 
-from responses import RequestsMock
-from responses.matchers import json_params_matcher
+from responses import RequestsMock, matchers
 
 from askanna.config.api_url import askanna_url
 
@@ -18,42 +17,49 @@ def package_response(
     # GET package list, files and download
     api_responses.add(
         "GET",
-        url=f"{askanna_url.project.package_list('1234-1234-1234-1234')}?offset=0&limit=100&ordering=-created",
+        url=askanna_url.package.package_list() + "?project_suuid=1234-1234-1234-1234",
         status=200,
         content_type="application/json",
         json=package_list,
     )
     api_responses.add(
         "GET",
-        url=f"{askanna_url.project.package_list('abcd-abcd-abcd-abcd')}?offset=0&limit=1&ordering=-created",
+        url=askanna_url.package.package_list() + "?page_size=1&project_suuid=abcd-abcd-abcd-abcd",
         status=200,
         content_type="application/json",
         json=package_list_limit_empty,
     )
     api_responses.add(
         "GET",
-        url=f"{askanna_url.package.package_list()}?offset=0&limit=1&ordering=-created",
+        url=askanna_url.package.package_list() + "?page_size=1",
         status=200,
         content_type="application/json",
         json=package_list_limit,
     )
     api_responses.add(
         "GET",
-        url=f"{askanna_url.package.package_list()}?offset=100&limit=1&ordering=-created",
+        url=askanna_url.package.package_list() + "?cursor=999",
         status=404,
         content_type="application/json",
         json={"detail": "Not found."},
     )
     api_responses.add(
         "GET",
-        url=f"{askanna_url.package.package_list()}?offset=999&limit=1&ordering=-created",
+        url=askanna_url.package.package_list() + "?cursor=999&page_size=1",
         status=500,
         content_type="application/json",
         json={"error": "Internal Server Error"},
     )
     api_responses.add(
         "GET",
-        url=f"{askanna_url.package.package_list()}?offset=0&limit=100&ordering=-created",
+        url=askanna_url.package.package_list() + "?page_size=100",
+        status=200,
+        content_type="application/json",
+        json=package_list,
+    )
+    api_responses.add(
+        "GET",
+        url=askanna_url.package.package_list(),
         status=200,
         content_type="application/json",
         json=package_list,
@@ -85,8 +91,10 @@ def package_response(
             "Accept-Ranges": "bytes",
             "Content-Length": str(len(package_zip_file)),
         },
-        match=[json_params_matcher({"Range": f"bytes=0-{len(package_zip_file)}"})],
-        stream=True,
+        match=[
+            matchers.json_params_matcher({"Range": f"bytes=0-{len(package_zip_file)}"}),
+            matchers.request_kwargs_matcher({"stream": True}),
+        ],
         content_type="application/zip",
         status=206,
         body=package_zip_file,

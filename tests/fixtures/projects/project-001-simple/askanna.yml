@@ -8,6 +8,12 @@ test_job_result:
   output:
     result: result.json
 
+test_job_result_not_exist:
+  job:
+    - python test.py
+  output:
+    result: result_not_exist.json
+
 test_job_artifact:
   job:
     - python test.py

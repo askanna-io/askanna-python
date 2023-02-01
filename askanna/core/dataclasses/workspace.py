@@ -1,8 +1,11 @@
 import datetime
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 from dateutil import parser as dateutil_parser
+
+from .base import VISIBILITY
+from .relation import UserRelation
 
 
 @dataclass
@@ -10,13 +13,12 @@ class Workspace:
     suuid: str
     name: str
     description: str
-    visibility: str
-    created_by: dict
+    visibility: VISIBILITY
+    created_by: Optional[UserRelation]
     permission: dict
     is_member: bool
     created: datetime.datetime
     modified: datetime.datetime
-    url: str
 
     def __str__(self):
         return f"{self.name} {self.suuid}"
@@ -25,15 +27,8 @@ class Workspace:
     def from_dict(cls, data: Dict) -> "Workspace":
         data["created"] = dateutil_parser.parse(data["created"])
         data["modified"] = dateutil_parser.parse(data["modified"])
-        return cls(**data)
 
+        created_by = UserRelation.from_dict(data["created_by"]) if data["created_by"] else None
+        del data["created_by"]
 
-@dataclass
-class WorkspaceRelation:
-    suuid: str
-    name: str
-
-    @classmethod
-    def from_dict(cls, data: Dict) -> "WorkspaceRelation":
-        del data["relation"]
-        return cls(**data)
+        return cls(created_by=created_by, **data)

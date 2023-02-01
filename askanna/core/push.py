@@ -8,11 +8,11 @@ from zipfile import ZipFile
 import click
 import git
 
-from askanna import project
 from askanna.config import config
 from askanna.core.upload import PackageUpload
 from askanna.core.utils.file import zip_files_in_dir
 from askanna.core.utils.validate import validate_askanna_yml
+from askanna.sdk.package import PackageSDK
 
 
 def package(src: str) -> str:
@@ -56,7 +56,11 @@ def is_project_config_push_ready() -> bool:
         return False
 
     if not config.project.project_suuid:
-        click.echo("We cannot upload to AskAnna without the project SUUID set.", err=True)
+        click.echo(
+            "We cannot upload to AskAnna without the project SUUID set. Did you add a push-target to your "
+            "`askanna.yml` file?",
+            err=True,
+        )
         return False
 
     return True
@@ -72,8 +76,8 @@ def push(overwrite: bool = False, description: Union[str, None] = None) -> bool:
 
     if not overwrite:
         # If a package for the project exists, we will not push a new version.
-        packages = project.package_list(config.project.project_suuid, offset=0, limit=1)
-        if packages:
+        packages = PackageSDK().list(project_suuid=config.project.project_suuid, number_of_results=1)
+        if len(packages) > 0:
             click.echo(
                 "We are not pushing your code to AskAnna because this project already has a code package and "
                 "overwrite is set to `False`.",

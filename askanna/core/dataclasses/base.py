@@ -2,6 +2,13 @@ import datetime
 from dataclasses import dataclass
 from typing import Any, Dict
 
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+
+VISIBILITY = Literal["private", "public", "PRIVATE", "PUBLIC"]
+
 
 @dataclass
 class Label:
@@ -24,3 +31,9 @@ class User:
     is_active: bool
     date_joined: datetime.datetime
     last_login: datetime.datetime
+
+
+@dataclass
+class MembershipRole:
+    name: str
+    code: str

@@ -6,11 +6,11 @@ from cookiecutter.exceptions import OutputDirExistsException
 from cookiecutter.main import cookiecutter as cookiecreator
 from slugify import slugify
 
-from askanna import project as aa_project
 from askanna.cli.utils import ask_which_workspace
 from askanna.config import config
 from askanna.core.dataclasses.project import Project
 from askanna.core.push import push
+from askanna.sdk.project import ProjectSDK
 from askanna.settings import DEFAULT_PROJECT_TEMPLATE
 
 HELP = """
@@ -43,7 +43,7 @@ class CreateProject:
             workspace_suuid = workspace.suuid
 
         try:
-            project = aa_project.create(workspace_suuid=workspace_suuid, name=self.name, description=description)
+            project = ProjectSDK().create(workspace_suuid=workspace_suuid, name=self.name, description=description)
         except Exception as e:
             click.echo(f"Something went wrong while creating the project:\n  {e}", err=True)
             sys.exit(1)
@@ -90,6 +90,11 @@ def cli(name, workspace, description, project_template, is_push):
     project_info = project_creator.cli(workspace_suuid=workspace, description=description)
     project_dir = project_creator.slugified_name
 
+    if config.server.ui:
+        project_url = config.server.ui + "/" + project_info.workspace.suuid + "/project/" + project_info.suuid + "/"
+    else:
+        project_url = config.server.remote + "/v1/project/" + project_info.suuid + "/"
+
     try:
         cookiecreator(
             project_template or DEFAULT_PROJECT_TEMPLATE,
@@ -98,7 +103,7 @@ def cli(name, workspace, description, project_template, is_push):
             extra_context={
                 "project_name": project_info.name,
                 "project_directory": project_dir,
-                "project_push_target": project_info.url,
+                "project_push_target": project_url,
             },
         )
     except OutputDirExistsException:
@@ -106,11 +111,11 @@ def cli(name, workspace, description, project_template, is_push):
             f"You already have a project directory '{project_dir}'. If you open the new project in AskAnna, you find "
             "instructions about how you can push your project to AskAnna. You can open your project at:"
         )
-        click.echo(project_info.url)
+        click.echo(project_url)
         click.echo("\nSuccess with your project!")
         sys.exit(1)
     else:
-        click.echo(f"Open your new local project directory: 'cd {project_dir}'")
+        click.echo(f"Open your new local project directory:\n  cd {project_dir}")
 
         if is_push:
             # Also push the new directory to AskAnna
@@ -118,6 +123,17 @@ def cli(name, workspace, description, project_template, is_push):
             config.project.reload_config(os.path.join(os.getcwd(), project_dir, "askanna.yml"))
             push(description="Initial push")
 
-    click.echo("\nWe have setup the new project. You can open your project at:")
-    click.echo(project_info.url)
-    click.echo("\nSuccess with your project!")
+    if config.server.ui:
+        click.echo("\nYou can find your project in AskAnna at:")
+        click.echo(project_url)
+
+    click.echo(
+        "\nAs a first step you can configure your first job for this project in the `askanna.yml` file."
+        "\nOnes you are done, you can push your code to AskAnna with the command:\n"
+        "\n"
+        "  askanna push\n"
+        "\n"
+        "More info about creating jobs: https://docs.askanna.io/job/create-job/\n"
+        "\n"
+        "Success with your project!"
+    )

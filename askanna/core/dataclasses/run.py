@@ -6,12 +6,18 @@ from typing import Any, Dict, List, Optional, Union
 
 from dateutil import parser as dateutil_parser
 
-from askanna.core.dataclasses.base import Label
-from askanna.core.dataclasses.job import JobRelation, PayloadRelation
-from askanna.core.dataclasses.project import ProjectRelation
-from askanna.core.dataclasses.workspace import WorkspaceRelation
 from askanna.core.exceptions import MultipleObjectsReturned
 from askanna.core.utils.object import json_serializer
+
+from .base import Label
+from .relation import (
+    CreatedByRelation,
+    CreatedByWithAvatarRelation,
+    JobRelation,
+    PayloadRelation,
+    ProjectRelation,
+    WorkspaceRelation,
+)
 
 
 @dataclass
@@ -214,7 +220,7 @@ class Run:
     duration: int
 
     trigger: dict
-    created_by: dict
+    created_by: CreatedByWithAvatarRelation
 
     package: dict
     payload: Optional[PayloadRelation]
@@ -258,6 +264,13 @@ class Run:
         data["created"] = dateutil_parser.parse(data["created"])
         data["modified"] = dateutil_parser.parse(data["modified"])
 
+        if data["started"]:
+            data["started"] = dateutil_parser.parse(data["started"])
+        if data["finished"]:
+            data["finished"] = dateutil_parser.parse(data["finished"])
+
+        created_by = CreatedByWithAvatarRelation.from_dict(data["created_by"])
+        del data["created_by"]
         payload = PayloadRelation.from_dict(data["payload"]) if data["payload"] else None
         del data["payload"]
         job = JobRelation.from_dict(data["job"])
@@ -267,7 +280,7 @@ class Run:
         workspace = WorkspaceRelation.from_dict(data["workspace"])
         del data["workspace"]
 
-        return cls(payload=payload, job=job, project=project, workspace=workspace, **data)
+        return cls(created_by=created_by, payload=payload, job=job, project=project, workspace=workspace, **data)
 
 
 @dataclass
@@ -282,36 +295,18 @@ class RunRelation:
 
 
 @dataclass
-class RunList:
-    runs: List[Run] = field(default_factory=list)
-
-    def __len__(self):
-        return len(self.runs)
-
-    def __iter__(self):
-        yield from self.runs
-
-    def __getitem__(self, row):
-        return self.runs[row]
-
-    def __str__(self):
-        return f"List of {len(self.runs)} run" + ("s" if len(self.runs) != 1 else "")
-
-    def __repr__(self):
-        return f"RunList({len(self.runs)} run" + ("s" if len(self.runs) != 1 else "") + ")"
-
-
-@dataclass
 class RunStatus:
     suuid: str
     status: str
     name: str
     next_url: str
+    created_by: CreatedByRelation
     job: JobRelation
     project: ProjectRelation
     workspace: WorkspaceRelation
     created: datetime.datetime
-    updated: datetime.datetime
+    modified: datetime.datetime
+    started: Optional[datetime.datetime] = None
     finished: Optional[datetime.datetime] = None
     duration: int = 0
 
@@ -325,13 +320,15 @@ class RunStatus:
 
     @classmethod
     def from_dict(cls, data: Dict) -> "RunStatus":
-        del data["message_type"]
-
         data["created"] = dateutil_parser.isoparse(data["created"])
-        data["updated"] = dateutil_parser.isoparse(data["updated"])
+        data["modified"] = dateutil_parser.isoparse(data["modified"])
+        if "started" in data and data["started"]:
+            data["started"] = dateutil_parser.isoparse(data["started"])
         if "finished" in data and data["finished"]:
             data["finished"] = dateutil_parser.isoparse(data["finished"])
 
+        created_by = CreatedByRelation.from_dict(data["created_by"])
+        del data["created_by"]
         job = JobRelation.from_dict(data["job"])
         del data["job"]
         project = ProjectRelation.from_dict(data["project"])
@@ -339,7 +336,7 @@ class RunStatus:
         workspace = WorkspaceRelation.from_dict(data["workspace"])
         del data["workspace"]
 
-        return cls(job=job, project=project, workspace=workspace, **data)
+        return cls(created_by=created_by, job=job, project=project, workspace=workspace, **data)
 
 
 @dataclass

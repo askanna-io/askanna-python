@@ -1,8 +1,21 @@
 from typing import List, Optional
 
+from askanna.core.dataclasses.base import VISIBILITY
 from askanna.core.dataclasses.workspace import Workspace
 from askanna.core.exceptions import CreateError, DeleteError, GetError, PatchError
 from askanna.gateways.api_client import client
+
+from .utils import ListResponse
+
+
+class WorkspaceListResponse(ListResponse):
+    def __init__(self, data: dict):
+        super().__init__(data)
+        self.results: List[Workspace] = [Workspace.from_dict(workspace) for workspace in data["results"]]
+
+    @property
+    def workspaces(self):
+        return self.results
 
 
 class WorkspaceGateway:
@@ -12,36 +25,57 @@ class WorkspaceGateway:
 
     def list(
         self,
-        limit: int = 100,
-        offset: int = 0,
-        ordering: str = "-created",
-    ) -> List[Workspace]:
+        page_size: Optional[int] = None,
+        cursor: Optional[str] = None,
+        order_by: Optional[str] = None,
+        search: Optional[str] = None,
+        is_member: Optional[bool] = None,
+        visibility: Optional[VISIBILITY] = None,
+    ) -> WorkspaceListResponse:
         """List all workspaces
 
         Args:
-            limit (int): Number of results to return. Defaults to 100.
-            offset (int): The initial index from which to return the results. Defaults to 0.
-            ordering (str): The ordering of the results. Defaults to "-created".
+            page_size (int, optional): Number of workspaces to return per page. Defaults to the default value of
+                the backend.
+            cursor (str, optional): Cursor to start the page from. Defaults to None.
+            order_by (str, optional): Order by field(s). Defaults to the default value of the backend.
+            search (str, optional): Search for a specific workspace.
+            is_member (bool, optional): Filter on workspaces where the authenticated user is a member.
+            visibility ("PRIVATE" or "PUBLIC", optional): Filter on workspaces with a specific visibility.
 
         Raises:
             GetError: Error based on response status code with the error message from the API
 
         Returns:
-            List[Workspace]: A list of workspaces. List items are of type Workspace dataclass.
+            WorkspaceListResponse: The response from the API with a list of workspaces and pagination information.
         """
-        query = {
-            "offset": offset,
-            "limit": limit,
-            "ordering": ordering,
-        }
+        assert page_size is None or page_size > 0, "page_size must be a positive integer"
+        assert is_member is None or isinstance(is_member, bool), "is_member must be a boolean"
+        if visibility is not None:
+            visibility = visibility.lower()  # type: ignore
+            assert visibility in ["public", "private"], "visibility must be 'public' or 'private'"
 
-        url = client.askanna_url.workspace.workspace_list()
-        r = client.get(url, params=query)
+        response = client.get(
+            url=client.askanna_url.workspace.workspace_list(),
+            params={
+                "page_size": page_size,
+                "cursor": cursor,
+                "order_by": order_by,
+                "search": search,
+                "is_member": is_member,
+                "visibility": visibility,
+            },
+        )
 
-        if r.status_code != 200:
-            raise GetError(f"{r.status_code} - Something went wrong while retrieving workspaces: {r.json()}")
+        if response.status_code != 200:
+            error_message = f"{response.status_code} - Something went wrong while retrieving the workspace list"
+            try:
+                error_message += f":\n  {response.json()}"
+            except ValueError:
+                pass
+            raise GetError(error_message)
 
-        return [Workspace.from_dict(workspace) for workspace in r.json().get("results")]
+        return WorkspaceListResponse(response.json())
 
     def detail(self, workspace_suuid: str) -> Workspace:
         """Get information of a workspace
@@ -55,18 +89,19 @@ class WorkspaceGateway:
         Returns:
             Workspace: Workspace information in a Workspace dataclass
         """
-        url = client.askanna_url.workspace.workspace_detail(workspace_suuid)
-        r = client.get(url)
+        response = client.get(
+            url=client.askanna_url.workspace.workspace_detail(workspace_suuid=workspace_suuid),
+        )
 
-        if r.status_code == 404:
+        if response.status_code == 404:
             raise GetError(f"404 - The workspace SUUID '{workspace_suuid}' was not found")
-        elif r.status_code != 200:
+        elif response.status_code != 200:
             raise GetError(
-                f"{r.status_code} - Something went wrong while retrieving workspace SUUID '{workspace_suuid}': "
-                f"{r.json()}"
+                f"{response.status_code} - Something went wrong while retrieving workspace SUUID '{workspace_suuid}': "
+                f"{response.json()}"
             )
 
-        return Workspace.from_dict(r.json())
+        return Workspace.from_dict(response.json())
 
     def create(self, name: str, description: str = "", visibility: str = "PRIVATE") -> Workspace:
         """Create a new workspace
@@ -86,9 +121,8 @@ class WorkspaceGateway:
         if visibility and visibility not in ["PUBLIC", "PRIVATE"]:
             raise ValueError("Visibility must be either PUBLIC or PRIVATE")
 
-        url = client.askanna_url.workspace.workspace()
-        r = client.create(
-            url,
+        response = client.create(
+            url=client.askanna_url.workspace.workspace(),
             json={
                 "name": name,
                 "description": description,
@@ -96,10 +130,12 @@ class WorkspaceGateway:
             },
         )
 
-        if r.status_code == 201:
-            return Workspace.from_dict(r.json())
+        if response.status_code == 201:
+            return Workspace.from_dict(response.json())
         else:
-            raise CreateError(f"{r.status_code} - Something went wrong while creating the workspace: {r.json()}")
+            raise CreateError(
+                f"{response.status_code} - Something went wrong while creating the workspace: {response.json()}"
+            )
 
     def change(
         self,
@@ -138,15 +174,17 @@ class WorkspaceGateway:
         if not changes:
             raise ValueError("At least one of the parameters 'name', 'description' or 'visibility' must be set.")
 
-        url = client.askanna_url.workspace.workspace_detail(workspace_suuid)
-        r = client.patch(url, json=changes)
+        response = client.patch(
+            url=client.askanna_url.workspace.workspace_detail(workspace_suuid),
+            json=changes,
+        )
 
-        if r.status_code == 200:
-            return Workspace.from_dict(r.json())
+        if response.status_code == 200:
+            return Workspace.from_dict(response.json())
         else:
             raise PatchError(
-                f"{r.status_code} - Something went wrong while updating the workspace SUUID '{workspace_suuid}': "
-                f"{r.json()}"
+                f"{response.status_code} - Something went wrong while updating the workspace SUUID "
+                f"'{workspace_suuid}': {response.json()}"
             )
 
     def delete(self, workspace_suuid: str) -> bool:
@@ -161,15 +199,16 @@ class WorkspaceGateway:
         Returns:
             bool: True if the workspace was succesfully deleted
         """
-        url = client.askanna_url.workspace.workspace_detail(workspace_suuid)
-        r = client.delete(url)
+        response = client.delete(
+            url=client.askanna_url.workspace.workspace_detail(workspace_suuid),
+        )
 
-        if r.status_code == 204:
+        if response.status_code == 204:
             return True
-        elif r.status_code == 404:
+        elif response.status_code == 404:
             raise DeleteError(f"404 - The workspace SUUID '{workspace_suuid}' was not found")
         else:
             raise DeleteError(
-                f"{r.status_code} - Something went wrong while deleting the workspace SUUID '{workspace_suuid}': "
-                f"{r.json()}"
+                f"{response.status_code} - Something went wrong while deleting the workspace SUUID "
+                f"'{workspace_suuid}': {response.json()}"
             )

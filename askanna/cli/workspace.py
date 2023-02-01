@@ -2,10 +2,10 @@ import sys
 
 import click
 
-from askanna import workspace as aa_workspace
 from askanna.cli.utils import ask_which_workspace
 from askanna.config import config
 from askanna.core.exceptions import GetError, PatchError
+from askanna.sdk.workspace import WorkspaceSDK
 
 
 @click.group()
@@ -14,26 +14,77 @@ def cli1():
 
 
 @cli1.command(help="List workspaces available in AskAnna", short_help="List workspaces")
-def list():
+@click.option("--search", "-s", required=False, type=str, help="Search for a specific workspace")
+@click.option(
+    "--member/--no-member",
+    "-m",
+    "is_member",
+    default=None,
+    required=False,
+    type=bool,
+    help="Filter on workspaces where the authenticated user is a member.",
+)
+@click.option(
+    "--visibility", "-v", required=False, type=str, help="Filter on workspaces with visibility private or public"
+)
+def list(search, is_member, visibility):
+    workspace_sdk = WorkspaceSDK()
     try:
-        workspaces = aa_workspace.list()
+        workspaces = workspace_sdk.list(
+            number_of_results=100,
+            search=search,
+            is_member=is_member,
+            visibility=visibility,
+            order_by="name",
+        )
     except Exception as e:
         click.echo(f"Something went wrong while listing the workspaces:\n  {e}", err=True)
         sys.exit(1)
 
     if not workspaces:
         click.echo("We cannot find any workspaces.")
-    else:
-        click.echo("WORKSPACE SUUID        WORKSPACE NAME")
-        click.echo("-------------------    -------------------------")
+        sys.exit(0)
 
-        for workspace in sorted(workspaces, key=lambda x: (x.name,)):
-            click.echo(
-                "{workspace_suuid}    {workspace_name}".format(
-                    workspace_suuid=workspace.suuid,
-                    workspace_name=workspace.name[:25],
-                )
-            )
+    click.echo("")
+    click.echo("-------------------    -------------------------")
+    click.echo("WORKSPACE SUUID        WORKSPACE NAME")
+    click.echo("-------------------    -------------------------")
+
+    for workspace in workspaces:
+        workspace_name = f"{workspace.name[:22]}..." if len(workspace.name) > 25 else workspace.name[:25]
+        click.echo(f"{workspace.suuid}    {workspace_name}")
+
+    if len(workspaces) != workspace_sdk.list_total_count:
+        click.echo("")
+        click.echo(f"Note: the first {len(workspaces):,} of {workspace_sdk.list_total_count:,} workspaces are shown.")
+
+    click.echo("")
+
+
+@cli1.command(help="Get information about a workspace", short_help="Get workspace info")
+@click.option("--id", "-i", "workspace_suuid", required=False, type=str, help="Workspace SUUID")
+def info(workspace_suuid):
+    if not workspace_suuid:
+        workspace_suuid = config.project.workspace_suuid
+
+    if workspace_suuid:
+        try:
+            workspace = WorkspaceSDK().get(workspace_suuid)
+        except GetError as e:
+            click.echo(f"Something went wrong while getting the workspace:\n  {e}", err=True)
+            sys.exit(1)
+    else:
+        workspace = ask_which_workspace(question="Which workspace do you want to get?")
+
+    click.echo("")
+    click.echo(f"Name:        {workspace.name}")
+    click.echo(f"SUUID:       {workspace.suuid}")
+    click.echo(f"Description: {workspace.description}")
+    click.echo(f"Visibility:  {workspace.visibility}")
+    click.echo("")
+    click.echo(f"Created:  {workspace.created}")
+    click.echo(f"Modified: {workspace.modified}")
+    click.echo("")
 
 
 @cli1.command(help="Change workspace information in AskAnna", short_help="Change workspace")
@@ -59,7 +110,7 @@ def change(workspace_suuid, name, description, visibility):
         click.confirm("\nDo you want to change the workspace?", abort=True)
 
     try:
-        workspace = aa_workspace.change(
+        workspace = WorkspaceSDK().change(
             workspace_suuid=workspace_suuid, name=name, description=description, visibility=visibility
         )
     except PatchError as e:
@@ -98,7 +149,7 @@ def create(name, description, visibility):
     click.confirm(f'\nDo you want to create the workspace "{name}"?', abort=True)
 
     try:
-        workspace = aa_workspace.create(name=name, description=description, visibility=visibility)
+        workspace = WorkspaceSDK().create(name=name, description=description, visibility=visibility)
     except Exception as e:
         click.echo(f"Something went wrong while creating the workspace:\n  {e}", err=True)
         sys.exit(1)
@@ -113,7 +164,7 @@ def create(name, description, visibility):
 @click.option("--force", "-f", is_flag=True, help="Force")
 def remove(workspace_suuid, force):
     try:
-        workspace = aa_workspace.get(workspace_suuid=workspace_suuid)
+        workspace = WorkspaceSDK().get(workspace_suuid)
     except GetError as e:
         if str(e).startswith("404"):
             click.echo(f"The workspace SUUID '{workspace_suuid}' was not found", err=True)
@@ -132,7 +183,7 @@ def remove(workspace_suuid, force):
             sys.exit(0)
 
     try:
-        removed = aa_workspace.delete(workspace_suuid=workspace_suuid)
+        removed = WorkspaceSDK().delete(workspace_suuid)
     except Exception as e:
         click.echo(f"Something went wrong while removing the workspace SUUID '{workspace_suuid}':\n  {e}", err=True)
         sys.exit(1)

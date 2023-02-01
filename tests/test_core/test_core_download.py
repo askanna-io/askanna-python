@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 import responses
+from responses import matchers
 
 from askanna.core.download import ChunkedDownload
 from askanna.core.exceptions import GetError
@@ -98,7 +99,7 @@ class TestDownload(unittest.TestCase):
             responses.GET,
             url=url_artifact_zip,
             headers={"Range": f"bytes=0-{content_lenght}"},
-            stream=True,
+            match=[matchers.request_kwargs_matcher({"stream": True})],
             content_type="application/zip",
             status=200,
         )
@@ -131,7 +132,7 @@ class TestDownload(unittest.TestCase):
             responses.GET,
             url=url_artifact_zip,
             headers={"Range": f"bytes=0-{os.path.getsize(zip_file)}"},
-            stream=True,
+            match=[matchers.request_kwargs_matcher({"stream": True})],
             content_type="application/zip",
             status=206,
             body=content,
@@ -169,7 +170,7 @@ class TestDownload(unittest.TestCase):
             responses.GET,
             url=url_artifact_zip,
             headers={"Range": f"bytes=0-{download.chunk_size}"},
-            stream=True,
+            match=[matchers.request_kwargs_matcher({"stream": True})],
             content_type="application/zip",
             status=206,
             body=chunk_1,
@@ -178,7 +179,7 @@ class TestDownload(unittest.TestCase):
             responses.GET,
             url=url_artifact_zip,
             headers={"Range": f"bytes={download.chunk_size+1}-{zip_file.stat().st_size}"},
-            stream=True,
+            match=[matchers.request_kwargs_matcher({"stream": True})],
             content_type="application/zip",
             status=206,
             body=chunk_2,
