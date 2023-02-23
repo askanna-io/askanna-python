@@ -110,16 +110,16 @@ def info(project_suuid):
         project = ask_which_project(question="Which project do you want to get?", workspace_suuid=workspace.suuid)
 
     click.echo("")
-    click.echo(f"Name:        {project.name}")
-    click.echo(f"SUUID:       {project.suuid}")
-    click.echo(f"Description: {project.description}")
-    click.echo(f"Visibility:  {project.visibility}")
+    click.echo(f"Name:            {project.name}")
+    click.echo(f"SUUID:           {project.suuid}")
+    click.echo(f"Description:     {project.description}")
+    click.echo(f"Visibility:      {project.visibility}")
     click.echo("")
     click.echo(f"Workspace:       {project.workspace.name}")
     click.echo(f"Workspace SUUID: {project.workspace.suuid}")
     click.echo("")
-    click.echo(f"Created:  {project.created_at.strftime(string_format_datetime)}")
-    click.echo(f"Modified: {project.modified_at.strftime(string_format_datetime)}")
+    click.echo(f"Created:         {project.created_at.strftime(string_format_datetime)}")
+    click.echo(f"Modified:        {project.modified_at.strftime(string_format_datetime)}")
     click.echo("")
 
 
