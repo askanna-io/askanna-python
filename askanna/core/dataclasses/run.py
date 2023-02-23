@@ -1,6 +1,5 @@
 import datetime
 import json
-import uuid
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
@@ -378,31 +377,38 @@ class ArtifactFileList:
 @dataclass
 class ArtifactInfo:
     suuid: str
-    run: uuid.UUID
 
     size: int
     count_dir: int
     count_files: int
 
-    files: ArtifactFileList
-    cdn_base_url: str
+    run: RunRelation
+    job: JobRelation
+    project: ProjectRelation
+    workspace: WorkspaceRelation
 
     created_at: datetime.datetime
     modified_at: datetime.datetime
-    # TODO: check if this is still in response?
-    deleted_at: Optional[datetime.datetime] = None
+
+    cdn_base_url: str
+    files: ArtifactFileList
 
     @classmethod
     def from_dict(cls, data: Dict) -> "ArtifactInfo":
-        data["run"] = uuid.UUID(data["run"])
-
         data["created_at"] = dateutil_parser.isoparse(data["created_at"])
         data["modified_at"] = dateutil_parser.isoparse(data["modified_at"])
-        if "deleted_at" in data and data["deleted_at"]:
-            data["deleted_at"] = dateutil_parser.isoparse(data["deleted_at"])
 
         data["files"] = ArtifactFileList(
             [ArtifactFile.from_dict(f) for f in data["files"]],
         )
 
-        return cls(**data)
+        run = RunRelation.from_dict(data["run"])
+        del data["run"]
+        job = JobRelation.from_dict(data["job"])
+        del data["job"]
+        project = ProjectRelation.from_dict(data["project"])
+        del data["project"]
+        workspace = WorkspaceRelation.from_dict(data["workspace"])
+        del data["workspace"]
+
+        return cls(run=run, job=job, project=project, workspace=workspace, **data)
