@@ -61,8 +61,8 @@ def project_detail() -> dict:
             "askanna.member": False,
             "askanna.workspace.create": False,
         },
-        "created": "2021-06-29T08:16:05.554963Z",
-        "modified": "2022-09-19T08:08:59.744557Z",
+        "created_at": "2021-06-29T08:16:05.554963Z",
+        "modified_at": "2022-09-19T08:08:59.744557Z",
     }
 
 
@@ -142,6 +142,6 @@ def project_new_detail() -> dict:
             "project.run.edit": True,
             "project.run.remove": True,
         },
-        "created": "2022-10-19T07:54:07.334220Z",
-        "modified": "2022-10-19T07:54:07.334273Z",
+        "created_at": "2022-10-19T07:54:07.334220Z",
+        "modified_at": "2022-10-19T07:54:07.334273Z",
     }

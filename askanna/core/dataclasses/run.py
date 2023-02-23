@@ -42,13 +42,13 @@ class VariableObject:
     variable: Variable
     label: List[Label] = field(default_factory=list)
     run_suuid: Optional[str] = None
-    created: Optional[datetime.datetime] = None
+    created_at: Optional[datetime.datetime] = None
 
     def __post_init__(self):
-        if not self.created:
+        if not self.created_at:
             # The created time is set with timezome set to UTC so that we don't have to figure out what the local
             # timezone is. UTC is the default timezone for the API.
-            self.created = datetime.datetime.now(datetime.timezone.utc)
+            self.created_at = datetime.datetime.now(datetime.timezone.utc)
 
     def __str__(self):
         return f"{self.variable} ({len(self.label)} label" + ("s" if len(self.label) != 1 else "") + ")"
@@ -61,7 +61,7 @@ class VariableObject:
             "variable": self.variable.to_dict(),
             "label": [label.to_dict() for label in self.label],
             "run_suuid": self.run_suuid,
-            "created": self.created,
+            "created_at": self.created_at,
         }
 
     @classmethod
@@ -74,7 +74,7 @@ class VariableObject:
             ),
             label=[Label(**label) for label in data["label"]],
             run_suuid=data["run_suuid"],
-            created=dateutil_parser.isoparse(data["created"]),
+            created_at=dateutil_parser.isoparse(data["created_at"]),
         )
 
 
@@ -131,13 +131,13 @@ class MetricObject:
     metric: Metric
     label: List[Label] = field(default_factory=list)
     run_suuid: Optional[str] = None
-    created: Optional[datetime.datetime] = None
+    created_at: Optional[datetime.datetime] = None
 
     def __post_init__(self):
-        if not self.created:
+        if not self.created_at:
             # The created time is set with timezome set to UTC so that we don't have to figure out what the local
             # timezone is. UTC is the default timezone for the API.
-            self.created = datetime.datetime.now(datetime.timezone.utc)
+            self.created_at = datetime.datetime.now(datetime.timezone.utc)
 
     def __str__(self):
         return f"{self.metric} ({len(self.label)} label" + ("s" if len(self.label) != 1 else "") + ")"
@@ -150,7 +150,7 @@ class MetricObject:
             "metric": self.metric.to_dict(),
             "label": [label.to_dict() for label in self.label],
             "run_suuid": self.run_suuid,
-            "created": self.created,
+            "created_at": self.created_at,
         }
 
     @classmethod
@@ -163,7 +163,7 @@ class MetricObject:
             ),
             label=[Label(**label) for label in data["label"]],
             run_suuid=data["run_suuid"],
-            created=dateutil_parser.isoparse(data["created"]),
+            created_at=dateutil_parser.isoparse(data["created_at"]),
         )
 
 
@@ -235,10 +235,10 @@ class Run:
     project: ProjectRelation
     workspace: WorkspaceRelation
 
-    created: datetime.datetime
-    modified: datetime.datetime
-    started: Optional[datetime.datetime] = None
-    finished: Optional[datetime.datetime] = None
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
+    started_at: Optional[datetime.datetime] = None
+    finished_at: Optional[datetime.datetime] = None
 
     metrics: Optional[MetricList] = None
     variables: Optional[VariableList] = None
@@ -261,13 +261,13 @@ class Run:
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Run":
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
+        data["created_at"] = dateutil_parser.parse(data["created_at"])
+        data["modified_at"] = dateutil_parser.parse(data["modified_at"])
 
-        if data["started"]:
-            data["started"] = dateutil_parser.parse(data["started"])
-        if data["finished"]:
-            data["finished"] = dateutil_parser.parse(data["finished"])
+        if data["started_at"]:
+            data["started_at"] = dateutil_parser.parse(data["started_at"])
+        if data["finished_at"]:
+            data["finished_at"] = dateutil_parser.parse(data["finished_at"])
 
         created_by = CreatedByWithAvatarRelation.from_dict(data["created_by"])
         del data["created_by"]
@@ -304,10 +304,10 @@ class RunStatus:
     job: JobRelation
     project: ProjectRelation
     workspace: WorkspaceRelation
-    created: datetime.datetime
-    modified: datetime.datetime
-    started: Optional[datetime.datetime] = None
-    finished: Optional[datetime.datetime] = None
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
+    started_at: Optional[datetime.datetime] = None
+    finished_at: Optional[datetime.datetime] = None
     duration: int = 0
 
     def __str__(self):
@@ -320,12 +320,13 @@ class RunStatus:
 
     @classmethod
     def from_dict(cls, data: Dict) -> "RunStatus":
-        data["created"] = dateutil_parser.isoparse(data["created"])
-        data["modified"] = dateutil_parser.isoparse(data["modified"])
-        if "started" in data and data["started"]:
-            data["started"] = dateutil_parser.isoparse(data["started"])
-        if "finished" in data and data["finished"]:
-            data["finished"] = dateutil_parser.isoparse(data["finished"])
+        data["created_at"] = dateutil_parser.isoparse(data["created_at"])
+        data["modified_at"] = dateutil_parser.isoparse(data["modified_at"])
+
+        if "started_at" in data and data["started_at"]:
+            data["started_at"] = dateutil_parser.isoparse(data["started_at"])
+        if "finished_at" in data and data["finished_at"]:
+            data["finished_at"] = dateutil_parser.isoparse(data["finished_at"])
 
         created_by = CreatedByRelation.from_dict(data["created_by"])
         del data["created_by"]
@@ -386,18 +387,19 @@ class ArtifactInfo:
     files: ArtifactFileList
     cdn_base_url: str
 
-    created: datetime.datetime
-    modified: datetime.datetime
-    deleted: Optional[datetime.datetime] = None
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
+    # TODO: check if this is still in response?
+    deleted_at: Optional[datetime.datetime] = None
 
     @classmethod
     def from_dict(cls, data: Dict) -> "ArtifactInfo":
         data["run"] = uuid.UUID(data["run"])
 
-        data["created"] = dateutil_parser.isoparse(data["created"])
-        data["modified"] = dateutil_parser.isoparse(data["modified"])
-        if "deleted" in data and data["deleted"]:
-            data["deleted"] = dateutil_parser.isoparse(data["deleted"])
+        data["created_at"] = dateutil_parser.isoparse(data["created_at"])
+        data["modified_at"] = dateutil_parser.isoparse(data["modified_at"])
+        if "deleted_at" in data and data["deleted_at"]:
+            data["deleted_at"] = dateutil_parser.isoparse(data["deleted_at"])
 
         data["files"] = ArtifactFileList(
             [ArtifactFile.from_dict(f) for f in data["files"]],

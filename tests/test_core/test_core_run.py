@@ -10,8 +10,8 @@ a_sample_run_response = {
     "status": "queued",
     "name": "Run with name",
     "next_url": "https://beta-api.askanna.eu/v1/run/4F8q-nTCK-M2nA-aXUg/status/",
-    "started": None,
-    "finished": None,
+    "started_at": None,
+    "finished_at": None,
     "duration": 0,
     "created_by": {
         "relation": "membership",
@@ -36,8 +36,8 @@ a_sample_run_response = {
         "suuid": "3Cpy-QMzd-MVko-1rDQ",
         "name": "AskAnna",
     },
-    "created": "2021-04-22T10:31:29.249069Z",
-    "modified": "2021-04-22T10:31:29.249091Z",
+    "created_at": "2021-04-22T10:31:29.249069Z",
+    "modified_at": "2021-04-22T10:31:29.249091Z",
 }
 
 

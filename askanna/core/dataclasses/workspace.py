@@ -17,16 +17,16 @@ class Workspace:
     created_by: Optional[UserRelation]
     permission: dict
     is_member: bool
-    created: datetime.datetime
-    modified: datetime.datetime
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
 
     def __str__(self):
         return f"{self.name} {self.suuid}"
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Workspace":
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
+        data["created_at"] = dateutil_parser.parse(data["created_at"])
+        data["modified_at"] = dateutil_parser.parse(data["modified_at"])
 
         created_by = UserRelation.from_dict(data["created_by"]) if data["created_by"] else None
         del data["created_by"]

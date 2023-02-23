@@ -51,8 +51,8 @@ def workspace_detail() -> dict:
             "project.run.remove": True,
         },
         "is_member": True,
-        "created": "2020-04-01T09:44:11.853000Z",
-        "modified": "2022-09-19T08:47:40.214291Z",
+        "created_at": "2020-04-01T09:44:11.853000Z",
+        "modified_at": "2022-09-19T08:47:40.214291Z",
     }
 
 
@@ -128,6 +128,6 @@ def workspace_new_detail() -> dict:
             "project.run.remove": True,
         },
         "is_member": True,
-        "created": "2022-10-18T07:31:47.803088Z",
-        "modified": "2022-10-18T07:31:47.803123Z",
+        "created_at": "2022-10-18T07:31:47.803088Z",
+        "modified_at": "2022-10-18T07:31:47.803123Z",
     }

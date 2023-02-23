@@ -4,6 +4,7 @@ import click
 
 from askanna.cli.utils import ask_which_workspace
 from askanna.config import config
+from askanna.config.utils import string_format_datetime
 from askanna.core.exceptions import GetError, PatchError
 from askanna.sdk.workspace import WorkspaceSDK
 
@@ -82,8 +83,8 @@ def info(workspace_suuid):
     click.echo(f"Description: {workspace.description}")
     click.echo(f"Visibility:  {workspace.visibility}")
     click.echo("")
-    click.echo(f"Created:  {workspace.created}")
-    click.echo(f"Modified: {workspace.modified}")
+    click.echo(f"Created:  {workspace.created_at.strftime(string_format_datetime)}")
+    click.echo(f"Modified: {workspace.modified_at.strftime(string_format_datetime)}")
     click.echo("")
 
 

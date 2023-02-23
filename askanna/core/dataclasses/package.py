@@ -13,8 +13,8 @@ class Package:
     workspace: WorkspaceRelation
     project: ProjectRelation
     created_by: dict
-    created: datetime.datetime
-    modified: datetime.datetime
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
     name: Optional[str]
     description: str
     filename: str
@@ -24,8 +24,8 @@ class Package:
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Package":
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
+        data["created_at"] = dateutil_parser.parse(data["created_at"])
+        data["modified_at"] = dateutil_parser.parse(data["modified_at"])
 
         workspace = WorkspaceRelation.from_dict(data["workspace"])
         del data["workspace"]

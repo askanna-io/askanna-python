@@ -79,7 +79,7 @@ class TestCliJobInfo:
         result = CliRunner().invoke(cli, "job info --id 1234-1234-1234-1234")
         assert result.exit_code == 0
         assert "SUUID:       1234-1234-1234-1234" in result.output
-        assert "Created:  2022-10-17 06:53:04.148997+00:00" in result.output
+        assert "Created:  2022-10-17 06:53:04 UTC" in result.output
 
     def test_command_job_info_fail(self):
         result = CliRunner().invoke(cli, "job info --id 7890-7890-7890-7890")
@@ -98,7 +98,7 @@ class TestCliJobInfo:
         assert result.exit_code == 0
         assert "Selected workspace" in result.output
         assert "Selected job" in result.output
-        assert "Created:  2022-10-17 06:53:04.148997+00:00" in result.output
+        assert "Created:  2022-10-17 06:53:04 UTC" in result.output
 
 
 @pytest.mark.usefixtures("api_response")
