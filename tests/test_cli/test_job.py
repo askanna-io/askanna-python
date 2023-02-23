@@ -78,8 +78,8 @@ class TestCliJobInfo:
     def test_command_job_info(self):
         result = CliRunner().invoke(cli, "job info --id 1234-1234-1234-1234")
         assert result.exit_code == 0
-        assert "SUUID:       1234-1234-1234-1234" in result.output
-        assert "Created:  2022-10-17 06:53:04 UTC" in result.output
+        assert "SUUID:           1234-1234-1234-1234" in result.output
+        assert "Created:         2022-10-17 06:53:04 UTC" in result.output
 
     def test_command_job_info_fail(self):
         result = CliRunner().invoke(cli, "job info --id 7890-7890-7890-7890")
@@ -89,8 +89,8 @@ class TestCliJobInfo:
     def test_command_job_info_with_notifications(self):
         result = CliRunner().invoke(cli, "job info --id 5678-5678-5678-5678")
         assert result.exit_code == 0
-        assert "SUUID:       5678-5678-5678-5678" in result.output
-        assert "Notifications: Yes" in result.output
+        assert "SUUID:           5678-5678-5678-5678" in result.output
+        assert "Notifications:   Yes" in result.output
 
     def test_command_job_info_ask_job(self):
         config.project.clean_config()
@@ -98,7 +98,8 @@ class TestCliJobInfo:
         assert result.exit_code == 0
         assert "Selected workspace" in result.output
         assert "Selected job" in result.output
-        assert "Created:  2022-10-17 06:53:04 UTC" in result.output
+        assert "SUUID:           1234-1234-1234-1234" in result.output
+        assert "Created:         2022-10-17 06:53:04 UTC" in result.output
 
 
 @pytest.mark.usefixtures("api_response")
