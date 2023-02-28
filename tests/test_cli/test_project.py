@@ -80,8 +80,8 @@ class TestCliProjectInfo:
     def test_command_project_info(self):
         result = CliRunner().invoke(cli, "project info --id 1234-1234-1234-1234")
         assert result.exit_code == 0
-        assert "SUUID:       1234-1234-1234-1234" in result.output
-        assert "Created:  2021-06-29 08:16:05.554963+00:00" in result.output
+        assert "SUUID:           1234-1234-1234-1234" in result.output
+        assert "Created:         2021-06-29 08:16:05 UTC" in result.output
 
     def test_command_project_info_fail(self):
         result = CliRunner().invoke(cli, "project info --id 7890-7890-7890-7890")
@@ -92,8 +92,8 @@ class TestCliProjectInfo:
         config.project.clean_config()
         result = CliRunner().invoke(cli, "project info")
         assert result.exit_code == 0
-        assert "SUUID:       1234-1234-1234-1234" in result.output
-        assert "Created:  2021-06-29 08:16:05.554963+00:00" in result.output
+        assert "SUUID:           1234-1234-1234-1234" in result.output
+        assert "Created:         2021-06-29 08:16:05 UTC" in result.output
 
 
 @pytest.mark.usefixtures("api_response")

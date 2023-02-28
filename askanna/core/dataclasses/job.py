@@ -18,13 +18,13 @@ class Job:
     notifications: dict
     project: ProjectRelation
     workspace: WorkspaceRelation
-    created: datetime.datetime
-    modified: datetime.datetime
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Job":
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
+        data["created_at"] = dateutil_parser.parse(data["created_at"])
+        data["modified_at"] = dateutil_parser.parse(data["modified_at"])
 
         project = ProjectRelation.from_dict(data["project"])
         del data["project"]
@@ -39,8 +39,8 @@ class Payload:
     suuid: str
     size: int
     lines: int
-    created: datetime.datetime
-    modified: datetime.datetime
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
 
     def __str__(self):
         return (
@@ -56,6 +56,6 @@ class Payload:
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Payload":
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
+        data["created_at"] = dateutil_parser.parse(data["created_at"])
+        data["modified_at"] = dateutil_parser.parse(data["modified_at"])
         return cls(**data)

@@ -21,8 +21,8 @@ def job_detail() -> dict:
         "timezone": "UTC",
         "schedules": None,
         "notifications": {"all": {"email": []}, "error": {"email": []}},
-        "created": "2022-10-17T06:53:04.148997Z",
-        "modified": "2022-10-17T06:53:04.150201Z",
+        "created_at": "2022-10-17T06:53:04.148997Z",
+        "modified_at": "2022-10-17T06:53:04.150201Z",
     }
 
 
@@ -49,13 +49,13 @@ def job_with_schedule_detail() -> dict:
                 "raw_definition": "{'weekday': 1, 'hour': 3, 'minute': 21}",
                 "cron_definition": "21 3 * * 1",
                 "cron_timezone": "UTC",
-                "next_run": "2022-10-31T03:21:00Z",
-                "last_run": "2022-10-24T03:21:00Z",
+                "next_run_at": "2022-10-31T03:21:00Z",
+                "last_run_at": "2022-10-24T03:21:00Z",
             }
         ],
         "notifications": {"all": {"email": ["notify@example.com"]}, "error": {"email": []}},
-        "created": "2021-12-23T11:29:37.153209Z",
-        "modified": "2022-06-21T07:08:10.858126Z",
+        "created_at": "2021-12-23T11:29:37.153209Z",
+        "modified_at": "2022-06-21T07:08:10.858126Z",
     }
 
 
@@ -95,8 +95,8 @@ def job_run_request() -> dict:
         "suuid": "abcd-abcd-abcd-abcd",
         "status": "queued",
         "name": "a run",
-        "started": None,
-        "finished": None,
+        "started_at": None,
+        "finished_at": None,
         "duration": 0,
         "next_url": "https://api.askanna.eu/v1/run/5678-5678-5678-5678/status/",
         "created_by": {
@@ -122,6 +122,6 @@ def job_run_request() -> dict:
             "suuid": "7aYw-rkCA-wdMo-1Gi6",
             "name": "a workspace",
         },
-        "created": "2022-10-17T06:53:04.148997Z",
-        "modified": "2022-10-17T06:53:04.150201Z",
+        "created_at": "2022-10-17T06:53:04.148997Z",
+        "modified_at": "2022-10-17T06:53:04.150201Z",
     }

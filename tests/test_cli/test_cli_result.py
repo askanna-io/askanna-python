@@ -42,8 +42,8 @@ class TestCLIResult(unittest.TestCase):
                 "name": "",
                 "description": "",
                 "status": "COMPLETED",
-                "started": "2022-10-31T11:57:09.142053Z",
-                "finished": "2022-10-31T11:57:38.780094Z",
+                "started_at": "2022-10-31T11:57:09.142053Z",
+                "finished_at": "2022-10-31T11:57:38.780094Z",
                 "duration": 29,
                 "trigger": "WEBUI",
                 "created_by": {
@@ -137,8 +137,8 @@ class TestCLIResult(unittest.TestCase):
                     "relation": "workspace",
                     "name": "Demo AskAnna",
                 },
-                "created": "2022-10-31T11:57:08.646054Z",
-                "modified": "2022-10-31T11:57:38.804488Z",
+                "created_at": "2022-10-31T11:57:08.646054Z",
+                "modified_at": "2022-10-31T11:57:38.804488Z",
             },
         )
         self.responses.add(
@@ -157,8 +157,8 @@ class TestCLIResult(unittest.TestCase):
                 "name": "",
                 "description": "",
                 "status": "COMPLETED",
-                "started": "2022-10-31T11:57:09.142053Z",
-                "finished": "2022-10-31T11:57:38.780094Z",
+                "started_at": "2022-10-31T11:57:09.142053Z",
+                "finished_at": "2022-10-31T11:57:38.780094Z",
                 "duration": 29,
                 "trigger": "WEBUI",
                 "created_by": {
@@ -252,8 +252,8 @@ class TestCLIResult(unittest.TestCase):
                     "suuid": "1S6G-K3fI-visU-LKac",
                     "name": "Demo AskAnna",
                 },
-                "created": "2022-10-31T11:57:08.646054Z",
-                "modified": "2022-10-31T11:57:38.804488Z",
+                "created_at": "2022-10-31T11:57:08.646054Z",
+                "modified_at": "2022-10-31T11:57:38.804488Z",
             },
         )
         self.responses.add(

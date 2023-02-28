@@ -115,8 +115,8 @@ def info(variable_suuid):
         ("Workspace", variable.workspace.name),
         ("Workspace SUUID", variable.workspace.suuid),
         None,
-        ("Created", variable.created.strftime(string_format_datetime)),
-        ("Modified", variable.modified.strftime(string_format_datetime)),
+        ("Created", variable.created_at.strftime(string_format_datetime)),
+        ("Modified", variable.modified_at.strftime(string_format_datetime)),
         None,
     ]
     for item in print_list:
@@ -201,7 +201,6 @@ def add(name, value, masked, project_suuid):
             is_masked=masked,
         )
     except Exception as e:
-
         click.echo(f"Something went wrong in creating the variable:\n  {e}", err=True)
         sys.exit(1)
     else:

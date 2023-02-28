@@ -18,8 +18,8 @@ def variable_detail() -> dict:
             "suuid": "1234-1234-1234-1234",
             "name": "test workspace",
         },
-        "created": "2020-04-01T09:44:11.853000Z",
-        "modified": "2022-09-19T08:47:40.214291Z",
+        "created_at": "2020-04-01T09:44:11.853000Z",
+        "modified_at": "2022-09-19T08:47:40.214291Z",
     }
 
 
