@@ -133,7 +133,7 @@ The following changes are related to breaking changes in the AskAnna Backend:
 ## 0.9.0 (2021-05-19)
 
 - Give runs a name and description when you start them.
-  [More info in the documentation.](http://docs.askanna.io/jobs/run-job/)
+  [More info in the documentation.](http://docs.askanna.io/job/run-job/)
 - Extend validation of `askanna.yml` with an informative check on the time zone.
 - Update dataclasses of API responses where we removed the `UUID` and `title`. We now only show the short UUID and
   `name`.
