@@ -60,7 +60,12 @@ class CreateProject:
     show_default=True,
     help="Workspace SUUID where you want to create the project",
 )
-@click.option("--description", "-d", help="Description of the project [optional]")
+@click.option(
+    "--description",
+    "-d",
+    default="",
+    help="Description of the project [optional]",
+)
 @click.option(
     "--template",
     "-t",

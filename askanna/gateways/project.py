@@ -124,6 +124,9 @@ class ProjectGateway:
         if visibility and visibility not in ["PUBLIC", "PRIVATE"]:
             raise ValueError("Visibility must be either PUBLIC or PRIVATE")
 
+        if description is None:
+            description = ""
+
         response = client.create(
             url=client.askanna_url.project.project(),
             json={

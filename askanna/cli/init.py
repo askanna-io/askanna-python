@@ -53,7 +53,12 @@ class CreateProject:
     show_default=True,
     help="Workspace SUUID where you want to create the project",
 )
-@click.option("--description", "-d", help="Description of the project")
+@click.option(
+    "--description",
+    "-d",
+    default="",
+    help="Description of the project",
+)
 def cli(name, workspace, description):
     cwd = os.getcwd()
     askanna_project_file = os.path.join(cwd, "askanna.yml")

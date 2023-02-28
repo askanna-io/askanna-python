@@ -148,7 +148,7 @@ def project_response(
                 {
                     "workspace_suuid": "5678-5678-5678-5678",
                     "name": "new-project",
-                    "description": None,
+                    "description": "",
                     "visibility": "PRIVATE",
                 }
             )
