@@ -23,7 +23,7 @@ class Project:
     modified_at: datetime.datetime
 
     def __str__(self):
-        return f"{self.name} {self.suuid}"
+        return f"Project: {self.name} ({self.suuid})"
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Project":

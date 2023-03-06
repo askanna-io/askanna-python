@@ -72,6 +72,28 @@ class TestGatewayProject:
 
         assert result.name == "a new project"
 
+    def test_project_create_description_empty(self):
+        project_gateway = ProjectGateway()
+        result = project_gateway.create(
+            workspace_suuid="1234-1234-1234-1234",
+            name="a new project",
+            description="",
+            visibility="PUBLIC",
+        )
+
+        assert result.name == "a new project"
+
+    def test_project_create_description_none(self):
+        project_gateway = ProjectGateway()
+        result = project_gateway.create(
+            workspace_suuid="1234-1234-1234-1234",
+            name="a new project",
+            description=None,
+            visibility="PUBLIC",
+        )
+
+        assert result.name == "a new project"
+
     def test_project_create_wrong_visibility(self):
         project_gateway = ProjectGateway()
         with pytest.raises(ValueError) as e:

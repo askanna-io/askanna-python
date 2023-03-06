@@ -21,7 +21,7 @@ class Workspace:
     modified_at: datetime.datetime
 
     def __str__(self):
-        return f"{self.name} {self.suuid}"
+        return f"Workspace: {self.name} ({self.suuid})"
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Workspace":
