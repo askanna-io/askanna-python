@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 (2023-03-06)
+
+- Add '_at' suffix to datetime fields in dataclasses to support the new AskAnna Backend API response
+- Fix creating a project with description value None
+- Update documentation references
+- Align printing of object info via CLI
+- Update ArtifactInfo dataclass
+
 ## 0.21.0 (2023-02-01)
 
 - Add info option to CLI commands

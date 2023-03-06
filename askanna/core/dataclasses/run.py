@@ -15,6 +15,7 @@ from .relation import (
     JobRelation,
     PayloadRelation,
     ProjectRelation,
+    RunRelation,
     WorkspaceRelation,
 )
 
@@ -283,17 +284,6 @@ class Run:
 
 
 @dataclass
-class RunRelation:
-    suuid: str
-    name: str
-
-    @classmethod
-    def from_dict(cls, data: Dict) -> "RunRelation":
-        del data["relation"]
-        return cls(**data)
-
-
-@dataclass
 class RunStatus:
     suuid: str
     status: str
@@ -312,10 +302,10 @@ class RunStatus:
     def __str__(self):
         if self.name:
             return f"{self.name} ({self.suuid}): {self.status}"
-        return f"{self.suuid}: {self.status}"
+        return f"Run {self.suuid}: {self.status}"
 
     def __repr__(self):
-        return f"RunStatus(suuid={self.suuid}, status={self.status})"
+        return f"RunStatus(suuid='{self.suuid}', status='{self.status}')"
 
     @classmethod
     def from_dict(cls, data: Dict) -> "RunStatus":

@@ -288,3 +288,14 @@ def run_log() -> dict:
             [10, "2023-01-26T09:47:46.130415631Z", "Payload is not set"],
         ],
     }
+
+
+@pytest.fixture
+def run_payload_detail() -> dict:
+    return {
+        "suuid": "1234-1234-1234-1234",
+        "size": 184,
+        "lines": 30,
+        "created_at": "2023-01-26T09:47:41.077335Z",
+        "modified_at": "2023-01-26T09:48:15.774587Z",
+    }
