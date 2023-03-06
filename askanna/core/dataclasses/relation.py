@@ -36,6 +36,13 @@ class JobRelation(BaseRelation):
 
 
 @dataclass
+class RunRelation(BaseRelation):
+    ...
+    suuid: str
+    name: str
+
+
+@dataclass
 class UserRelation:
     relation: str
     suuid: str
@@ -62,6 +69,13 @@ class CreatedByRelation(BaseRelation):
 @dataclass
 class CreatedByWithAvatarRelation(CreatedByRelation):
     avatar: dict
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "CreatedByWithAvatarRelation":
+        role = MembershipRole(**data["role"])
+        del data["role"]
+
+        return cls(role=role, **data)
 
 
 @dataclass

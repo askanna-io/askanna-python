@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 (2023-03-06)
+
+- Add '_at' suffix to datetime fields in dataclasses to support the new AskAnna Backend API response
+- Fix creating a project with description value None
+- Update documentation references
+- Align printing of object info via CLI
+- Update ArtifactInfo dataclass
+
 ## 0.21.0 (2023-02-01)
 
 - Add info option to CLI commands
@@ -133,7 +141,7 @@ The following changes are related to breaking changes in the AskAnna Backend:
 ## 0.9.0 (2021-05-19)
 
 - Give runs a name and description when you start them.
-  [More info in the documentation.](http://docs.askanna.io/jobs/run-job/)
+  [More info in the documentation.](http://docs.askanna.io/job/run-job/)
 - Extend validation of `askanna.yml` with an informative check on the time zone.
 - Update dataclasses of API responses where we removed the `UUID` and `title`. We now only show the short UUID and
   `name`.

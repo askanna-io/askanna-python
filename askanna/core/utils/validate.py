@@ -119,7 +119,7 @@ def validate_yml_environments(config: Dict, jobname=None) -> bool:
                     f"Invalid definition of `environment` found in job `{jobname}`:\n"
                     f"environment: {environment}\n"
                     "\n"
-                    "For environment documentation: https://docs.askanna.io/environments/",
+                    "For environment documentation: https://docs.askanna.io/environment/",
                     err=True,
                 )
             else:
@@ -127,7 +127,7 @@ def validate_yml_environments(config: Dict, jobname=None) -> bool:
                     "Invalid definition of `environment` found:\n"
                     f"environment: {environment}\n"
                     "\n"
-                    "For environment documentation: https://docs.askanna.io/environments/",
+                    "For environment documentation: https://docs.askanna.io/environment/",
                     err=True,
                 )
             return False
@@ -139,7 +139,7 @@ def validate_yml_environments(config: Dict, jobname=None) -> bool:
                     "`image` was not defined in the `environment`:\n"
                     f"environment: {environment}\n"
                     "\n"
-                    "For environment documentation: https://docs.askanna.io/environments/",
+                    "For environment documentation: https://docs.askanna.io/environment/",
                     err=True,
                 )
                 return False
@@ -158,7 +158,7 @@ def validate_yml_notifications(config: Dict, jobname=None) -> bool:
                 f"Invalid definition of `notifications` found in job `{jobname}`:\n"
                 f"notifications: {notifications}"
                 "\n"
-                "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                "For notifications documentation: https://docs.askanna.io/job/notifications/",
                 err=True,
             )
         else:
@@ -166,7 +166,7 @@ def validate_yml_notifications(config: Dict, jobname=None) -> bool:
                 "Invalid `notifications` setting found:"
                 f"notifications: {notifications}"
                 "\n"
-                "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                "For notifications documentation: https://docs.askanna.io/job/notifications/",
                 err=True,
             )
         return False
@@ -185,7 +185,7 @@ def validate_yml_notifications(config: Dict, jobname=None) -> bool:
                     f"Invalid definition of `notifications` found in job `{jobname}`:\n"
                     f"notifications: {notifications}"
                     "\n"
-                    "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                    "For notifications documentation: https://docs.askanna.io/job/notifications/",
                     err=True,
                 )
             else:
@@ -193,7 +193,7 @@ def validate_yml_notifications(config: Dict, jobname=None) -> bool:
                     "Invalid `notifications` setting found:\n"
                     f"notifications: {notifications}"
                     "\n"
-                    "For notifications documentation: https://docs.askanna.io/jobs/notifications/",
+                    "For notifications documentation: https://docs.askanna.io/job/notifications/",
                     err=True,
                 )
             return False
@@ -314,7 +314,7 @@ To use your local time zone for scheduling jobs in this project, add the next li
 
 timezone: {timezone_local}
 
-For more information, read the documentation: https://docs.askanna.io/jobs/create-job/#time-zone
+For more information, read the documentation: https://docs.askanna.io/job/create-job/#time-zone
 """
                         )
                     timezone_checked = True

@@ -367,8 +367,8 @@ class TestCliMakeOptionListStringForQuestion:
             is_masked=None,  # type: ignore
             project=None,  # type: ignore
             workspace=None,  # type: ignore
-            created=None,  # type: ignore
-            modified=None,  # type: ignore
+            created_at=None,  # type: ignore
+            modified_at=None,  # type: ignore
         )
         result = utils.make_option_list_string_for_question([variable])
         assert result == "1. test\n"
@@ -381,8 +381,8 @@ class TestCliMakeOptionListStringForQuestion:
             is_masked=None,  # type: ignore
             project=None,  # type: ignore
             workspace=None,  # type: ignore
-            created=None,  # type: ignore
-            modified=None,  # type: ignore
+            created_at=None,  # type: ignore
+            modified_at=None,  # type: ignore
         )
         result = utils.make_option_list_string_for_question([variable], name_with_suuid=True)
         assert result == "1. test (1234-1234-1234-1234)\n"
@@ -396,8 +396,8 @@ class TestCliMakeOptionListStringForQuestion:
                 is_masked=None,  # type: ignore
                 project=None,  # type: ignore
                 workspace=None,  # type: ignore
-                created=None,  # type: ignore
-                modified=None,  # type: ignore
+                created_at=None,  # type: ignore
+                modified_at=None,  # type: ignore
             )
             for _ in range(10)
         ]

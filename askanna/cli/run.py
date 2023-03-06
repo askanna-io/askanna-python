@@ -217,8 +217,8 @@ def info(run_suuid):
         None,
         ("Status", run.status),
         ("Duration", f"{run.duration} seconds"),
-        ("Started", run.started.strftime(string_format_datetime) if run.started else "Not started yet"),
-        ("Finished", run.finished.strftime(string_format_datetime) if run.finished else "Not finished yet"),
+        ("Started", run.started_at.strftime(string_format_datetime) if run.started_at else "Not started yet"),
+        ("Finished", run.finished_at.strftime(string_format_datetime) if run.finished_at else "Not finished yet"),
         None,
         ("Metrics", metric_string),
         ("Variables", variable_string),
@@ -233,8 +233,8 @@ def info(run_suuid):
         ("Workspace", run.workspace.name),
         ("Workspace SUUID", run.workspace.suuid),
         None,
-        ("Created", run.created.strftime(string_format_datetime)),
-        ("Modified", run.modified.strftime(string_format_datetime)),
+        ("Created", run.created_at.strftime(string_format_datetime)),
+        ("Modified", run.modified_at.strftime(string_format_datetime)),
         None,
     ]
     for item in print_list:

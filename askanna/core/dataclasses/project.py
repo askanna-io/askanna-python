@@ -19,17 +19,16 @@ class Project:
     created_by: Optional[UserRelation]
     is_member: bool
     permission: dict
-    created: datetime.datetime
-    modified: datetime.datetime
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
 
     def __str__(self):
-        return f"{self.name} {self.suuid}"
+        return f"Project: {self.name} ({self.suuid})"
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Project":
-
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
+        data["created_at"] = dateutil_parser.parse(data["created_at"])
+        data["modified_at"] = dateutil_parser.parse(data["modified_at"])
 
         workspace = WorkspaceRelation.from_dict(data["workspace"])
         del data["workspace"]

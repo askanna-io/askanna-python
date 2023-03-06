@@ -10,8 +10,8 @@ def run_detail() -> dict:
         "name": "",
         "description": "",
         "status": "finished",
-        "started": "2022-01-26T09:47:41.874998Z",
-        "finished": "2022-01-26T09:48:15.766553Z",
+        "started_at": "2022-01-26T09:47:41.874998Z",
+        "finished_at": "2022-01-26T09:48:15.766553Z",
         "duration": 33,
         "trigger": "WEBUI",
         "created_by": {
@@ -92,8 +92,8 @@ def run_detail() -> dict:
         "job": {"relation": "jobdef", "suuid": "69Nk-vIwe-0YKU-uSRB", "name": "train-model"},
         "project": {"relation": "project", "suuid": "GZFT-EmyJ-CJ5V-kYKM", "name": "Train, select and serve"},
         "workspace": {"relation": "workspace", "suuid": "1S6G-K3fI-visU-LKac", "name": "Demo AskAnna"},
-        "created": "2023-01-26T09:47:41.077335Z",
-        "modified": "2023-01-26T09:48:15.774587Z",
+        "created_at": "2023-01-26T09:47:41.077335Z",
+        "modified_at": "2023-01-26T09:48:15.774587Z",
     }
 
 
@@ -104,8 +104,8 @@ def run_detail_no_metric_no_variable() -> dict:
         "name": "",
         "description": "",
         "status": "finished",
-        "started": "2022-01-26T09:47:41.874998Z",
-        "finished": "2022-01-26T09:48:15.766553Z",
+        "started_at": "2022-01-26T09:47:41.874998Z",
+        "finished_at": "2022-01-26T09:48:15.766553Z",
         "duration": 33,
         "trigger": "WEBUI",
         "created_by": {
@@ -157,8 +157,8 @@ def run_detail_no_metric_no_variable() -> dict:
         "job": {"relation": "jobdef", "suuid": "69Nk-vIwe-0YKU-uSRB", "name": "train-model"},
         "project": {"relation": "project", "suuid": "GZFT-EmyJ-CJ5V-kYKM", "name": "Train, select and serve"},
         "workspace": {"relation": "workspace", "suuid": "1S6G-K3fI-visU-LKac", "name": "Demo AskAnna"},
-        "created": "2023-01-26T09:47:41.077335Z",
-        "modified": "2023-01-26T09:48:15.774587Z",
+        "created_at": "2023-01-26T09:47:41.077335Z",
+        "modified_at": "2023-01-26T09:48:15.774587Z",
     }
 
 
@@ -225,8 +225,8 @@ def run_artifact_list() -> list:
             "size": 198,
             "count_dir": 0,
             "count_files": 1,
-            "created": "2022-08-23T07:22:58.778753Z",
-            "modified": "2022-08-23T07:22:58.778794Z",
+            "created_at": "2022-08-23T07:22:58.778753Z",
+            "modified_at": "2022-08-23T07:22:58.778794Z",
         }
     ]
 
@@ -259,8 +259,8 @@ def run_artifact_list_not_found() -> list:
             "size": 198,
             "count_dir": 0,
             "count_files": 1,
-            "created": "2022-08-23T07:22:58.778753Z",
-            "modified": "2022-08-23T07:22:58.778794Z",
+            "created_at": "2022-08-23T07:22:58.778753Z",
+            "modified_at": "2022-08-23T07:22:58.778794Z",
         }
     ]
 
@@ -287,4 +287,15 @@ def run_log() -> dict:
             [9, "2023-01-26T09:47:46.130351965Z", "Finished loading code package"],
             [10, "2023-01-26T09:47:46.130415631Z", "Payload is not set"],
         ],
+    }
+
+
+@pytest.fixture
+def run_payload_detail() -> dict:
+    return {
+        "suuid": "1234-1234-1234-1234",
+        "size": 184,
+        "lines": 30,
+        "created_at": "2023-01-26T09:47:41.077335Z",
+        "modified_at": "2023-01-26T09:48:15.774587Z",
     }

@@ -15,13 +15,13 @@ class Variable:
     is_masked: bool
     project: ProjectRelation
     workspace: WorkspaceRelation
-    created: datetime.datetime
-    modified: datetime.datetime
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
 
     @classmethod
     def from_dict(cls, data: Dict) -> "Variable":
-        data["created"] = dateutil_parser.parse(data["created"])
-        data["modified"] = dateutil_parser.parse(data["modified"])
+        data["created_at"] = dateutil_parser.parse(data["created_at"])
+        data["modified_at"] = dateutil_parser.parse(data["modified_at"])
 
         project = ProjectRelation.from_dict(data["project"])
         del data["project"]

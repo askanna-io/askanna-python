@@ -130,6 +130,23 @@ def project_response(
             matchers.json_params_matcher(
                 {
                     "workspace_suuid": "1234-1234-1234-1234",
+                    "name": "a new project",
+                    "description": "",
+                    "visibility": "PUBLIC",
+                }
+            )
+        ],
+        status=201,
+        content_type="application/json",
+        json=project_new_detail,
+    )
+    api_responses.add(
+        "POST",
+        url=askanna_url.project.project(),
+        match=[
+            matchers.json_params_matcher(
+                {
+                    "workspace_suuid": "1234-1234-1234-1234",
                     "name": "new-project",
                     "description": "",
                     "visibility": "PRIVATE",
@@ -148,7 +165,7 @@ def project_response(
                 {
                     "workspace_suuid": "5678-5678-5678-5678",
                     "name": "new-project",
-                    "description": None,
+                    "description": "",
                     "visibility": "PRIVATE",
                 }
             )

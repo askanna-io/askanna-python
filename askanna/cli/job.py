@@ -9,6 +9,7 @@ from askanna.cli.utils import (
     job_run_request,
 )
 from askanna.config import config
+from askanna.config.utils import string_format_datetime
 from askanna.core.exceptions import GetError, PatchError
 from askanna.sdk.job import JobSDK
 
@@ -118,22 +119,22 @@ def info(job_suuid):
         notifications = "Yes"
 
     click.echo("")
-    click.echo(f"Name:        {job.name}")
-    click.echo(f"SUUID:       {job.suuid}")
-    click.echo(f"Description: {job.description}")
+    click.echo(f"Name:            {job.name}")
+    click.echo(f"SUUID:           {job.suuid}")
+    click.echo(f"Description:     {job.description}")
     click.echo("")
-    click.echo(f"Environment:   {job.environment}")
-    click.echo(f"Timezone:      {job.timezone}")
-    click.echo(f"Scheduled:     {scheduled}")
-    click.echo(f"Notifications: {notifications}")
+    click.echo(f"Environment:     {job.environment}")
+    click.echo(f"Timezone:        {job.timezone}")
+    click.echo(f"Scheduled:       {scheduled}")
+    click.echo(f"Notifications:   {notifications}")
     click.echo("")
     click.echo(f"Project:         {job.project.name}")
     click.echo(f"Project SUUID:   {job.project.suuid}")
     click.echo(f"Workspace:       {job.workspace.name}")
     click.echo(f"Workspace SUUID: {job.workspace.suuid}")
     click.echo("")
-    click.echo(f"Created:  {job.created}")
-    click.echo(f"Modified: {job.modified}")
+    click.echo(f"Created:         {job.created_at.strftime(string_format_datetime)}")
+    click.echo(f"Modified:        {job.modified_at.strftime(string_format_datetime)}")
     click.echo("")
 
 
