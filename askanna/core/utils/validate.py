@@ -1,8 +1,11 @@
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 from typing import Dict, List, Union
 
 import click
 import croniter
-import pytz
 from email_validator import EmailNotValidError, validate_email
 from tzlocal import get_localzone
 
@@ -243,7 +246,7 @@ def validate_askanna_yml(config):
     global_timezone = config.get("timezone")
     # validate the global timezone
     if global_timezone:
-        if global_timezone not in pytz.all_timezones:
+        if global_timezone not in zoneinfo.available_timezones():
             click.echo(
                 "Invalid timezone setting found in askanna.yml:\n" + f"timezone: {global_timezone}",
                 err=True,
@@ -286,7 +289,7 @@ def validate_askanna_yml(config):
                     return False
             # validate the timezone if set
             timezone = job.get("timezone")
-            if timezone and timezone not in pytz.all_timezones:
+            if timezone and timezone not in zoneinfo.available_timezones():
                 click.echo(
                     f"Invalid timezone setting found in job `{jobname}`:\n" + f"timezone: {timezone}",
                     err=True,
