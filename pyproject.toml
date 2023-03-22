@@ -38,6 +38,7 @@ keywords = [
   "versioncontrol",
 ]
 dependencies = [
+  "backports.zoneinfo>=0.2.1; python_version < '3.9'",
   "click>=7.1.2,<9.0.0",
   "cookiecutter>1.7.0,<3.0.0",
   "croniter>=1.0.15,<2.0.0",
@@ -47,7 +48,6 @@ dependencies = [
   "igittigitt>=2.0.2,<3.0.0",
   "python-dateutil>=2.8.0,<3.0.0",
   "python-slugify>=7.0.0,<9.0.0",
-  "pytz>=2021,<2023",
   "PyYAML>=5.3.1,<7.0.0",
   "requests>=2.22.0,<3.0.0",
   "resumable~=0.1.1",
