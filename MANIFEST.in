@@ -1,7 +1,0 @@
-include requirements.txt
-include README.md
-include CHANGELOG.md
-include AUTHORS.md
-
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]

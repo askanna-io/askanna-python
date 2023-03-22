@@ -1,10 +1,8 @@
-from __future__ import absolute_import
-
 import importlib
 
 import click
 
-from askanna import __version__ as askanna_version
+from askanna import ASKANNA_VERSION
 
 HELP = """
 The AskAnna CLI helps you running data science projects on AskAnna.
@@ -24,7 +22,7 @@ For usage and help on a specific command, run it with a --help flag, e.g.:
     short_help=SHORT_HELP,
     epilog=EPILOG,
 )
-@click.version_option(version=askanna_version, prog_name="AskAnna CLI")
+@click.version_option(version=ASKANNA_VERSION, prog_name="AskAnna CLI")
 def cli():
     """
     Initialize the AskAnna CLI commands

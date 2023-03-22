@@ -10,8 +10,7 @@ try:
     from yaml import CSafeDumper as SafeDumper
     from yaml import CSafeLoader as SafeLoader
 except ImportError:  # pragma: no cover
-    from yaml import SafeDumper
-    from yaml import SafeLoader as SafeLoader
+    from yaml import SafeDumper, SafeLoader
 
 
 string_format_datetime = "%Y-%m-%d %H:%M:%S %Z"

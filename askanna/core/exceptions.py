@@ -38,7 +38,5 @@ class RunError(Error):
     pass
 
 
-class MultipleObjectsReturned(Error):
+class MultipleObjectsReturnedError(Error):
     """The query returned multiple objects when only one was expected."""
-
-    pass
