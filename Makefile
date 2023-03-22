@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := help
 
 clean: clean-build clean-pyc clean-test ## remove all build, test, coverage and Python artifacts
+	rm -fr .ruff_cache/
 
 clean-build: ## remove build artifacts
 	rm -fr build/
@@ -16,41 +17,44 @@ clean-pyc: ## remove Python file artifacts
 	find . -name '__pycache__' -exec rm -fr {} +
 
 clean-test: ## remove test and coverage artifacts
-	rm -fr .tox/
 	rm -f .coverage
 	rm -fr htmlcov/
-	rm -fr .pytest_cache
+	rm -fr .pytest_cache/
 	rm -f gl-code-quality-report.json
 	rm -f coverage.xml
 	rm -f junit.xml
 
 lint: ## check style with flake8
-	tox -e flake8
+	ruff check .
 
-test: ## run tests quickly with the default Python
-	tox -e py3
+test: ## run tests with the default Python version
+	hatch run +py=3 test:pytest
 
-test-all: ## run tests on every Python version with tox
-	tox
+test-all: ## run tests on every Python version that is supported
+	hatch run test:pytest
 
-coverage: ## check code coverage quickly with the default Python
-	pytest --cov=askanna
-	coverage html
-	$(BROWSER) htmlcov/index.html
+coverage: ## check code coverage with the default Python version
+	hatch run +py=3 test:cov
+	open htmlcov/index.html
 
 dist: clean ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
+	pip install build
+	python -m build
 
 install: clean ## install the package to the active Python's site-packages
 	pip install .
 
+install-dev: clean ## install the package to the active Python's site-packages
+	pip install -e ."[dev]"
+
 uninstall: clean ## uninstall the AskAnna package
-	pip uninstall askanna -y
+	pip freeze | grep -v "^-e" | xargs pip uninstall -y
 
 reinstall: uninstall install ## uninstall and install the AskAnna package
 
-help:  ## show this message
+reinstall-dev: uninstall install-dev ## uninstall and install a development environment
+
+help: ## show this message
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 define PRINT_HELP_PYSCRIPT

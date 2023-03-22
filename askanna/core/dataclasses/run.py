@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from dateutil import parser as dateutil_parser
 
-from askanna.core.exceptions import MultipleObjectsReturned
+from askanna.core.exceptions import MultipleObjectsReturnedError
 from askanna.core.utils.object import json_serializer
 
 from .base import Label
@@ -105,7 +105,7 @@ class VariableList:
         if len(variables_filtered) == 1:
             return variables_filtered[0]
         if len(variables_filtered) > 1:
-            raise MultipleObjectsReturned(
+            raise MultipleObjectsReturnedError(
                 f"Found multiple variables matching name '{name}', please use the method .filter(name=\"{name}\")."
             )
         return None
@@ -194,7 +194,7 @@ class MetricList:
         if len(metrics_filtered) == 1:
             return metrics_filtered[0]
         if len(metrics_filtered) > 1:
-            raise MultipleObjectsReturned(
+            raise MultipleObjectsReturnedError(
                 f"Found multiple metrics matching name '{name}', please use the method .filter(name=\"{name}\")."
             )
         return None

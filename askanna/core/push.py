@@ -67,7 +67,6 @@ def is_project_config_push_ready() -> bool:
 
 
 def push(overwrite: bool = False, description: Union[str, None] = None) -> bool:
-
     if not is_project_config_push_ready():
         sys.exit(1)
 

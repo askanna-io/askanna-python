@@ -56,7 +56,6 @@ class ServerConfig:
 def add_or_update_server_in_config_dict(  # nosec
     config_dict: Optional[Dict], server: str, remote: str, token: str = "", ui: str = ""
 ) -> Dict:
-
     server_dict = {
         "remote": remote,
         "ui": ui,

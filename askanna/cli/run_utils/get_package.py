@@ -31,7 +31,6 @@ SHORT_HELP = "Get code package from AskAnna"
     type=click.Path(path_type=Path),
 )
 def cli(package_suuid, output_dir):
-
     try:
         package_content = PackageSDK().get(package_suuid)
     except Exception as e:

@@ -8,14 +8,15 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
       - id: check-symlinks
+      - id: check-json
       - id: check-yaml
+      - id: check-toml
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: fix-encoding-pragma
         args: [--remove]
       - id: no-commit-to-branch
         args: [--branch, main, --pattern, release/.*]
-      - id: requirements-txt-fixer
       - id: trailing-whitespace
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -23,34 +24,23 @@ repos:
     hooks:
       - id: markdownlint
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.257
     hooks:
-      - id: flake8
+      - id: ruff
         args:
-          [
-            "--config=setup.cfg",
-            "--ignore=W391,W503,E203",
-            "--max-line-length=119",
-          ]
+          - --fix
+          - --exit-non-zero-on-fix
 
   - repo: https://github.com/ambv/black
     rev: 23.1.0
     hooks:
       - id: black
-        args: ["--line-length=119"]
 
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
-        name: isort (python)
-      - id: isort
-        name: isort (cython)
-        types: [cython]
-      - id: isort
-        name: isort (pyi)
-        types: [pyi]
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
@@ -63,4 +53,6 @@ repos:
     rev: v3.3.1
     hooks:
       - id: pyupgrade
-        args: [--py37-plus]
+        args:
+          - --py37-plus
+          - --keep-runtime-typing

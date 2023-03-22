@@ -1,9 +1,8 @@
----
 version: "2"
 plugins:
-  fixme:
-    enabled: true
   pep8:
+    enabled: true
+  bandit:
     enabled: true
   markdownlint:
     enabled: true
@@ -15,9 +14,7 @@ plugins:
   editorconfig:
     enabled: true
     channel: beta
-    config:
-      editorconfig: .editorconfig
+  fixme:
+    enabled: true
 exclude_patterns:
-  - "**/test/"
-  - "**/tests/"
   - tests/

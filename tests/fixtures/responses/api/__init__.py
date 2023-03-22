@@ -43,7 +43,6 @@ def api_response(
     workspace_detail,
     workspace_new_detail,
 ):
-
     api_responses = RequestsMock()
     api_responses.start()
 
