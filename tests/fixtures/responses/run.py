@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.utils import faker
+
 
 @pytest.fixture
 def run_detail() -> dict:
@@ -232,6 +234,57 @@ def run_artifact_list() -> list:
 
 
 @pytest.fixture
+def run_artifact_item() -> dict:
+    return {
+        "suuid": "abcd-abcd-abcd-abcd",
+        "size": 198,
+        "count_dir": 0,
+        "count_files": 1,
+        "run": {
+            "relation": "run",
+            "suuid": "HyoP-rfIs-mghs-4YYm",
+            "name": "",
+        },
+        "job": {
+            "relation": "job",
+            "suuid": "HyoP-rfIs-mghs-4YYm",
+            "name": "a job",
+        },
+        "project": {
+            "relation": "project",
+            "suuid": "4YYm-HyoP-rfIs-mghs",
+            "name": "a project",
+        },
+        "workspace": {
+            "relation": "workspace",
+            "suuid": "7aYw-rkCA-wdMo-1Gi6",
+            "name": "a workspace",
+        },
+        "created_at": "2022-08-23T07:22:58.778753Z",
+        "modified_at": "2022-08-23T07:22:58.778794Z",
+        "cdn_base_url": "https://cdn-api.askanna.eu/files/blob/e123456c-a123-12c3-a1b2-12345abc89",
+        "files": [
+            {
+                "path": "output",
+                "parent": "/",
+                "name": "output",
+                "size": 1456271,
+                "type": "directory",
+                "last_modified": "2023-01-30T03:27:36",
+            },
+            {
+                "path": "output/report.html",
+                "parent": "output",
+                "name": "report.html",
+                "size": 1456271,
+                "type": "file",
+                "last_modified": "2023-01-30T03:27:36",
+            },
+        ],
+    }
+
+
+@pytest.fixture
 def run_artifact_list_not_found() -> list:
     return [
         {
@@ -298,4 +351,76 @@ def run_payload_detail() -> dict:
         "lines": 30,
         "created_at": "2023-01-26T09:47:41.077335Z",
         "modified_at": "2023-01-26T09:48:15.774587Z",
+    }
+
+
+@pytest.fixture
+def run_variable() -> dict:
+    return {
+        "variable": {
+            "name": faker.fake.name(),
+            "value": faker.fake.random_letters(faker.fake.random_int(min=1, max=10)),
+            "type": "string",
+        },
+        "label": [
+            {
+                "name": faker.fake.name(),
+                "value": None,
+                "type": "tag",
+            }
+        ],
+        "run_suuid": "1234-1234-1234-1234",
+        "created_at": faker.date_time_str(),
+    }
+
+
+@pytest.fixture
+def run_variable_list(run_variable) -> dict:
+    return {
+        "count": 1,
+        "next": None,
+        "previous": None,
+        "results": [run_variable],
+    }
+
+
+@pytest.fixture
+def run_metric() -> dict:
+    return {
+        "metric": {
+            "name": faker.fake.name(),
+            "value": faker.fake.random_letters(faker.fake.random_int(min=1, max=10)),
+            "type": "string",
+        },
+        "label": [
+            {
+                "name": faker.fake.name(),
+                "value": None,
+                "type": "tag",
+            }
+        ],
+        "run_suuid": "1234-1234-1234-1234",
+        "created_at": faker.date_time_str(),
+    }
+
+
+@pytest.fixture
+def run_metric_list(run_metric) -> dict:
+    return {
+        "count": 1,
+        "next": None,
+        "previous": None,
+        "results": [run_metric],
+    }
+
+
+@pytest.fixture
+def run_artifact_file_dict() -> dict:
+    return {
+        "name": "test.zip",
+        "type": "zip",
+        "size": 1234,
+        "path": "./demo",
+        "parent": "./",
+        "last_modified": "2023-03-23T14:02:00.000000Z",
     }

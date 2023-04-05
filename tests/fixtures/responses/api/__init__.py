@@ -35,6 +35,9 @@ def api_response(
     run_artifact_list,
     run_artifact_list_not_found,
     run_log,
+    run_metric_list,
+    run_variable_list,
+    run_artifact_item,
     variable_list,
     variable_list_limit,
     variable_detail,
@@ -75,6 +78,9 @@ def api_response(
         run_payload,
         job_run_request,  # as run status response
         run_log,
+        run_metric_list,
+        run_variable_list,
+        run_artifact_item,
     )
 
     api_responses = project_response(

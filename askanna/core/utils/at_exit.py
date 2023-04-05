@@ -4,7 +4,7 @@ try:
     ip = get_ipython()  # type: ignore
 except NameError:
     from atexit import register as exit_register  # noqa: F401
-else:
+else:  # pragma: no cover
     from functools import wraps
 
     def exit_register(func, *args, **kwargs):

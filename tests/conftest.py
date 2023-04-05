@@ -16,7 +16,7 @@ pytest_plugins = [
 
 @pytest.fixture()
 def temp_dir(tmp_path_factory):
-    temp_dir = tmp_path_factory.mktemp("askanna-test-")
+    temp_dir = str(tmp_path_factory.mktemp("askanna-test-"))
     yield temp_dir
     shutil.rmtree(temp_dir, ignore_errors=True)
 

@@ -1,6 +1,6 @@
 try:
     import zoneinfo
-except ImportError:
+except ImportError:  # pragma: no cover
     from backports import zoneinfo
 from typing import Dict, List, Union
 

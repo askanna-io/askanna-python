@@ -31,7 +31,7 @@ class TestCliGetPackage:
 
     def test_command_get_package_success(self, temp_dir):
         package_suuid = "1234-1234-1234-1234"
-        code_dir = str(temp_dir) + "/code-1234"
+        code_dir = temp_dir + "/code-1234"
 
         result = CliRunner().invoke(cli, f"{self.verb} --package {package_suuid} --output {code_dir}")
 
@@ -43,7 +43,7 @@ class TestCliGetPackage:
 
     def test_command_get_package_environment_variables(self, temp_dir):
         package_suuid = "1234-1234-1234-1234"
-        code_dir = str(temp_dir) + "/code-1234"
+        code_dir = temp_dir + "/code-1234"
 
         os.environ["AA_PACKAGE_SUUID"] = package_suuid
         os.environ["AA_CODE_DIR"] = code_dir

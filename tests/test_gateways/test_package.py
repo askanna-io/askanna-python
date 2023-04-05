@@ -42,7 +42,7 @@ class TestGatewayPackage:
 
     def test_download_package_to_file(self, package_zip_file, temp_dir):
         package_suuid = "1234-1234-1234-1234"
-        package_path = str(temp_dir) + "/artifact-1233/test.zip"
+        package_path = temp_dir + "/artifact-1233/test.zip"
         package = PackageGateway().download(package_suuid, package_path)
 
         assert package is None
