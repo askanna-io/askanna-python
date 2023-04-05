@@ -19,6 +19,14 @@ from .relation import (
     WorkspaceRelation,
 )
 
+try:
+    from typing import Literal
+except ImportError:  # pragma: no cover
+    from typing_extensions import Literal
+
+STATUS = Literal["queued", "running", "finished", "failed"]
+TRIGGER = Literal["api", "cli", "python-sdk", "webui", "schedule", "worker"]
+
 
 @dataclass
 class Variable:
@@ -216,10 +224,10 @@ class Run:
     name: str
     description: str
 
-    status: str
+    status: STATUS
     duration: int
 
-    trigger: dict
+    trigger: TRIGGER
     created_by: CreatedByWithAvatarRelation
 
     package: dict
@@ -286,7 +294,7 @@ class Run:
 @dataclass
 class RunStatus:
     suuid: str
-    status: str
+    status: STATUS
     name: str
     next_url: str
     created_by: CreatedByRelation

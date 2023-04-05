@@ -31,7 +31,7 @@ class TestCliGetRunManifest:
 
     def test_command_get_run_manifest_successs(self, temp_dir, run_manifest):
         run_suuid = "1234-1234-1234-1234"
-        run_manifest_path = str(temp_dir) + "/run-manifest-1234/entrypoint.sh"
+        run_manifest_path = temp_dir + "/run-manifest-1234/entrypoint.sh"
 
         result = CliRunner().invoke(cli, f"{self.verb} --run {run_suuid} --output {run_manifest_path}")
 
@@ -42,7 +42,7 @@ class TestCliGetRunManifest:
 
     def test_command_get_run_manifest_successs_environment_variables(self, temp_dir, run_manifest):
         run_suuid = "1234-1234-1234-1234"
-        run_manifest_path = str(temp_dir) + "/run-manifest-1234/entrypoint.sh"
+        run_manifest_path = temp_dir + "/run-manifest-1234/entrypoint.sh"
 
         os.environ["AA_RUN_SUUID"] = run_suuid
         os.environ["AA_RUN_MANIFEST_PATH"] = run_manifest_path

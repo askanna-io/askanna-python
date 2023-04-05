@@ -94,7 +94,7 @@ class TestGatewayJob:
 
         assert "404 - The job SUUID '7890-7890-7890-7890' was not found" in e.value.args[0]
 
-    def test_project_delete_error(self):
+    def test_job_delete_error(self):
         job_gateway = JobGateway()
         with pytest.raises(DeleteError) as e:
             job_gateway.delete("0987-0987-0987-0987")

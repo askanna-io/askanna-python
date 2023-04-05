@@ -1,10 +1,11 @@
-import warnings
 from pathlib import Path
 from typing import List, Optional, Union
 
 from askanna.config import config
 from askanna.core.dataclasses.job import Payload
 from askanna.core.dataclasses.run import (
+    STATUS,
+    TRIGGER,
     ArtifactInfo,
     MetricList,
     Run,
@@ -19,7 +20,8 @@ from .mixins import ListMixin
 
 __all__ = [
     "RunSDK",
-    "GetRunsSDK",
+    "ResultSDK",
+    "ArtifactSDK",
 ]
 
 
@@ -39,11 +41,23 @@ class RunSDK(ListMixin):
 
     def list(
         self,
+        status: Optional[STATUS] = None,
+        status__exclude: Optional[STATUS] = None,
         run_suuid_list: Optional[List[str]] = None,
+        run_suuid__exclude: Optional[str] = None,
         job_name: Optional[str] = None,
         job_suuid: Optional[str] = None,
+        job_suuid__exclude: Optional[str] = None,
         project_suuid: Optional[str] = None,
+        project_suuid__exclude: Optional[str] = None,
         workspace_suuid: Optional[str] = None,
+        workspace_suuid__exclude: Optional[str] = None,
+        created_by_suuid: Optional[str] = None,
+        created_by_suuid__exclude: Optional[str] = None,
+        trigger: Optional[Union[TRIGGER, List[TRIGGER]]] = None,
+        trigger__exclude: Optional[Union[TRIGGER, List[TRIGGER]]] = None,
+        package_suuid: Optional[str] = None,
+        package_suuid__exclude: Optional[str] = None,
         include_metrics: bool = False,
         include_variables: bool = False,
         number_of_results: int = 100,
@@ -53,14 +67,40 @@ class RunSDK(ListMixin):
         """List all runs with filter and order options
 
         Args:
+            status (STATUS, optional): Status of the run to filter on. Defaults to None.
+            status__exclude (str, optional): Status of the run to exclude. Defaults to None.
+              STATUS values: queued, running, finished, failed
+
             run_suuid_list (List[str], optional): List of run SUUIDs to filter on. Defaults to None.
+            run_suuid__exclude (str, optional): SUUID of the run to exclude. Defaults to None.
+
             job_name (str, optional): Name of the job to filter on. Defaults to None.
             job_suuid (str, optional): SUUID of the job to filter on. Defaults to None.
+            job_suuid__exclude (str, optional): SUUID of the job to exclude. Defaults to None.
+
             project_suuid (str, optional): SUUID of the project to filter on. Defaults to None.
+            project_suuid__exclude (str, optional): SUUID of the project to exclude. Defaults to None.
+
+            workspace_suuid (str, optional): SUUID of the workspace to filter on. Defaults to None.
+            workspace_suuid__exclude (str, optional): SUUID of the workspace to exclude. Defaults to None.
+
+            created_by_suuid (str, optional): SUUID of the workspace member to filter on. Defaults to None.
+            created_by_suuid__exclude (str, optional): SUUID of the workspace member to exclude.
+              Defaults to None.
+
+            trigger (TRIGGER, optional): Trigger of the run to filter on. Defaults to None.
+            trigger__exclude (TRIGGER, optional): Trigger of the run to exclude. Defaults to None.
+              TRIGGER values: api, cli, python-sdk, webui, schedule, worker
+
+            package_suuid (str, optional): SUUID of the package to filter on. Defaults to None.
+            package_suuid__exclude (str, optional): SUUID of the package to exclude. Defaults to None.
+
             include_metrics (bool, optional): Include the metrics in the Run dataclass. Defaults to False.
             include_variables (bool, optional): Include the variables in the Run dataclass. Defaults to False.
+
             number_of_results (int): Number of runs to return. Defaults to 100.
             order_by (str, optional): Order by field(s).
+
             search (str, optional): Search for a specific run.
 
         Raises:
@@ -80,10 +120,22 @@ class RunSDK(ListMixin):
             number_of_results=number_of_results,
             order_by=order_by,
             other_query_params={
+                "status": status,
+                "status__exclude": status__exclude,
                 "run_suuid_list": run_suuid_list,
+                "run_suuid__exclude": run_suuid__exclude,
                 "job_suuid": job_suuid,
+                "job_suuid__exclude": job_suuid__exclude,
                 "project_suuid": project_suuid,
+                "project_suuid__exclude": project_suuid__exclude,
                 "workspace_suuid": workspace_suuid,
+                "workspace_suuid__exclude": workspace_suuid__exclude,
+                "created_by_suuid": created_by_suuid,
+                "created_by_suuid__exclude": created_by_suuid__exclude,
+                "trigger": trigger,
+                "trigger__exclude": trigger__exclude,
+                "package_suuid": package_suuid,
+                "package_suuid__exclude": package_suuid__exclude,
                 "search": search,
             },
         )
@@ -365,55 +417,6 @@ class RunSDK(ListMixin):
         """
         run_suuid = run_suuid or self._get_run_suuid()
         return self.gateway.artifact_info(run_suuid)
-
-
-# TODO: remove the GetRunsSDK after release 0.21.0
-class GetRunsSDK:
-    """Get runs SDK"""
-
-    def get(
-        self,
-        run_suuid_list: Optional[List[str]] = None,
-        job_name: Optional[str] = None,
-        job_suuid: Optional[str] = None,
-        project_suuid: Optional[str] = None,
-        workspace_suuid: Optional[str] = None,
-        include_metrics: bool = False,
-        include_variables: bool = False,
-        number_of_results: int = 100,
-        order_by: Optional[str] = None,
-        search: Optional[str] = None,
-    ) -> List[Run]:
-        """Get a list of runs
-
-        Args:
-            run_suuid_list (List[str], optional): List of run SUUIDs to filter on. Defaults to None.
-            job_name (str, optional): Name of the job to filter on. Defaults to None.
-            job_suuid (str, optional): SUUID of the job to filter on. Defaults to None.
-            project_suuid (str, optional): SUUID of the project to filter on. Defaults to None.
-            workspace_suuid (str, optional): SUUID of the workspace to filter on. Defaults to None.
-            include_metrics (bool, optional): Include the metrics in the Run dataclass. Defaults to False.
-            include_variables (bool, optional): Include the variables in the Run dataclass. Defaults to False.
-            number_of_results (int): Number of runs to return. Defaults to 100.
-            order_by (str, optional): Order by field(s).
-            search (str, optional): Search for a specific run.
-
-        Returns:
-            List[Run]: List of runs. List items are of type Run dataclass.
-        """
-        warnings.warn("GetRunsSDK is deprecated, use RunSDK().list instead.", DeprecationWarning)
-        return RunSDK().list(
-            run_suuid_list=run_suuid_list,
-            job_name=job_name,
-            job_suuid=job_suuid,
-            project_suuid=project_suuid,
-            workspace_suuid=workspace_suuid,
-            include_metrics=include_metrics,
-            include_variables=include_variables,
-            number_of_results=number_of_results,
-            order_by=order_by,
-            search=search,
-        )
 
 
 class ResultSDK:

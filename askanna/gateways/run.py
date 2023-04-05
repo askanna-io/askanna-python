@@ -3,6 +3,8 @@ from typing import List, Optional, Union
 
 from askanna.core.dataclasses.job import Payload
 from askanna.core.dataclasses.run import (
+    STATUS,
+    TRIGGER,
     ArtifactInfo,
     MetricList,
     MetricObject,
@@ -41,10 +43,22 @@ class RunGateway:
 
     def list(
         self,
+        status: Optional[STATUS] = None,
+        status__exclude: Optional[STATUS] = None,
         run_suuid_list: Optional[List[str]] = None,
+        run_suuid__exclude: Optional[str] = None,
         job_suuid: Optional[str] = None,
+        job_suuid__exclude: Optional[str] = None,
         project_suuid: Optional[str] = None,
+        project_suuid__exclude: Optional[str] = None,
         workspace_suuid: Optional[str] = None,
+        workspace_suuid__exclude: Optional[str] = None,
+        created_by_suuid: Optional[str] = None,
+        created_by_suuid__exclude: Optional[str] = None,
+        trigger: Optional[Union[TRIGGER, List[TRIGGER]]] = None,
+        trigger__exclude: Optional[Union[TRIGGER, List[TRIGGER]]] = None,
+        package_suuid: Optional[str] = None,
+        package_suuid__exclude: Optional[str] = None,
         page_size: Optional[int] = None,
         cursor: Optional[str] = None,
         order_by: Optional[str] = None,
@@ -53,13 +67,38 @@ class RunGateway:
         """List all runs with filter and order options
 
         Args:
+            status (STATUS, optional): Status of the run to filter on. Defaults to None.
+            status__exclude (str, optional): Status of the run to exclude. Defaults to None.
+              STATUS values: queued, running, finished, failed
+
             run_suuid_list (List[str], optional): List of run SUUIDs to filter on. Defaults to None.
-            job_suuid (str, optional): Job SUUID to filter for runs in a job. Defaults to None.
-            project_suuid (str, optional): Project SUUID to filter for runs in a project. Defaults to None.
-            workspace_suuid (str, optional): Workspace SUUID to filter for runs in a workspace. Defaults to None.
+            run_suuid__exclude (str, optional): SUUID of the run to exclude. Defaults to None.
+
+            job_name (str, optional): Name of the job to filter on. Defaults to None.
+            job_suuid (str, optional): SUUID of the job to filter on. Defaults to None.
+            job_suuid__exclude (str, optional): SUUID of the job to exclude. Defaults to None.
+
+            project_suuid (str, optional): SUUID of the project to filter on. Defaults to None.
+            project_suuid__exclude (str, optional): SUUID of the project to exclude. Defaults to None.
+
+            workspace_suuid (str, optional): SUUID of the workspace to filter on. Defaults to None.
+            workspace_suuid__exclude (str, optional): SUUID of the workspace to exclude. Defaults to None.
+
+            created_by_suuid (str, optional): SUUID of the workspace member to filter on. Defaults to None.
+            created_by_suuid__exclude (str, optional): SUUID of the workspace member to exclude.
+              Defaults to None.
+
+            trigger (TRIGGER, optional): Trigger of the run to filter on. Defaults to None.
+            trigger__exclude (TRIGGER, optional): Trigger of the run to exclude. Defaults to None.
+              TRIGGER values: api, cli, python-sdk, webui, schedule, worker
+
+            package_suuid (str, optional): SUUID of the package to filter on. Defaults to None.
+            package_suuid__exclude (str, optional): SUUID of the package to exclude. Defaults to None.
+
             page_size (int, optional): Number of results per page. Defaults to the default value of the backend.
             cursor (str, optional): Cursor to start the page from. Defaults to None.
             order_by (str, optional): Order by a field. Defaults to None.
+
             search (str, optional): Search for a specific run. Defaults to None.
 
         Raises:
@@ -68,7 +107,12 @@ class RunGateway:
         Returns:
             RunListResponse: The response from the API with a list of runs and pagination information
         """
-        assert page_size is None or page_size > 0, "page_size must be a positive integer"
+        if page_size is not None and (
+            (isinstance(page_size, int) and page_size <= 0)
+            or isinstance(page_size, bool)
+            or not isinstance(page_size, int)
+        ):
+            raise ValueError("page_size must be a positive integer")
 
         run_suuid = None
         if run_suuid_list and len(run_suuid_list) > 0:
@@ -77,10 +121,22 @@ class RunGateway:
         response = client.get(
             url=client.askanna_url.run.run_list(),
             params={
+                "status": status,
+                "status__exclude": status__exclude,
                 "run_suuid": run_suuid,
+                "run_suuid__exclude": run_suuid__exclude,
                 "job_suuid": job_suuid,
+                "job_suuid__exclude": job_suuid__exclude,
                 "project_suuid": project_suuid,
+                "project_suuid__exclude": project_suuid__exclude,
                 "workspace_suuid": workspace_suuid,
+                "workspace_suuid__exclude": workspace_suuid__exclude,
+                "created_by_suuid": created_by_suuid,
+                "created_by_suuid__exclude": created_by_suuid__exclude,
+                "trigger": trigger,
+                "trigger__exclude": trigger__exclude,
+                "package_suuid": package_suuid,
+                "package_suuid__exclude": package_suuid__exclude,
                 "page_size": page_size,
                 "cursor": cursor,
                 "order_by": order_by,
@@ -177,10 +233,10 @@ class RunGateway:
         )
 
         if response.status_code == 404:
-            raise DeleteError(f"404 - The job SUUID '{run_suuid}' was not found")
+            raise DeleteError(f"404 - The run SUUID '{run_suuid}' was not found")
         if response.status_code != 204:
             raise DeleteError(
-                f"{response.status_code} - Something went wrong while deleting the job SUUID '{run_suuid}': "
+                f"{response.status_code} - Something went wrong while deleting the run SUUID '{run_suuid}': "
                 f"{response.json()}"
             )
 
@@ -301,7 +357,10 @@ class RunGateway:
         if response.status_code == 404:
             raise PutError(f"404 - The run SUUID '{run_suuid}' was not found")
         if response.status_code != 200:
-            raise PutError(f"{response.status_code} - Something went wrong while updating metrics: {response.json()}")
+            raise PutError(
+                f"{response.status_code} - Something went wrong while updating metrics of run SUUID '{run_suuid}': "
+                f"{response.json()}"
+            )
 
     def variable(self, run_suuid: str) -> VariableList:
         """Get the variables of a run
@@ -345,7 +404,8 @@ class RunGateway:
             raise PatchError(f"404 - The run SUUID '{run_suuid}' was not found")
         if response.status_code != 200:
             raise PatchError(
-                f"{response.status_code} - Something went wrong while updating variables: {response.json()}"
+                f"{response.status_code} - Something went wrong while updating variables of run SUUID '{run_suuid}': "
+                f"{response.json()}"
             )
 
     def log(self, run_suuid: str, limit: Optional[int] = -1, offset: Optional[int] = None) -> List:
