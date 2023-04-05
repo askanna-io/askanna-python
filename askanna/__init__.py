@@ -2,7 +2,7 @@
 The AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects.
 """
 
-__version__ = "0.23.0.dev2"
+__version__ = "0.23.0"
 
 import re
 import sys

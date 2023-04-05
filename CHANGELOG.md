@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.23.0 (2023-04-05)
+
+- Added new run filters: `status`, `trigger`, `created_by` and `package_suuid`
+- Implemented option for exclude version of run filters (e.g. `status__exclude`)
+- CLI command `askanna run list` now includes a filter option for `status`
+- Defined `status` and `trigger` values using a `Literal` type
+- Expanded test coverage and added test utils with date-time helpers
+- Removed deprecated `GetRunsSDK`
+- Switch from `pytz` to `zoneinfo` and removed [pytz](http://pythonhosted.org/pytz) from dependencies
+- Change the build system from [Wheel](https://wheel.readthedocs.io/) to [Hatch](https://hatch.pypa.io/)
+- Switch from [Flake8](https://flake8.pycqa.org/) to [Ruff](https://beta.ruff.rs/docs/)
+- Introduce parallel matrix for GitLab CI/CD to simplify the config
+- Add release related jobs to GitLab CI/CD
+
 ## 0.22.0 (2023-03-06)
 
 - Add '_at' suffix to datetime fields in dataclasses to support the new AskAnna Backend API response
