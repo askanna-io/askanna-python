@@ -3,7 +3,7 @@ from typing import List, Union
 import click
 import requests
 
-from askanna import __version__ as askanna_version
+from askanna import ASKANNA_VERSION
 from askanna.core.dataclasses.run import Label
 from askanna.core.utils.object import (
     get_type,
@@ -30,7 +30,7 @@ def update_available() -> bool:
         else:
             return False
 
-    if askanna_version == pypi_info["info"]["version"]:
+    if ASKANNA_VERSION == pypi_info["info"]["version"]:
         return False
     else:
         click.echo("[INFO] A newer version of AskAnna is available. Update via: pip install -U askanna")

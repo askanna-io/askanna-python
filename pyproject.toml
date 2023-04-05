@@ -1,8 +1,159 @@
+[project]
+name="askanna"
+dynamic = ["version"]
+authors = [
+  { name="AskAnna Team", email="support@askanna.io" },
+]
+maintainers= [
+  { name="AskAnna Team", email="support@askanna.io" },
+]
+description="The AskAnna CLI & Python SDK is part of the AskAnna platform to kickstart your data science projects"
+readme = "README.md"
+requires-python = ">=3.7"
+license = "BSD-3-Clause"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+]
+keywords = [
+  "askanna",
+  "ml",
+  "ai",
+  "data",
+  "datascience",
+  "versioncontrol",
+]
+dependencies = [
+  "backports.zoneinfo>=0.2.1; python_version < '3.9'",
+  "click>=7.1.2,<9.0.0",
+  "cookiecutter>1.7.0,<3.0.0",
+  "croniter>=1.0.15,<2.0.0",
+  "email-validator<2.0.0",
+  "futures~=2.2.0; python_version < '3.10'",  # latest futures package cannot be installed on Python < 3.10
+  "GitPython>=3.1.0,<4.0.0",
+  "igittigitt>=2.0.2,<3.0.0",
+  "python-dateutil>=2.8.0,<3.0.0",
+  "python-slugify>=7.0.0,<9.0.0",
+  "PyYAML>=5.3.1,<7.0.0",
+  "requests>=2.22.0,<3.0.0",
+  "resumable~=0.1.1",
+  "typing_extensions>=4.0.0,<5.0.0; python_version < '3.8'",
+  "tzlocal>=2.1,<5.0",
+]
+
+[project.optional-dependencies]
+test = [
+  "faker~=16.6.1",
+  "numpy~=1.19.5; python_version < '3.8'",   # numpy is only required during development for testing numpy support
+  "numpy~=1.24.1; python_version >= '3.8'",  # numpy is only required during development for testing numpy support
+  "pytest~=7.2.1",
+  "pytest-cov~=4.0.0",
+  "responses~=0.22.0",
+  "ruff~=0.0.257",
+]
+dev = [
+  "askanna[test]",
+  "bandit~=1.7.4",
+  "black~=23.1.0",
+  "hatch~=1.6.3",
+  "isort~=5.12.0; python_version >= '3.8'",
+  "pre-commit~=3.0.0; python_version >= '3.8'",
+  "pre-commit~=2.21.0; python_version < '3.8'",
+  "python-dotenv~=0.21.1",
+]
+
+[project.urls]
+Homepage = "https://askanna.io"
+"Documentation Python SDK" = "https://docs.askanna.io/python-sdk/"
+"Documentation CLI" = "https://docs.askanna.io/cli/"
+"Documentation AskAnna" = "https://docs.askanna.io/"
+Changelog = "https://gitlab.com/askanna/askanna-python/-/blob/master/CHANGELOG.md"
+"Issue Tracker" = "https://gitlab.com/askanna/askanna-python/issues"
+Source = "https://gitlab.com/askanna/askanna-python"
+
+[project.scripts]
+askanna = "askanna.cli:cli"
+ask = "askanna.cli:cli"
+askanna-run-utils = "askanna.cli.run_utils:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "askanna/__init__.py"
+
+[tool.hatch.build]
+include = [
+  "/askanna",
+  "CONTRIBUTING.md",
+]
+
+[tool.hatch.envs.default]
+features = [
+  "dev",
+]
+
+[tool.hatch.envs.test]
+dev-mode = false
+features = [
+  "test",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
+
+[tool.hatch.envs.test.scripts]
+cov = [
+  "pytest --cov-config=pyproject.toml --cov=askanna --junitxml=junit.xml",
+  "coverage xml",
+  "coverage html",
+]
+lint = "ruff check ."
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+precision = 2
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "def __str__",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]
+
 [tool.black]
 line-length = 119
 
 [tool.isort]
 profile = "black"
+known_first_party = ["askanna"]
 
 [tool.bandit]
 skips = ["B101"]
+
+[tool.ruff]
+target-version = "py37"
+line-length = 119
+select = [
+  "F",  # pyflakes
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "UP", # pyupgrade
+]

@@ -3,8 +3,7 @@ import json
 import requests
 from requests.structures import CaseInsensitiveDict
 
-from askanna import USING_ASKANNA_CLI
-from askanna import __version__ as askanna_version
+from askanna import ASKANNA_VERSION, USING_ASKANNA_CLI
 from askanna.config import config
 from askanna.config.api_url import askanna_url
 from askanna.core.exceptions import ConnectionError
@@ -27,8 +26,8 @@ class Client:
         auth_header = CaseInsensitiveDict(
             {
                 "askanna-agent": askanna_agent,
-                "askanna-agent-version": askanna_version,
-                "user-agent": f"askanna-python/{askanna_version}",
+                "askanna-agent-version": ASKANNA_VERSION,
+                "user-agent": f"askanna-python/{ASKANNA_VERSION}",
             }
         )
 

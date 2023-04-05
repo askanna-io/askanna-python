@@ -11,8 +11,14 @@ from askanna.cli.utils import (
 )
 from askanna.config import config
 from askanna.config.utils import string_format_datetime
+from askanna.core.dataclasses.run import STATUS
 from askanna.core.exceptions import GetError, PatchError
 from askanna.sdk.run import RunSDK
+
+try:
+    from typing import get_args
+except ImportError:  # pragma: no cover
+    from typing_extensions import get_args
 
 HELP = """
 This command will allow you to start a run in AskAnna.
@@ -89,6 +95,13 @@ def cli(
 
 @cli.command(help="List runs available in AskAnna", short_help="List runs")
 @click.option(
+    "--status",
+    "status",
+    required=False,
+    type=click.Choice(list(get_args(STATUS)), case_sensitive=False),
+    help="Show runs with a specific run status",
+)
+@click.option(
     "--job",
     "-j",
     "job_suuid",
@@ -113,11 +126,12 @@ def cli(
     help="Workspace SUUID to list runs for a workspace",
 )
 @click.option("--search", "-s", required=False, type=str, help="Search for a specific run")
-def list(job_suuid, project_suuid, workspace_suuid, search):
+def list(status, job_suuid, project_suuid, workspace_suuid, search):
     run_sdk = RunSDK()
     try:
         runs = run_sdk.list(
             number_of_results=100,
+            status=status,
             job_suuid=job_suuid,
             project_suuid=project_suuid,
             workspace_suuid=workspace_suuid,

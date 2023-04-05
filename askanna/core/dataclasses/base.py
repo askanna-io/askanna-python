@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 try:
     from typing import Literal
-except ImportError:
+except ImportError:  # pragma: no cover
     from typing_extensions import Literal
 
 VISIBILITY = Literal["private", "public", "PRIVATE", "PUBLIC"]

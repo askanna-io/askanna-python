@@ -5,7 +5,7 @@ from askanna import USING_ASKANNA_CLI
 from askanna.core.utils.main import update_available
 from askanna.sdk.job import JobSDK
 from askanna.sdk.project import ProjectSDK
-from askanna.sdk.run import GetRunsSDK, ResultSDK, RunSDK
+from askanna.sdk.run import ResultSDK, RunSDK
 from askanna.sdk.track import (  # noqa: F401
     track_metric,
     track_metrics,
@@ -15,7 +15,7 @@ from askanna.sdk.track import (  # noqa: F401
 from askanna.sdk.variable import VariableSDK
 from askanna.sdk.workspace import WorkspaceSDK
 
-if USING_ASKANNA_CLI:
+if USING_ASKANNA_CLI:  # pragma: no cover
     try:
         update_available()
     except Exception as e:
@@ -27,6 +27,5 @@ job = JobSDK()
 project = ProjectSDK()
 result = ResultSDK()
 run = RunSDK()
-runs = GetRunsSDK()
 variable = VariableSDK()
 workspace = WorkspaceSDK()

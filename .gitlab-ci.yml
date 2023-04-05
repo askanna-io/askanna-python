@@ -1,34 +1,84 @@
-include:
-  - template: Code-Quality.gitlab-ci.yml
-
 stages:
   - test
   - build
-  - verifybuild
+  - verify build
+  - release
   - publish
 
-code_quality:
-  tags:
-    - docker
+include:
+  - template: Code-Quality.gitlab-ci.yml
 
 .test_template: &test_template
   stage: test
-  image: python:3.9-slim
+  image: python:3-slim
   before_script:
     - apt-get update && apt-get install -y git
-    - pip install -U pip
-    - pip install -U -r requirements-dev.txt
+    - pip install hatch
   tags:
     - kubernetes
+
+.twine_template: &twine_template
+  stage: publish
+  image: python:3-slim
+  tags:
+    - kubernetes
+  before_script:
+    - pip install build twine
+    - python -m build
+
+.publish_to_git_template: &publish_to_git_template
+  stage: publish
+  needs:
+    - job: twine check
+    - job: pytest
+  tags:
+    - kubernetes
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        TARGET: HEAD:main
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+      variables:
+        TARGET: refs/tags/$CI_COMMIT_TAG
+  before_script:
+    - apt-get update -y && apt-get install openssh-client git curl -y
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY_GIT" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $GIT_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - git config --global user.email "hello@askanna.io"
+    - git config --global user.name "AskAnna Robot"
+  script:
+    - git remote add public $GIT_REPO
+    - git push public $TARGET
+
+code_quality:
+  rules:
+    - if: $CODE_QUALITY_DISABLED
+      when: never
+    - if: ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG)
+      when: never
+    - if: $CI_COMMIT_BRANCH
+  before_script:
+    - echo -e "[pycodestyle]\nmax-line-length = 119" > setup.cfg
+    - echo -e "rule 'MD013', :line_length = 119" > .mdlrc
+
+lint:
+  <<: *test_template
+  script:
+    - hatch run +py=3 test:lint
 
 coverage:
   <<: *test_template
   script:
-    - tox -e coverage
+    - hatch run +py=3 test:cov
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     expire_in: 2 weeks
-    name: "${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}"
+    name: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
     paths:
       - htmlcov/
     reports:
@@ -37,131 +87,65 @@ coverage:
         path: coverage.xml
       junit: junit.xml
 
-flake8:
+pytest:
   <<: *test_template
+  parallel:
+    matrix:
+      - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
+  image: python:$PY_VERSION-slim
   script:
-    - tox -e flake8
-  artifacts:
-    reports:
-      codequality: gl-code-quality-report.json
+    - hatch run +py=$PY_VERSION test:pytest
 
-twine-check:
-  <<: *test_template
+twine check:
+  <<: *twine_template
+  stage: test
   script:
-    - tox -e twine-check
+    - twine check dist/*
 
-python 3:
-  <<: *test_template
-  image: python:3-slim
-  script:
-    - tox -e py3
-
-python 3.7:
-  <<: *test_template
-  image: python:3.7-slim
-  script:
-    - tox -e py37
-
-python 3.8:
-  <<: *test_template
-  image: python:3.8-slim
-  script:
-    - tox -e py38
-
-python 3.9:
-  <<: *test_template
-  image: python:3.9-slim
-  script:
-    - tox -e py39
-
-python 3.10:
-  <<: *test_template
-  image: python:3.10-slim
-  script:
-    - tox -e py310
-
-python 3.11:
-  <<: *test_template
-  image: python:3.11-slim
-  script:
-    - tox -e py311
-
-.build_docker_image_template: &build_docker_image_template
+build image:
   stage: build
+  needs:
+    - job: pytest
   tags:
     - kubernetes
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
-  variables:
-    PY_VERSION: "3-slim"
+  parallel:
+    matrix:
+      - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger")
-      when: never
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $CI_COMMIT_BRANCH == "main"
       variables:
-        DESTINATION: ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+        DESTINATION: $CI_REGISTRY_IMAGE:python-$PY_VERSION
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
       variables:
-        DESTINATION: ${CI_REGISTRY_IMAGE}/tag:${CI_COMMIT_TAG}-${PY_VERSION}
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+        DESTINATION: $CI_REGISTRY_IMAGE/tag:$CI_COMMIT_TAG-python-$PY_VERSION
+    - if: $CI_COMMIT_BRANCH
       variables:
-        DESTINATION: ${CI_REGISTRY_IMAGE}/review:${CI_COMMIT_REF_SLUG}-${PY_VERSION}
+        DESTINATION: $CI_REGISTRY_IMAGE/review:$CI_COMMIT_REF_SLUG-python-$PY_VERSION
   script:
     - echo "Building image to " $DESTINATION
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination ${DESTINATION} --build-arg PY_VERSION=${PY_VERSION}
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $DESTINATION --build-arg PY_VERSION=$PY_VERSION-slim
 
-image python 3:
-  <<: *build_docker_image_template
-  needs: [python 3]
-
-image python 3.7:
-  <<: *build_docker_image_template
-  needs: [python 3.7]
-  variables:
-    PY_VERSION: "3.7-slim"
-
-image python 3.8:
-  <<: *build_docker_image_template
-  needs: [python 3.8]
-  variables:
-    PY_VERSION: "3.8-slim"
-
-image python 3.9:
-  <<: *build_docker_image_template
-  needs: [python 3.9]
-  variables:
-    PY_VERSION: "3.9-slim"
-
-image python 3.10:
-  <<: *build_docker_image_template
-  needs: [python 3.10]
-  variables:
-    PY_VERSION: "3.10-slim"
-
-image python 3.11:
-  <<: *build_docker_image_template
-  needs: [python 3.11]
-  variables:
-    PY_VERSION: "3.11-slim"
-
-.verify_docker_build_template: &verify_docker_build_template
-  stage: verifybuild
-  variables:
-    PY_VERSION: "3-slim"
+verify image:
+  stage: verify build
+  needs:
+    - job: build image
+  parallel:
+    matrix:
+      - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
   rules:
-    - if: ($CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "trigger")
-      when: never
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $CI_COMMIT_BRANCH == "main"
       variables:
-        DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}:${PY_VERSION}-${CI_COMMIT_REF_SLUG}
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+        DOCKER_IMAGE: $CI_REGISTRY_IMAGE:python-$PY_VERSION
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
       variables:
-        DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/tag:${CI_COMMIT_TAG}-${PY_VERSION}
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+        DOCKER_IMAGE: $CI_REGISTRY_IMAGE/tag:$CI_COMMIT_TAG-python-$PY_VERSION
+    - if: $CI_COMMIT_BRANCH
       variables:
-        DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/review:${CI_COMMIT_REF_SLUG}-${PY_VERSION}
+        DOCKER_IMAGE: $CI_REGISTRY_IMAGE/review:$CI_COMMIT_REF_SLUG-python-$PY_VERSION
   image: $DOCKER_IMAGE
   tags:
     - kubernetes
@@ -173,92 +157,66 @@ image python 3.11:
     - askanna-run-utils --version
     - askanna-run-utils
 
-verify image python 3:
-  <<: *verify_docker_build_template
-  needs: [image python 3]
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+  script:
+    - echo "Creating a new release..."
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: $CI_COMMIT_TAG_MESSAGE
 
-verify image python 3.7:
-  <<: *verify_docker_build_template
-  needs: [image python 3.7]
-  variables:
-    PY_VERSION: "3.7-slim"
-
-verify image python 3.8:
-  <<: *verify_docker_build_template
-  needs: [image python 3.8]
-  variables:
-    PY_VERSION: "3.8-slim"
-
-verify image python 3.9:
-  <<: *verify_docker_build_template
-  needs: [image python 3.9]
-  variables:
-    PY_VERSION: "3.9-slim"
-
-verify image python 3.10:
-  <<: *verify_docker_build_template
-  needs: [image python 3.10]
-  variables:
-    PY_VERSION: "3.10-slim"
-
-verify image python 3.11:
-  <<: *verify_docker_build_template
-  needs: [image python 3.11]
-  variables:
-    PY_VERSION: "3.11-slim"
-
-publish_to_pypi:
-  stage: publish
-  image: python:3-slim
-  tags:
-    - kubernetes
-  before_script:
+publish to pypi:
+  <<: *twine_template
+  needs:
+    - job: twine check
+    - job: pytest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
     - echo $PYPIRC | base64 -d > ~/.pypirc
-    - pip install -U pip wheel twine
-  script:
-    - python3 setup.py sdist bdist_wheel
-    - twine upload --verbose --non-interactive --config-file ~/.pypirc -r pypi dist/*
-  only:
-    refs:
-      - main
+    - python -m twine upload --verbose --non-interactive --config-file ~/.pypirc -r pypi dist/*
 
-publish_to_testpypi:
-  stage: publish
-  image: python:3-slim
-  tags:
-    - kubernetes
-  allow_failure: true
-  before_script:
+publish to testpypi:
+  <<: *twine_template
+  needs:
+    - job: twine check
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: never
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+  script:
     - echo $PYPITESTRC | base64 -d > ~/.pypirc
-    - pip install -U pip wheel twine
-  script:
-    - python3 setup.py sdist bdist_wheel
-    - twine upload --verbose --non-interactive --config-file ~/.pypirc -r testpypi dist/*
-  when: manual
-  except:
-    refs:
-      - main
+    - python -m twine upload --verbose --non-interactive --config-file ~/.pypirc -r testpypi dist/*
 
-publish_to_docker:
+publish to docker:
   stage: publish
+  needs:
+    - job: verify image
   image: docker:latest
   services:
     - docker:dind
   tags:
     - docker
-  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      allow_failure: true
   before_script:
     - echo "$DOCKER_TOKEN" | docker login --username $DOCKER_USER --password-stdin
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
   script:
-    - docker pull gitlab.askanna.io:4567/askanna/askanna-cli --all-tags
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-main askanna/python:3
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3-slim-main askanna/python:latest
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.7-slim-main askanna/python:3.7
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.8-slim-main askanna/python:3.8
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.9-slim-main askanna/python:3.9
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.10-slim-main askanna/python:3.10
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:3.11-slim-main askanna/python:3.11
+    - docker pull $CI_REGISTRY_IMAGE --all-tags
+    - docker tag $CI_REGISTRY_IMAGE:python-3 askanna/python:3
+    - docker tag $CI_REGISTRY_IMAGE:python-3 askanna/python:latest
+    - docker tag $CI_REGISTRY_IMAGE:python-3.7 askanna/python:3.7
+    - docker tag $CI_REGISTRY_IMAGE:python-3.8 askanna/python:3.8
+    - docker tag $CI_REGISTRY_IMAGE:python-3.9 askanna/python:3.9
+    - docker tag $CI_REGISTRY_IMAGE:python-3.10 askanna/python:3.10
+    - docker tag $CI_REGISTRY_IMAGE:python-3.11 askanna/python:3.11
     - docker push askanna/python:latest
     - docker push askanna/python:3
     - docker push askanna/python:3.7
@@ -268,36 +226,55 @@ publish_to_docker:
     - docker push askanna/python:3.11
   after_script:
     - docker logout
-  only:
-    refs:
-      - main
 
-publish_to_public_repos:
+publish to gitlab:
+  <<: *publish_to_git_template
+  variables:
+    SSH_PRIVATE_KEY_GIT: $SSH_PRIVATE_KEY_GITLAB_COM
+    GIT_HOST: gitlab.com
+    GIT_REPO: git@gitlab.com:askanna/askanna-python.git
+
+publish to github:
+  <<: *publish_to_git_template
+  variables:
+    SSH_PRIVATE_KEY_GIT: $SSH_PRIVATE_KEY_GITHUB_COM
+    GIT_HOST: github.com
+    GIT_REPO: git@github.com:askanna-io/askanna-python.git
+
+publish release to gitlab:
   stage: publish
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: release
+    - job: publish to gitlab
   tags:
     - kubernetes
   allow_failure: true
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      variables:
-        TARGET: HEAD:main
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
-      variables:
-        TARGET: refs/tags/$CI_COMMIT_TAG
-  before_script:
-    - apt-get update -y && apt-get install openssh-client git curl -y
-    - eval $(ssh-agent -s)
-    - echo "${SSH_PRIVATE_KEY_GITLAB_COM}" | tr -d '\r' | ssh-add - > /dev/null
-    - echo "${SSH_PRIVATE_KEY_GITHUB_COM}" | tr -d '\r' | ssh-add - > /dev/null
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
-    - ssh-keyscan github.com >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-    - git config --global user.email "hello@askanna.io"
-    - git config --global user.name "AskAnna Robot"
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+  variables:
+    GITLAB_PRIVATE_TOKEN: $GITLAB_COM_API_TOKEN
   script:
-    - git remote add gitlab git@gitlab.com:askanna/askanna-python.git
-    - git remote add github git@github.com:askanna-io/askanna-python.git
-    - git push gitlab $TARGET
-    - git push github $TARGET
+    - release-cli --server-url https://gitlab.com --project-id 33066876 create --tag-name $CI_COMMIT_TAG --description "$CI_COMMIT_TAG_MESSAGE"
+
+publish release to github:
+  stage: publish
+  image: ubuntu:22.04
+  needs:
+    - job: release
+    - job: publish to github
+  tags:
+    - kubernetes
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+  variables:
+    GH_TOKEN: $GITHUB_COM_API_TOKEN
+  before_script:
+    - apt-get update -y && apt-get install curl -y
+    - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+    - chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    - apt-get update -y && apt-get install gh -y
+  script:
+    - gh release create $CI_COMMIT_TAG --verify-tag --title $CI_COMMIT_TAG --notes "$CI_COMMIT_TAG_MESSAGE" --repo askanna-io/askanna-python

@@ -12,6 +12,9 @@ def run_response(
     run_payload,
     run_status,
     run_log,
+    run_metric_list,
+    run_variable_list,
+    run_artifact_item,
 ) -> RequestsMock:
     # Run list
     api_responses.add(
@@ -20,6 +23,18 @@ def run_response(
         status=200,
         content_type="application/json",
         json=run_list,
+    )
+    api_responses.add(
+        "GET",
+        url=f"{askanna_url.run.run_list()}?cursor=999",
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
+    )
+    api_responses.add(
+        "GET",
+        url=f"{askanna_url.run.run_list()}?cursor=888",
+        status=503,
     )
     api_responses.add(
         "GET",
@@ -97,6 +112,18 @@ def run_response(
         content_type="application/json",
         json=run_status,
     )
+    api_responses.add(
+        "GET",
+        url=askanna_url.run.status("7890-7890-7890-7890"),
+        status=404,
+    )
+    api_responses.add(
+        "GET",
+        url=askanna_url.run.status("0987-0987-0987-0987"),
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
+    )
 
     # Run change info
     new_detail = run_detail.copy()
@@ -114,6 +141,14 @@ def run_response(
         "PATCH",
         url=askanna_url.run.run_detail("1234-1234-1234-1234"),
         match=[matchers.json_params_matcher({"name": "new name", "description": "new description"})],
+        status=200,
+        content_type="application/json",
+        json=new_detail,
+    )
+    api_responses.add(
+        "PATCH",
+        url=askanna_url.run.run_detail("1234-1234-1234-1234"),
+        match=[matchers.json_params_matcher({"description": "new description"})],
         status=200,
         content_type="application/json",
         json=new_detail,
@@ -268,6 +303,115 @@ def run_response(
         status=200,
         content_type="application/json",
         json=run_log,
+    )
+
+    # Run metric
+    api_responses.add(
+        "GET",
+        url=askanna_url.run.metric("1234-1234-1234-1234"),
+        status=200,
+        content_type="application/json",
+        json=run_metric_list,
+    )
+    api_responses.add(
+        "GET",
+        url=f"{askanna_url.run.metric('wxyz-wxyz-wxyz-wxyz')}",
+        status=404,
+        content_type="application/json",
+        json={"detail": "Not found."},
+    )
+    api_responses.add(
+        "GET",
+        url=f"{askanna_url.run.metric('zyxw-zyxw-zyxw-zyxw')}",
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
+    )
+    api_responses.add(
+        "PUT",
+        url=askanna_url.run.metric_detail("1234-1234-1234-1234"),
+        status=200,
+        content_type="application/json",
+    )
+    api_responses.add(
+        "PUT",
+        url=f"{askanna_url.run.metric_detail('wxyz-wxyz-wxyz-wxyz')}",
+        status=404,
+        content_type="application/json",
+        json={"detail": "Not found."},
+    )
+    api_responses.add(
+        "PUT",
+        url=f"{askanna_url.run.metric_detail('zyxw-zyxw-zyxw-zyxw')}",
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
+    )
+
+    # Run variable
+    api_responses.add(
+        "GET",
+        url=askanna_url.run.variable("1234-1234-1234-1234"),
+        status=200,
+        content_type="application/json",
+        json=run_variable_list,
+    )
+    api_responses.add(
+        "GET",
+        url=f"{askanna_url.run.variable('wxyz-wxyz-wxyz-wxyz')}",
+        status=404,
+        content_type="application/json",
+        json={"detail": "Not found."},
+    )
+    api_responses.add(
+        "GET",
+        url=f"{askanna_url.run.variable('zyxw-zyxw-zyxw-zyxw')}",
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
+    )
+    api_responses.add(
+        "PATCH",
+        url=askanna_url.run.variable_detail("1234-1234-1234-1234"),
+        status=200,
+        content_type="application/json",
+    )
+    api_responses.add(
+        "PATCH",
+        url=f"{askanna_url.run.variable_detail('wxyz-wxyz-wxyz-wxyz')}",
+        status=404,
+        content_type="application/json",
+        json={"detail": "Not found."},
+    )
+    api_responses.add(
+        "PATCH",
+        url=f"{askanna_url.run.variable_detail('zyxw-zyxw-zyxw-zyxw')}",
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
+    )
+
+    # Ruin artifact
+    api_responses.add(
+        "GET",
+        url=askanna_url.run.artifact_detail("1234-1234-1234-1234", "abcd-abcd-abcd-abcd"),
+        status=200,
+        content_type="application/json",
+        json=run_artifact_item,
+    )
+    api_responses.add(
+        "GET",
+        url=askanna_url.run.artifact_detail("wxyz-wxyz-wxyz-wxyz", "abcd-abcd-abcd-abcd"),
+        status=404,
+        content_type="application/json",
+        json={"detail": "Not found."},
+    )
+    api_responses.add(
+        "GET",
+        url=askanna_url.run.artifact_detail("zyxw-zyxw-zyxw-zyxw", "abcd-abcd-abcd-abcd"),
+        status=500,
+        content_type="application/json",
+        json={"error": "Internal Server Error"},
     )
 
     return api_responses

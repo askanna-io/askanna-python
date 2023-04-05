@@ -38,7 +38,7 @@ class TestCliGetPackage:
     def test_command_get_payload_successs(self, temp_dir, run_payload):
         run_suuid = "1234-1234-1234-1234"
         payload_suuid = "abcd-abcd-abcd-abcd"
-        payload_path = str(temp_dir) + "/payload-abcd/payload.json"
+        payload_path = temp_dir + "/payload-abcd/payload.json"
 
         result = CliRunner().invoke(
             cli, f"{self.verb} --run {run_suuid} --payload {payload_suuid} --output {payload_path}"
@@ -53,7 +53,7 @@ class TestCliGetPackage:
     def test_command_get_payload_successs_environment_variables(self, temp_dir, run_payload):
         run_suuid = "1234-1234-1234-1234"
         payload_suuid = "abcd-abcd-abcd-abcd"
-        payload_path = str(temp_dir) + "/payload-abcd/payload.json"
+        payload_path = temp_dir + "/payload-abcd/payload.json"
 
         os.environ["AA_RUN_SUUID"] = run_suuid
         os.environ["AA_PAYLOAD_SUUID"] = payload_suuid

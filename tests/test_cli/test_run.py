@@ -20,6 +20,12 @@ class TestCliRunMain:
         assert result.exit_code == 0
         assert "run [OPTIONS]" in result.output
 
+    def test_command_run_double_arg(self):
+        result = CliRunner().invoke(cli, "run info info --help")
+        print(result.output)
+        assert result.exit_code == 0
+        assert "run [JOB_NAME] info [OPTIONS]" in result.output
+
 
 @pytest.mark.usefixtures("api_response")
 class TestCliRunRequest:
@@ -55,6 +61,16 @@ class TestCliRunList:
         result = CliRunner().invoke(cli, "run list")
         assert result.exit_code == 0
         assert "1234-1234-1234-1234" in result.output
+
+    def test_command_run_list_status(self):
+        result = CliRunner().invoke(cli, "run list --status queued")
+        assert result.exit_code == 0
+        assert "1234-1234-1234-1234" in result.output
+
+    def test_command_run_list_false_status(self):
+        result = CliRunner().invoke(cli, "run list --status fals")
+        assert result.exit_code != 0
+        assert "Invalid value for '--status'" in result.output
 
     def test_command_run_list_job(self):
         result = CliRunner().invoke(cli, "run list -j 1234-1234-1234-1234")
@@ -131,6 +147,15 @@ class TestCliRunInfo:
         assert "Selected run" in result.output
         assert "Created:         2023-01-26 09:47:41 UTC" in result.output
 
+    def test_command_run_info_ask_run_with_project_suuid(self):
+        config.project.clean_config()
+        config.project.project_suuid = "1234-1234-1234-1234"
+        result = CliRunner().invoke(cli, "run info")
+        config.project.clean_config()
+        assert result.exit_code == 0
+        assert "Selected run" in result.output
+        assert "Created:         2023-01-26 09:47:41 UTC" in result.output
+
 
 @pytest.mark.usefixtures("api_response")
 class TestCliRunStatus:
@@ -187,6 +212,24 @@ class TestCliRunChange:
         assert result.exit_code == 0
         assert "You succesfully changed run 'new name' with SUUID '1234-1234-1234-1234'" in result.output
 
+    def test_command_run_change_no_input_with_project_suuid(self):
+        config.project.clean_config()
+        config.project.project_suuid = "1234-1234-1234-1234"
+        result = CliRunner().invoke(cli, "run change", input="y\nnew name\ny\nnew description\ny")
+        config.project.clean_config()
+        assert result.exit_code == 0
+        assert "You succesfully changed run 'new name' with SUUID '1234-1234-1234-1234'" in result.output
+
+    def test_command_run_change_no_input_skip_name(self):
+        result = CliRunner().invoke(cli, "run change", input="n\ny\nnew description\ny")
+        assert result.exit_code == 0
+        assert "You succesfully changed run 'new name' with SUUID '1234-1234-1234-1234'" in result.output
+
+    def test_command_run_change_no_input_skip_description(self):
+        result = CliRunner().invoke(cli, "run change", input="y\nnew name\nn\ny")
+        assert result.exit_code == 0
+        assert "You succesfully changed run 'new name' with SUUID '1234-1234-1234-1234'" in result.output
+
     def test_command_run_change_not_found(self):
         result = CliRunner().invoke(cli, "run change --id 7890-7890-7890-7890 --description 'new description'")
         assert result.exit_code == 1
@@ -221,6 +264,14 @@ class TestCliRunRemove:
 
     def test_command_run_remove_no_input(self):
         result = CliRunner().invoke(cli, "run remove", input="y")
+        assert result.exit_code == 0
+        assert "You removed run SUUID '1234-1234-1234-1234'" in result.output
+
+    def test_command_run_remove_no_input_with_project_suuid(self):
+        config.project.clean_config()
+        config.project.project_suuid = "1234-1234-1234-1234"
+        result = CliRunner().invoke(cli, "run remove", input="y")
+        config.project.clean_config()
         assert result.exit_code == 0
         assert "You removed run SUUID '1234-1234-1234-1234'" in result.output
 

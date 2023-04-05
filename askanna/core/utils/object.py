@@ -19,7 +19,7 @@ supported_data_types = {
 # If numpy as installed, we add the numpy types to the supported types
 try:
     import numpy as np  # noqa: F401
-except ImportError:
+except ImportError:  # pragma: no cover
     NUMPY_INSTALLED = False
 else:
     NUMPY_INSTALLED = True

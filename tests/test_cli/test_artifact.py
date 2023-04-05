@@ -112,7 +112,7 @@ class TestCLIArtifactGet:
         )
 
     def test_command_artifact_get_argument_output_file(self, temp_dir):
-        output_file = str(temp_dir) + "/artifact-1234-1234-12344-1244.zip"
+        output_file = temp_dir + "/artifact-1234-1234-12344-1244.zip"
         result = CliRunner().invoke(cli, f"artifact get --id 1234-1234-1234-1234 --output {output_file}")
 
         assert not result.exception
@@ -123,7 +123,7 @@ class TestCLIArtifactGet:
         assert os.stat(output_file).st_size == 198
 
     def test_command_artifact_get_argument_output_file_short(self, temp_dir):
-        output_file = str(temp_dir) + "/artifact-1234-1234-12344-1244.zip"
+        output_file = temp_dir + "/artifact-1234-1234-12344-1244.zip"
         result = CliRunner().invoke(cli, f"artifact get -i 1234-1234-1234-1234 -o {output_file}")
 
         assert not result.exception

@@ -25,7 +25,6 @@ pip-log.txt
 
 # Unit test / coverage reports
 .coverage
-.tox
 nosetests.xml
 htmlcov
 
@@ -59,14 +58,11 @@ docs/_build
 # MacOS
 .DS_Store
 
-# Running tox
-.eggs/
-gl-code-quality-report.json
-
 .venv
 .venv*
-
 .env*
 
 junit.xml
 coverage.xml
+
+*_cache

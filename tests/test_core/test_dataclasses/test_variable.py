@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
-
 from askanna.core.dataclasses.variable import Variable
+from tests.utils import str_to_datetime
 
 
 def test_variable(variable_detail):
@@ -12,9 +11,5 @@ def test_variable(variable_detail):
     assert variable.is_masked == variable_detail["is_masked"]
     assert variable.project.suuid == variable_detail["project"]["suuid"]
     assert variable.workspace.suuid == variable_detail["workspace"]["suuid"]
-    assert variable.created_at == datetime.strptime(variable_detail["created_at"], "%Y-%m-%dT%H:%M:%S.%fZ").replace(
-        tzinfo=timezone.utc
-    )
-    assert variable.modified_at == datetime.strptime(variable_detail["modified_at"], "%Y-%m-%dT%H:%M:%S.%fZ").replace(
-        tzinfo=timezone.utc
-    )
+    assert variable.created_at == str_to_datetime(variable_detail["created_at"])
+    assert variable.modified_at == str_to_datetime(variable_detail["modified_at"])
