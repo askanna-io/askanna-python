@@ -2,6 +2,7 @@ stages:
   - test
   - build
   - verify build
+  - release
   - publish
 
 include:
@@ -24,6 +25,35 @@ include:
   before_script:
     - pip install build twine
     - python -m build
+
+.publish_to_git_template: &publish_to_git_template
+  stage: publish
+  needs:
+    - job: twine check
+    - job: pytest
+  tags:
+    - kubernetes
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      variables:
+        TARGET: HEAD:main
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+      variables:
+        TARGET: refs/tags/$CI_COMMIT_TAG
+  before_script:
+    - apt-get update -y && apt-get install openssh-client git curl -y
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY_GIT" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $GIT_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - git config --global user.email "hello@askanna.io"
+    - git config --global user.name "AskAnna Robot"
+  script:
+    - git remote add public $GIT_REPO
+    - git push public $TARGET
 
 code_quality:
   rules:
@@ -74,7 +104,8 @@ twine check:
 
 build image:
   stage: build
-  needs: [pytest]
+  needs:
+    - job: pytest
   tags:
     - kubernetes
   image:
@@ -84,13 +115,13 @@ build image:
     matrix:
       - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $CI_COMMIT_BRANCH == "main"
       variables:
-        DESTINATION: $CI_REGISTRY_IMAGE:python-$PY_VERSION-$CI_COMMIT_REF_SLUG
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+        DESTINATION: $CI_REGISTRY_IMAGE:python-$PY_VERSION
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
       variables:
         DESTINATION: $CI_REGISTRY_IMAGE/tag:$CI_COMMIT_TAG-python-$PY_VERSION
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: $CI_COMMIT_BRANCH
       variables:
         DESTINATION: $CI_REGISTRY_IMAGE/review:$CI_COMMIT_REF_SLUG-python-$PY_VERSION
   script:
@@ -100,18 +131,19 @@ build image:
 
 verify image:
   stage: verify build
-  needs: [build image]
+  needs:
+    - job: build image
   parallel:
     matrix:
       - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $CI_COMMIT_BRANCH == "main"
       variables:
-        DOCKER_IMAGE: $CI_REGISTRY_IMAGE:python-$PY_VERSION-$CI_COMMIT_REF_SLUG
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+        DOCKER_IMAGE: $CI_REGISTRY_IMAGE:python-$PY_VERSION
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
       variables:
         DOCKER_IMAGE: $CI_REGISTRY_IMAGE/tag:$CI_COMMIT_TAG-python-$PY_VERSION
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: $CI_COMMIT_BRANCH
       variables:
         DOCKER_IMAGE: $CI_REGISTRY_IMAGE/review:$CI_COMMIT_REF_SLUG-python-$PY_VERSION
   image: $DOCKER_IMAGE
@@ -125,22 +157,36 @@ verify image:
     - askanna-run-utils --version
     - askanna-run-utils
 
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+  script:
+    - echo "Creating a new release..."
+  release:
+    tag_name: $CI_COMMIT_TAG
+    description: $CI_COMMIT_TAG_MESSAGE
+
 publish to pypi:
   <<: *twine_template
-  needs: [twine check, pytest]
+  needs:
+    - job: twine check
+    - job: pytest
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $CI_COMMIT_BRANCH == "main"
   script:
     - echo $PYPIRC | base64 -d > ~/.pypirc
     - python -m twine upload --verbose --non-interactive --config-file ~/.pypirc -r pypi dist/*
 
 publish to testpypi:
   <<: *twine_template
-  needs: [twine check]
+  needs:
+    - job: twine check
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $CI_COMMIT_BRANCH == "main"
       when: never
-    - if: '$CI_COMMIT_BRANCH'
+    - if: $CI_COMMIT_BRANCH
       when: manual
       allow_failure: true
   script:
@@ -149,27 +195,28 @@ publish to testpypi:
 
 publish to docker:
   stage: publish
-  needs: [verify image]
+  needs:
+    - job: verify image
   image: docker:latest
   services:
     - docker:dind
   tags:
     - docker
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: $CI_COMMIT_BRANCH == "main"
       allow_failure: true
   before_script:
     - echo "$DOCKER_TOKEN" | docker login --username $DOCKER_USER --password-stdin
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
   script:
-    - docker pull gitlab.askanna.io:4567/askanna/askanna-cli --all-tags
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:python-3-main askanna/python:3
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:python-3-main askanna/python:latest
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:python-3.7-main askanna/python:3.7
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:python-3.8-main askanna/python:3.8
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:python-3.9-main askanna/python:3.9
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:python-3.10-main askanna/python:3.10
-    - docker tag gitlab.askanna.io:4567/askanna/askanna-cli:python-3.11-main askanna/python:3.11
+    - docker pull $CI_REGISTRY_IMAGE --all-tags
+    - docker tag $CI_REGISTRY_IMAGE:python-3 askanna/python:3
+    - docker tag $CI_REGISTRY_IMAGE:python-3 askanna/python:latest
+    - docker tag $CI_REGISTRY_IMAGE:python-3.7 askanna/python:3.7
+    - docker tag $CI_REGISTRY_IMAGE:python-3.8 askanna/python:3.8
+    - docker tag $CI_REGISTRY_IMAGE:python-3.9 askanna/python:3.9
+    - docker tag $CI_REGISTRY_IMAGE:python-3.10 askanna/python:3.10
+    - docker tag $CI_REGISTRY_IMAGE:python-3.11 askanna/python:3.11
     - docker push askanna/python:latest
     - docker push askanna/python:3
     - docker push askanna/python:3.7
@@ -180,33 +227,54 @@ publish to docker:
   after_script:
     - docker logout
 
-publish to public repos:
+publish to gitlab:
+  <<: *publish_to_git_template
+  variables:
+    SSH_PRIVATE_KEY_GIT: $SSH_PRIVATE_KEY_GITLAB_COM
+    GIT_HOST: gitlab.com
+    GIT_REPO: git@gitlab.com:askanna/askanna-python.git
+
+publish to github:
+  <<: *publish_to_git_template
+  variables:
+    SSH_PRIVATE_KEY_GIT: $SSH_PRIVATE_KEY_GITHUB_COM
+    GIT_HOST: github.com
+    GIT_REPO: git@github.com:askanna-io/askanna-python.git
+
+publish release to gitlab:
   stage: publish
-  needs: [twine check, pytest]
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: release
+    - job: publish to gitlab
   tags:
     - kubernetes
   allow_failure: true
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      variables:
-        TARGET: HEAD:main
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
-      variables:
-        TARGET: refs/tags/$CI_COMMIT_TAG
-  before_script:
-    - apt-get update -y && apt-get install openssh-client git curl -y
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY_GITLAB_COM" | tr -d '\r' | ssh-add - > /dev/null
-    - echo "$SSH_PRIVATE_KEY_GITHUB_COM" | tr -d '\r' | ssh-add - > /dev/null
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
-    - ssh-keyscan github.com >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-    - git config --global user.email "hello@askanna.io"
-    - git config --global user.name "AskAnna Robot"
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+  variables:
+    GITLAB_PRIVATE_TOKEN: $GITLAB_COM_API_TOKEN
   script:
-    - git remote add gitlab git@gitlab.com:askanna/askanna-python.git
-    - git remote add github git@github.com:askanna-io/askanna-python.git
-    - git push gitlab $TARGET
-    - git push github $TARGET
+    - release-cli --server-url https://gitlab.com --project-id 33066876 create --tag-name $CI_COMMIT_TAG --description "$CI_COMMIT_TAG_MESSAGE"
+
+publish release to github:
+  stage: publish
+  image: ubuntu:22.04
+  needs:
+    - job: release
+    - job: publish to github
+  tags:
+    - kubernetes
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+  variables:
+    GH_TOKEN: $GITHUB_COM_API_TOKEN
+  before_script:
+    - apt-get update -y && apt-get install curl -y
+    - curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+    - chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+    - echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    - apt-get update -y && apt-get install gh -y
+  script:
+    - gh release create $CI_COMMIT_TAG --verify-tag --title $CI_COMMIT_TAG --notes "$CI_COMMIT_TAG_MESSAGE" --repo askanna-io/askanna-python
