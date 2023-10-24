@@ -19,8 +19,18 @@ def project_detail() -> dict:
             "name": "a-project_f8cbd1bd38a544f1819b8e9b957e933c.zip",
         },
         "created_by": {
-            "relation": "user",
-            "suuid": "3Tw1-jp9H-FjQw-8PYY",
+            "relation": "membership",
+            "suuid": "7FzS-oPBG-BIi5-lTeL",
+            "name": "Robbert",
+            "job_title": "Founder AskAnna",
+            "role": {"name": "Workspace Admin", "code": "WA"},
+            "status": "active",
+            "avatar": {
+                "icon": "https://cdn-api.askanna.eu/files/avatars/ee78fc794bee886999ed5ffe3b68/avatar_3b68_icon.png",
+                "small": "https://cdn-api.askanna.eu/files/avatars/ee78f80ee886999ed5ffe3b68/avatar_86999ed_small.png",
+                "medium": "https://cdn-api.askanna.eu/files/avatars/ee7e8999ed5ffe3b68/avatar_ee78fc7f8b68_medium.png",
+                "large": "https://cdn-api.askanna.eu/files/avatars/ee78fc7f80a94be899efffe3b68/avatar_e88e8_large.png",
+            },
         },
         "is_member": False,
         "permission": {
@@ -100,8 +110,18 @@ def project_new_detail() -> dict:
         },
         "package": None,
         "created_by": {
-            "relation": "user",
-            "suuid": "3Tw1-jp9H-FjQw-8PYY",
+            "relation": "membership",
+            "suuid": "7FzS-oPBG-BIi5-lTeL",
+            "name": "Robbert",
+            "job_title": "Founder AskAnna",
+            "role": {"name": "Workspace Admin", "code": "WA"},
+            "status": "active",
+            "avatar": {
+                "icon": "https://cdn-api.askanna.eu/files/avatars/ee78fc794bee886999ed5ffe3b68/avatar_3b68_icon.png",
+                "small": "https://cdn-api.askanna.eu/files/avatars/ee78f80ee886999ed5ffe3b68/avatar_86999ed_small.png",
+                "medium": "https://cdn-api.askanna.eu/files/avatars/ee7e8999ed5ffe3b68/avatar_ee78fc7f8b68_medium.png",
+                "large": "https://cdn-api.askanna.eu/files/avatars/ee78fc7f80a94be899efffe3b68/avatar_e88e8_large.png",
+            },
         },
         "is_member": True,
         "permission": {

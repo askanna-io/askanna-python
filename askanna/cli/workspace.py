@@ -83,8 +83,9 @@ def info(workspace_suuid):
     click.echo(f"Description: {workspace.description}")
     click.echo(f"Visibility:  {workspace.visibility}")
     click.echo("")
-    click.echo(f"Created:     {workspace.created_at.strftime(string_format_datetime)}")
-    click.echo(f"Modified:    {workspace.modified_at.strftime(string_format_datetime)}")
+    click.echo(f"Created by:  {workspace.created_by.name or workspace.created_by.suuid}")
+    click.echo(f"Created at:  {workspace.created_at.strftime(string_format_datetime)}")
+    click.echo(f"Modified at: {workspace.modified_at.strftime(string_format_datetime)}")
     click.echo("")
 
 

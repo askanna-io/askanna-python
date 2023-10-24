@@ -118,8 +118,9 @@ def info(project_suuid):
     click.echo(f"Workspace:       {project.workspace.name}")
     click.echo(f"Workspace SUUID: {project.workspace.suuid}")
     click.echo("")
-    click.echo(f"Created:         {project.created_at.strftime(string_format_datetime)}")
-    click.echo(f"Modified:        {project.modified_at.strftime(string_format_datetime)}")
+    click.echo(f"Created by:      {project.created_by.name or project.created_by.suuid}")
+    click.echo(f"Created at:      {project.created_at.strftime(string_format_datetime)}")
+    click.echo(f"Modified at:     {project.modified_at.strftime(string_format_datetime)}")
     click.echo("")
 
 

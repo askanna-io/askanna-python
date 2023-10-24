@@ -115,8 +115,8 @@ def info(variable_suuid):
         ("Workspace", variable.workspace.name),
         ("Workspace SUUID", variable.workspace.suuid),
         None,
-        ("Created", variable.created_at.strftime(string_format_datetime)),
-        ("Modified", variable.modified_at.strftime(string_format_datetime)),
+        ("Created at", variable.created_at.strftime(string_format_datetime)),
+        ("Modified at", variable.modified_at.strftime(string_format_datetime)),
         None,
     ]
     for item in print_list:

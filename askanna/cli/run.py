@@ -247,8 +247,8 @@ def info(run_suuid):
         ("Workspace", run.workspace.name),
         ("Workspace SUUID", run.workspace.suuid),
         None,
-        ("Created", run.created_at.strftime(string_format_datetime)),
-        ("Modified", run.modified_at.strftime(string_format_datetime)),
+        ("Created at", run.created_at.strftime(string_format_datetime)),
+        ("Modified at", run.modified_at.strftime(string_format_datetime)),
         None,
     ]
     for item in print_list:

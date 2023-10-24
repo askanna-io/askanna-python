@@ -55,7 +55,7 @@ class TestCliWVariableInfo:
         result = CliRunner().invoke(cli, "variable info --id 1234-1234-1234-1234")
         assert result.exit_code == 0
         assert "SUUID:           1234-1234-1234-1234" in result.output
-        assert "Created:         2020-04-01 09:44:11 UTC" in result.output
+        assert "Created at:      2020-04-01 09:44:11 UTC" in result.output
 
 
 @pytest.mark.usefixtures("api_response")
