@@ -133,8 +133,8 @@ def info(job_suuid):
     click.echo(f"Workspace:       {job.workspace.name}")
     click.echo(f"Workspace SUUID: {job.workspace.suuid}")
     click.echo("")
-    click.echo(f"Created:         {job.created_at.strftime(string_format_datetime)}")
-    click.echo(f"Modified:        {job.modified_at.strftime(string_format_datetime)}")
+    click.echo(f"Created at:      {job.created_at.strftime(string_format_datetime)}")
+    click.echo(f"Modified at:     {job.modified_at.strftime(string_format_datetime)}")
     click.echo("")
 
 

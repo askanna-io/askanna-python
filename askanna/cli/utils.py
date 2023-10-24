@@ -262,7 +262,7 @@ def job_run_request(
         with open(data_file) as json_file:
             json_data = json.load(json_file)
 
-    if json_data and not type(json_data) == dict:
+    if json_data and not isinstance(json_data, dict):
         click.echo("The data cannot be processes becaused it's not in a JSON format.", err=True)
         sys.exit(1)
 

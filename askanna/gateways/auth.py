@@ -78,7 +78,7 @@ class AuthGateway:
             )
         if response.status_code != 200:
             raise GetError(
-                "{} - We could not connect to AskAnna. More info:\n" "{}".format(response.status_code, response.reason)
+                f"{response.status_code} - We could not connect to AskAnna. More info:\n" f"{response.reason}"
             )
 
         return User(**response.json())

@@ -119,13 +119,13 @@ class TestCliRunInfo:
         result = CliRunner().invoke(cli, "run info --id 1234-1234-1234-1234")
         assert result.exit_code == 0
         assert "SUUID:           1234-1234-1234-1234" in result.output
-        assert "Created:         2023-01-26 09:47:41 UTC" in result.output
+        assert "Created at:      2023-01-26 09:47:41 UTC" in result.output
 
     def test_command_run_info_no_metric_no_variable(self):
         result = CliRunner().invoke(cli, "run info --id 4321-4321-4321-4321")
         assert result.exit_code == 0
         assert "SUUID:           4321-4321-4321-4321" in result.output
-        assert "Created:         2023-01-26 09:47:41 UTC" in result.output
+        assert "Created at:      2023-01-26 09:47:41 UTC" in result.output
         assert "No metrics" in result.output
         assert "No variables" in result.output
 
@@ -145,7 +145,7 @@ class TestCliRunInfo:
         assert result.exit_code == 0
         assert "Selected workspace" in result.output
         assert "Selected run" in result.output
-        assert "Created:         2023-01-26 09:47:41 UTC" in result.output
+        assert "Created at:      2023-01-26 09:47:41 UTC" in result.output
 
     def test_command_run_info_ask_run_with_project_suuid(self):
         config.project.clean_config()
@@ -154,7 +154,7 @@ class TestCliRunInfo:
         config.project.clean_config()
         assert result.exit_code == 0
         assert "Selected run" in result.output
-        assert "Created:         2023-01-26 09:47:41 UTC" in result.output
+        assert "Created at:      2023-01-26 09:47:41 UTC" in result.output
 
 
 @pytest.mark.usefixtures("api_response")

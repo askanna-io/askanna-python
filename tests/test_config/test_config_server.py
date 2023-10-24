@@ -150,7 +150,7 @@ class TestLoadConfig(unittest.TestCase):
                 "remote": f"{remote_value}",
                 "ui": f"{ui_value}",
             },
-            f"{fake.name()}": {
+            f"{fake.name()}": {  # noqa: F601
                 "token": f"{token_value}",
             },
         }

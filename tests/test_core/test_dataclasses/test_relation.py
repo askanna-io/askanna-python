@@ -7,7 +7,6 @@ from askanna.core.dataclasses.relation import (
     PayloadRelation,
     ProjectRelation,
     RunRelation,
-    UserRelation,
     WorkspaceRelation,
 )
 
@@ -88,17 +87,6 @@ def test_run_relation():
     assert relation.relation == data["relation"]
     assert relation.suuid == data["suuid"]
     assert relation.name == data["name"]
-
-
-def test_user_relation():
-    data = {
-        "relation": "user",
-        "suuid": "1234-1234-1234-1234",
-    }
-    relation = UserRelation.from_dict(data.copy())
-
-    assert relation.relation == data["relation"]
-    assert relation.suuid == data["suuid"]
 
 
 def test_created_by_relation():

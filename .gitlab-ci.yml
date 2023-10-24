@@ -91,7 +91,7 @@ pytest:
   <<: *test_template
   parallel:
     matrix:
-      - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
+      - PY_VERSION: ["3", "3.8", "3.9", "3.10", "3.11", "3.12"]
   image: python:$PY_VERSION-slim
   script:
     - hatch run +py=$PY_VERSION test:pytest
@@ -113,7 +113,7 @@ build image:
     entrypoint: [""]
   parallel:
     matrix:
-      - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
+      - PY_VERSION: ["3", "3.8", "3.9", "3.10", "3.11", "3.12"]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       variables:
@@ -135,7 +135,7 @@ verify image:
     - job: build image
   parallel:
     matrix:
-      - PY_VERSION: ["3", "3.7", "3.8", "3.9", "3.10", "3.11"]
+      - PY_VERSION: ["3", "3.8", "3.9", "3.10", "3.11", "3.12"]
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       variables:
@@ -212,18 +212,18 @@ publish to docker:
     - docker pull $CI_REGISTRY_IMAGE --all-tags
     - docker tag $CI_REGISTRY_IMAGE:python-3 askanna/python:3
     - docker tag $CI_REGISTRY_IMAGE:python-3 askanna/python:latest
-    - docker tag $CI_REGISTRY_IMAGE:python-3.7 askanna/python:3.7
     - docker tag $CI_REGISTRY_IMAGE:python-3.8 askanna/python:3.8
     - docker tag $CI_REGISTRY_IMAGE:python-3.9 askanna/python:3.9
     - docker tag $CI_REGISTRY_IMAGE:python-3.10 askanna/python:3.10
     - docker tag $CI_REGISTRY_IMAGE:python-3.11 askanna/python:3.11
+    - docker tag $CI_REGISTRY_IMAGE:python-3.12 askanna/python:3.12
     - docker push askanna/python:latest
     - docker push askanna/python:3
-    - docker push askanna/python:3.7
     - docker push askanna/python:3.8
     - docker push askanna/python:3.9
     - docker push askanna/python:3.10
     - docker push askanna/python:3.11
+    - docker push askanna/python:3.12
   after_script:
     - docker logout
 

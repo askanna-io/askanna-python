@@ -118,6 +118,8 @@ class TestTranslateDtype(unittest.TestCase):
         self.assertEqual(get_type(np.str_("foo")), "string")
         self.assertEqual(get_type(np.bool_(False)), "boolean")
 
+        self.assertEqual(get_type([{"dict": "string"}, {"dict": 1}]), "list")
+
 
 class TestUpdateAvailable(unittest.TestCase):
     def test_update_available(self):
@@ -154,18 +156,18 @@ class TestValueNotEmpty(unittest.TestCase):
         self.assertFalse(value_not_empty(value))
 
     def test_value_not_empty_with_integer(self):
-        value = int(1)
+        value = 1
         self.assertTrue(value_not_empty(value))
 
     def test_value_not_empty_with_float(self):
-        value = float(1.11)
+        value = 1.11
         self.assertTrue(value_not_empty(value))
 
     def test_value_not_empty_with_bool(self):
-        value = bool(False)
+        value = False
         self.assertTrue(value_not_empty(value))
 
-        value = bool(True)
+        value = True
         self.assertTrue(value_not_empty(value))
 
     def test_value_not_empty_with_numpy(self):
