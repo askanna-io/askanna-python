@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Optional
 
 from .base import MembershipRole
 
@@ -38,18 +38,6 @@ class JobRelation(BaseRelation):
 @dataclass
 class RunRelation(BaseRelation):
     ...
-    suuid: str
-    name: str
-
-
-@dataclass
-class UserRelation:
-    relation: str
-    suuid: str
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, str]) -> "UserRelation":
-        return cls(**data)
 
 
 @dataclass
@@ -68,7 +56,7 @@ class CreatedByRelation(BaseRelation):
 
 @dataclass
 class CreatedByWithAvatarRelation(CreatedByRelation):
-    avatar: dict
+    avatar: Optional[dict]
 
     @classmethod
     def from_dict(cls, data: Dict) -> "CreatedByWithAvatarRelation":

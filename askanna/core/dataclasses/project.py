@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from dateutil import parser as dateutil_parser
 
 from .base import VISIBILITY
-from .relation import PackageRelation, UserRelation, WorkspaceRelation
+from .relation import PackageRelation, CreatedByWithAvatarRelation, WorkspaceRelation
 
 
 @dataclass
@@ -16,7 +16,7 @@ class Project:
     visibility: VISIBILITY
     workspace: WorkspaceRelation
     package: Optional[PackageRelation]
-    created_by: Optional[UserRelation]
+    created_by: Optional[CreatedByWithAvatarRelation]
     is_member: bool
     permission: dict
     created_at: datetime.datetime
@@ -36,7 +36,7 @@ class Project:
         package = PackageRelation.from_dict(data["package"]) if data["package"] else None
         del data["package"]
 
-        created_by = UserRelation.from_dict(data["created_by"]) if data["created_by"] else None
+        created_by = CreatedByWithAvatarRelation.from_dict(data["created_by"]) if data["created_by"] else None
         del data["created_by"]
 
         return cls(workspace=workspace, package=package, created_by=created_by, **data)
