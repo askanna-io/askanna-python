@@ -81,11 +81,7 @@ class ChunkedDownload:
         chunk_retry = 0
         while len(self.download_queue):
             chunk = self.download_queue.pop(0)
-            range_header = {
-                "Range": "{accept_ranges}={start}-{end}".format(
-                    accept_ranges=self.accept_ranges, start=chunk[1], end=chunk[2]
-                )
-            }
+            range_header = {"Range": f"{self.accept_ranges}={chunk[1]}-{chunk[2]}"}
 
             try:
                 response = client.get(self.url, stream=True, headers=range_header)

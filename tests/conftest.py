@@ -5,6 +5,7 @@ import pytest
 
 pytest_plugins = [
     "tests.fixtures.responses.api",
+    "tests.fixtures.responses.auth",
     "tests.fixtures.responses.job",
     "tests.fixtures.responses.package",
     "tests.fixtures.responses.project",

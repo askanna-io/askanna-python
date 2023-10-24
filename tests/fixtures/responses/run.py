@@ -85,8 +85,8 @@ def run_detail() -> dict:
             "image": {
                 "relation": "image",
                 "suuid": "6UyU-pZUX-wyBo-PEAN",
-                "name": "askanna/python:3.7-slim",
-                "tag": "3.7-slim",
+                "name": "askanna/python:3.12-slim",
+                "tag": "3.12-slim",
                 "digest": "sha256:d3be9e9aa5873db96c83147eea63e7b534715875efe4f705d2b1394abbb5ab14",
             },
             "timezone": "UTC",
@@ -150,8 +150,8 @@ def run_detail_no_metric_no_variable() -> dict:
             "image": {
                 "relation": "image",
                 "suuid": "6UyU-pZUX-wyBo-PEAN",
-                "name": "askanna/python:3.7-slim",
-                "tag": "3.7-slim",
+                "name": "askanna/python:3.12-slim",
+                "tag": "3.12-slim",
                 "digest": "sha256:d3be9e9aa5873db96c83147eea63e7b534715875efe4f705d2b1394abbb5ab14",
             },
             "timezone": "UTC",
@@ -329,7 +329,7 @@ def run_log() -> dict:
             [
                 2,
                 "2023-01-26T09:47:42.428665",
-                "Getting image gitlab.askanna.io:4567/askanna/askanna-cli/review:changes-cursor-pagination-3.7-slim",
+                "Getting image gitlab.askanna.io:4567/askanna/askanna-cli/review:changes-cursor-pagination-3.12-slim",
             ],
             [3, "2023-01-26T09:47:42.429156", "Check AskAnna requirements and if not available, try to install them"],
             [4, "2023-01-26T09:47:42.437785", "All AskAnna requirements are available"],
