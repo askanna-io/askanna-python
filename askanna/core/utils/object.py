@@ -109,25 +109,36 @@ def get_type(value: Any) -> str:
     elif typename == "list":
         dtype_list = None
         for val in value:
-            if type(val) == bool and dtype_list in (None, "boolean"):
-                dtype_list = "boolean"
-            elif type(val) == int and dtype_list in (None, "integer"):
-                dtype_list = "integer"
-            elif type(val) in (int, float) and dtype_list in (None, "integer", "float"):
-                dtype_list = "float"
-            elif type(val) == str and dtype_list in (None, "string"):
-                dtype_list = "string"
-            elif type(val) == datetime.datetime and dtype_list in (None, "datetime"):
-                dtype_list = "datetime"
-            elif type(val) == datetime.time and dtype_list in (None, "time"):
-                dtype_list = "time"
-            elif type(val) == datetime.date and dtype_list in (None, "date"):
-                dtype_list = "date"
+            dtype_val = None
+            if isinstance(val, bool):
+                dtype_val = "boolean"
+            elif isinstance(val, int):
+                dtype_val = "integer"
+            elif isinstance(val, float):
+                dtype_val = "float"
+            elif isinstance(val, str):
+                dtype_val = "string"
+            elif isinstance(val, datetime.datetime):
+                dtype_val = "datetime"
+            elif isinstance(val, datetime.time):
+                dtype_val = "time"
+            elif isinstance(val, datetime.date):
+                dtype_val = "date"
             else:
-                dtype_list = "mixed"
+                dtype_list = "unknown"
                 break
 
-        if dtype_list and dtype_list != "mixed":
+            if not dtype_list:
+                dtype_list = dtype_val
+
+            if dtype_list and dtype_list != dtype_val:
+                if dtype_list in ("integer", "float") and dtype_val in ("integer", "float"):
+                    dtype_list = "float"
+                else:
+                    dtype_list = "mixed"
+                    break
+
+        if dtype_list and dtype_list not in ("mixed", "unknown"):
             dtype = "list_" + dtype_list
 
     return dtype

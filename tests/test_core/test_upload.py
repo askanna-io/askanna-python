@@ -14,7 +14,7 @@ class TestUploadInit:
         assert upload.resumable_file is None
         assert upload.message_upload_success == "File is uploaded"
         assert upload.message_upload_fail == "File upload failed"
-        assert type(upload.chunk_dict_template) == dict
+        assert isinstance(upload.chunk_dict_template, dict)
 
         with pytest.raises(NotImplementedError):
             assert upload.register_upload_url() is None
@@ -40,7 +40,7 @@ class TestUploadInit:
         assert upload.resumable_file is None
         assert upload.message_upload_success == "Package is uploaded"
         assert upload.message_upload_fail == "Package upload failed"
-        assert type(upload.chunk_dict_template) == dict
+        assert isinstance(upload.chunk_dict_template, dict)
         assert upload.entry_extrafields == {"project_suuid": project_suuid, "description": None}
 
         assert upload.register_upload_url() == askanna_url.package.base_package_url
@@ -66,7 +66,7 @@ class TestUploadInit:
         assert upload.resumable_file is None
         assert upload.message_upload_success == "Artifact is uploaded"
         assert upload.message_upload_fail == "Artifact upload failed"
-        assert type(upload.chunk_dict_template) == dict
+        assert isinstance(upload.chunk_dict_template, dict)
 
         assert upload.register_upload_url() == askanna_url.run.artifact_list(run_suuid)
         with pytest.raises(TypeError):
@@ -91,7 +91,7 @@ class TestUploadInit:
         assert upload.resumable_file is None
         assert upload.message_upload_success == "Result is uploaded"
         assert upload.message_upload_fail == "Result upload failed"
-        assert type(upload.chunk_dict_template) == dict
+        assert isinstance(upload.chunk_dict_template, dict)
 
         assert upload.register_upload_url() == askanna_url.run.result_upload(run_suuid)
         with pytest.raises(TypeError):

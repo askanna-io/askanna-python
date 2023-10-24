@@ -2,6 +2,7 @@ import pytest
 from responses import RequestsMock
 
 from .artifact import artifact_response
+from .auth import auth_response
 from .job import job_response
 from .package import package_response
 from .project import project_response
@@ -38,6 +39,7 @@ def api_response(
     run_metric_list,
     run_variable_list,
     run_artifact_item,
+    user_detail,
     variable_list,
     variable_list_limit,
     variable_detail,
@@ -50,6 +52,8 @@ def api_response(
     api_responses.start()
 
     api_responses = artifact_response(api_responses, package_zip_file, run_artifact_list, run_artifact_list_not_found)
+
+    api_responses = auth_response(api_responses, user_detail)
 
     api_responses = job_response(
         api_responses,

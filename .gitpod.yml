@@ -14,6 +14,8 @@ vscode:
     - eamodio.gitlens
     - GitLab.gitlab-workflow
     - ms-python.python
+    - ms-python.black-formatter
+    - ms-python.isort
     - charliermarsh.ruff
     - njpwerner.autodocstring
     - DavidAnson.vscode-markdownlint

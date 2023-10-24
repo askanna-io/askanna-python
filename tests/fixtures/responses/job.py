@@ -42,7 +42,7 @@ def job_with_schedule_detail() -> dict:
             "name": "a project",
             "suuid": "abcd-abcd-abcd-abcd",
         },
-        "environment": "askanna/python:3.7",
+        "environment": "askanna/python:3.12",
         "timezone": "UTC",
         "schedules": [
             {
