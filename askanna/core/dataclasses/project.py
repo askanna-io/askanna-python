@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from dateutil import parser as dateutil_parser
 
 from .base import VISIBILITY
-from .relation import PackageRelation, CreatedByWithAvatarRelation, WorkspaceRelation
+from .relation import CreatedByWithAvatarRelation, PackageRelation, WorkspaceRelation
 
 
 @dataclass

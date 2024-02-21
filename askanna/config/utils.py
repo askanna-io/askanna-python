@@ -75,7 +75,7 @@ def read_config_from_url(url: str) -> Dict:
     Get config from URL and return it as dict
     """
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=60)
     except requests.exceptions.ConnectionError:
         click.echo(f"Cannot open URL: {url}", err=True)
         sys.exit(1)

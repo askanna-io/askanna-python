@@ -5,19 +5,16 @@ stages:
   - release
   - publish
 
-include:
-  - template: Code-Quality.gitlab-ci.yml
-
-.test_template: &test_template
+.test_template:
   stage: test
   image: python:3-slim
   before_script:
-    - apt-get update && apt-get install -y git
+    - apt-get update && apt-get install --no-install-recommends --assume-yes git
     - pip install hatch
   tags:
     - kubernetes
 
-.twine_template: &twine_template
+.twine_template:
   stage: publish
   image: python:3-slim
   tags:
@@ -26,7 +23,7 @@ include:
     - pip install build twine
     - python -m build
 
-.publish_to_git_template: &publish_to_git_template
+.publish_to_git_template:
   stage: publish
   needs:
     - job: twine check
@@ -55,24 +52,21 @@ include:
     - git remote add public $GIT_REPO
     - git push public $TARGET
 
-code_quality:
-  rules:
-    - if: $CODE_QUALITY_DISABLED
-      when: never
-    - if: ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_TAG)
-      when: never
-    - if: $CI_COMMIT_BRANCH
-  before_script:
-    - echo -e "[pycodestyle]\nmax-line-length = 119" > setup.cfg
-    - echo -e "rule 'MD013', :line_length = 119" > .mdlrc
-
 lint:
-  <<: *test_template
+  extends: .test_template
   script:
     - hatch run +py=3 test:lint
 
+pre-commit:
+  extends: .test_template
+  before_script:
+    - apt-get update && apt-get install --no-install-recommends --assume-yes git
+    - pip install pre-commit
+  script:
+    - pre-commit run --all-files
+
 coverage:
-  <<: *test_template
+  extends: .test_template
   script:
     - hatch run +py=3 test:cov
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
@@ -88,7 +82,7 @@ coverage:
       junit: junit.xml
 
 pytest:
-  <<: *test_template
+  extends: .test_template
   parallel:
     matrix:
       - PY_VERSION: ["3", "3.8", "3.9", "3.10", "3.11", "3.12"]
@@ -97,7 +91,7 @@ pytest:
     - hatch run +py=$PY_VERSION test:pytest
 
 twine check:
-  <<: *twine_template
+  extends: .twine_template
   stage: test
   script:
     - twine check dist/*
@@ -169,7 +163,7 @@ release:
     description: $CI_COMMIT_TAG_MESSAGE
 
 publish to pypi:
-  <<: *twine_template
+  extends: .twine_template
   needs:
     - job: twine check
     - job: pytest
@@ -180,7 +174,7 @@ publish to pypi:
     - python -m twine upload --verbose --non-interactive --config-file ~/.pypirc -r pypi dist/*
 
 publish to testpypi:
-  <<: *twine_template
+  extends: .twine_template
   needs:
     - job: twine check
   rules:
@@ -228,14 +222,14 @@ publish to docker:
     - docker logout
 
 publish to gitlab:
-  <<: *publish_to_git_template
+  extends: .publish_to_git_template
   variables:
     SSH_PRIVATE_KEY_GIT: $SSH_PRIVATE_KEY_GITLAB_COM
     GIT_HOST: gitlab.com
     GIT_REPO: git@gitlab.com:askanna/askanna-python.git
 
 publish to github:
-  <<: *publish_to_git_template
+  extends: .publish_to_git_template
   variables:
     SSH_PRIVATE_KEY_GIT: $SSH_PRIVATE_KEY_GITHUB_COM
     GIT_HOST: github.com

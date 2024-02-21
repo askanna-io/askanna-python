@@ -59,7 +59,7 @@ askanna.track_variable(
 url = f"https://api.askanna.eu/v1/result/{run_selected.suuid}/"
 token = "Token " + os.getenv("AA_TOKEN")
 headers = {"Authorization": token}
-response = requests.get(url, headers=headers)
+response = requests.get(url, headers=headers, timeout=60)
 
 with open("model/model.pkl", "wb") as f:
     f.write(response.content)

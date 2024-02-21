@@ -1,4 +1,5 @@
 import sys
+from typing import get_args
 
 import click
 
@@ -14,11 +15,6 @@ from askanna.config.utils import string_format_datetime
 from askanna.core.dataclasses.run import STATUS
 from askanna.core.exceptions import GetError, PatchError
 from askanna.sdk.run import RunSDK
-
-try:
-    from typing import get_args
-except ImportError:  # pragma: no cover
-    from typing_extensions import get_args
 
 HELP = """
 This command will allow you to start a run in AskAnna.
