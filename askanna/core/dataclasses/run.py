@@ -1,7 +1,7 @@
 import datetime
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from dateutil import parser as dateutil_parser
 
@@ -18,11 +18,6 @@ from .relation import (
     RunRelation,
     WorkspaceRelation,
 )
-
-try:
-    from typing import Literal
-except ImportError:  # pragma: no cover
-    from typing_extensions import Literal
 
 STATUS = Literal["queued", "running", "finished", "failed"]
 TRIGGER = Literal["api", "cli", "python-sdk", "webui", "schedule", "worker"]

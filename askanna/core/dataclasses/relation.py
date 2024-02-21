@@ -16,28 +16,23 @@ class BaseRelation:
 
 
 @dataclass
-class WorkspaceRelation(BaseRelation):
-    ...
+class WorkspaceRelation(BaseRelation): ...
 
 
 @dataclass
-class ProjectRelation(BaseRelation):
-    ...
+class ProjectRelation(BaseRelation): ...
 
 
 @dataclass
-class PackageRelation(BaseRelation):
-    ...
+class PackageRelation(BaseRelation): ...
 
 
 @dataclass
-class JobRelation(BaseRelation):
-    ...
+class JobRelation(BaseRelation): ...
 
 
 @dataclass
-class RunRelation(BaseRelation):
-    ...
+class RunRelation(BaseRelation): ...
 
 
 @dataclass

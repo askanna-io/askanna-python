@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.24.0 (2024-02-21)
+
+- Add support for Python 3.12 and drop support for Python 3.7
+- Add created_by info to Workspace & Project dataclasses
+
 ## 0.23.0 (2023-04-05)
 
 - Added new run filters: `status`, `trigger`, `created_by` and `package_suuid`

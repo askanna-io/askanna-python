@@ -56,22 +56,22 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-  "faker~=19.11.0",
-  "numpy>=1.24.4",  # numpy is only required for testing numpy support on supported data types
-  "pytest~=7.4.2",
+  "faker~=23.2.1",
+  "numpy>=1.24.4",  # only required for testing NumPy support; NumPy 1.24.4 is latest version supported on Python 3.8
+  "pytest~=8.0.1",
   "pytest-cov~=4.1.0",
-  "responses~=0.23.3",
-  "ruff~=0.1.1",
+  "responses~=0.25.0",
+  "ruff~=0.2.2",
   "urllib3~=1.26.18",
 ]
 dev = [
   "askanna[test]",
-  "bandit~=1.7.5",
-  "black~=23.10.0",
-  "hatch~=1.7.0",
-  "isort~=5.12.0",
-  "pre-commit~=3.0.0",
-  "python-dotenv~=0.21.1",
+  "bandit~=1.7.7",
+  "black~=24.2.0",
+  "hatch~=1.9.3",
+  "isort~=5.13.2",
+  "pre-commit~=3.6.2",
+  "python-dotenv~=1.0.1",
 ]
 
 [project.urls]
@@ -147,8 +147,10 @@ known_first_party = ["askanna"]
 skips = ["B101"]
 
 [tool.ruff]
-target-version = "py37"
+target-version = "py38"
 line-length = 119
+
+[tool.ruff.lint]
 select = [
   "F",  # pyflakes
   "E",  # pycodestyle errors

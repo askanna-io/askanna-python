@@ -19,7 +19,7 @@ def update_available() -> bool:
     is available, return a info message with update instructions.
     """
     try:
-        r = requests.get(PYPI_PROJECT_URL)
+        r = requests.get(PYPI_PROJECT_URL, timeout=60)
     except requests.exceptions.ConnectionError:
         return False
     except requests.exceptions.HTTPError:

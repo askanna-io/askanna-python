@@ -1,4 +1,5 @@
 """This file contains anything that needs to be loaded for `import askanna` to work."""
+
 import click
 
 from askanna import USING_ASKANNA_CLI
